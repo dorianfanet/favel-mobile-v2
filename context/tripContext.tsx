@@ -1,0 +1,58 @@
+import { DestinationData, Trip, TripEdit, TripMetadata } from "@/types/types";
+import React, { createContext, useContext, useState } from "react";
+
+export interface Loading {
+  type: "new";
+}
+
+export interface TripContext {
+  trip: Trip | null;
+  setTrip: (trip: Trip | null) => void;
+  loading: Loading | null;
+  setLoading: (loading: Loading | null) => void;
+  tripMetadata: TripMetadata | null;
+  setTripMetadata: React.Dispatch<React.SetStateAction<TripMetadata | null>>;
+  tripEdits: TripEdit[] | null;
+  setTripEdits: (tripEdits: TripEdit[] | null) => void;
+  destinationData: DestinationData | null;
+  setDestinationData: (destinationData: DestinationData | null) => void;
+}
+
+const tripContext = createContext<TripContext>({} as any);
+
+export const TripProvider = ({ children }: { children: React.JSX.Element }) => {
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [loading, setLoading] = useState<Loading | null>(null);
+  const [tripMetadata, setTripMetadata] = useState<TripMetadata | null>(null);
+  const [tripEdits, setTripEdits] = useState<TripEdit[] | null>(null);
+
+  const [destinationData, setDestinationData] =
+    useState<DestinationData | null>(null);
+
+  return (
+    <tripContext.Provider
+      value={{
+        trip,
+        setTrip,
+        loading,
+        setLoading,
+        tripMetadata,
+        setTripMetadata,
+        tripEdits,
+        setTripEdits,
+        destinationData,
+        setDestinationData,
+      }}
+    >
+      {children}
+    </tripContext.Provider>
+  );
+};
+
+export const useTrip = () => {
+  const context = useContext(tripContext);
+  if (context === undefined) {
+    throw new Error("useTrip must be used within a TripProvider");
+  }
+  return context;
+};

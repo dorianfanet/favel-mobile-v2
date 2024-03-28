@@ -1,19 +1,20 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
-
 export default {
   light: {
-    text: '#000',
-    background: '#fff',
-    tint: tintColorLight,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorLight,
+    background: "#D4E8F3",
+    primary: "#083E4F",
+    secondary: "#FFF",
+    tertiary: "#1C344B",
+    accent: "#44C0E7",
   },
   dark: {
-    text: '#fff',
-    background: '#000',
-    tint: tintColorDark,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
+    background: "#2e648b",
+    primary: "#fff",
+    secondary: "#FFF",
+    accent: "#44C0E7",
+  },
+  map: {
+    car: "#0d6ac8",
+    driving: "#0d6ac8",
+    transit: "#1dc80d",
   },
 };
