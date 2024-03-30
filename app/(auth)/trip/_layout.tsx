@@ -5,6 +5,11 @@ import { TripProvider } from "@/context/tripContext";
 import Header from "./components/Header";
 import Map from "./(map)/Map";
 import { CameraProvider } from "@/context/cameraContext";
+import { MMKVLoader, useMMKVStorage } from "react-native-mmkv-storage";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import Colors from "@/constants/Colors";
+
+export const MMKV = new MMKVLoader().initialize();
 
 export default function Layout() {
   useEffect(() => {
@@ -19,11 +24,13 @@ export default function Layout() {
         }}
       />
       <TripProvider>
-        <>
-          <MapWrapper />
-          <Slot />
-          <Header />
-        </>
+        <BottomSheetModalProvider>
+          <>
+            <MapWrapper />
+            <Slot />
+            <Header />
+          </>
+        </BottomSheetModalProvider>
       </TripProvider>
     </>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MapboxGL from "@rnmapbox/maps";
 import { useCamera } from "@/context/cameraContext";
 import { useTrip } from "@/context/tripContext";
@@ -6,11 +6,15 @@ import Route from "./Route";
 import { TripMetadata } from "@/types/types";
 import InitialDestination from "./InitialDestination";
 import { Dimensions } from "react-native";
+import Activities from "./Activities";
+import { booleanPointInPolygon, polygon } from "@turf/turf";
 
-MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY!);
+MapboxGL.setAccessToken(process.env.MAPBOX_KEY!);
 
 export default function Map() {
   const mapRef = useRef<MapboxGL.MapView>(null);
+
+  const [currentZoom, setCurrentZoom] = useState<number>(0);
 
   const {
     easing,
@@ -21,6 +25,7 @@ export default function Map() {
     centerOrBounds,
     move,
     updatePadding,
+    setViewState,
   } = useCamera();
 
   const { tripMetadata, destinationData } = useTrip();
@@ -52,6 +57,39 @@ export default function Map() {
     }
   }, [tripMetadata?.status]);
 
+  function checkForHotspotsInBounds(camera: MapboxGL.MapState) {
+    const boundsPolygon = polygon([
+      [
+        [camera.properties.bounds.sw[0], camera.properties.bounds.sw[1]],
+        [camera.properties.bounds.ne[0], camera.properties.bounds.sw[1]],
+        [camera.properties.bounds.ne[0], camera.properties.bounds.ne[1]],
+        [camera.properties.bounds.sw[0], camera.properties.bounds.ne[1]],
+        [camera.properties.bounds.sw[0], camera.properties.bounds.sw[1]],
+      ],
+    ]);
+
+    let pointsInBounds = 0;
+
+    if (tripMetadata && tripMetadata.route) {
+      tripMetadata.route.forEach((route) => {
+        if (
+          booleanPointInPolygon(route.coordinates, boundsPolygon) &&
+          route.location
+        ) {
+          pointsInBounds++;
+        }
+      });
+    }
+
+    console.log(currentZoom);
+
+    if (pointsInBounds === 1 && currentZoom > 8) {
+      setViewState("days");
+    } else {
+      setViewState("hotspots");
+    }
+  }
+
   return (
     <MapboxGL.MapView
       ref={mapRef}
@@ -62,6 +100,11 @@ export default function Map() {
       attributionEnabled={false}
       logoEnabled={false}
       styleURL="mapbox://styles/dorianfanet/clj4mafi6000201qx5ci9eaj8"
+      rotateEnabled={false}
+      onCameraChanged={(camera) => {
+        setCurrentZoom(camera.properties.zoom);
+        checkForHotspotsInBounds(camera);
+      }}
     >
       <MapboxGL.Camera
         {...centerOrBounds}
@@ -77,6 +120,7 @@ export default function Map() {
         animationDuration={2000}
         animationMode={easing}
       />
+      <Activities />
       <Route />
       <InitialDestination />
     </MapboxGL.MapView>

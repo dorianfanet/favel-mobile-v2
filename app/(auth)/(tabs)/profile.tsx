@@ -54,6 +54,8 @@ export default function profile() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
+          colors={[Colors.light.primary]}
+          tintColor={Colors.light.primary}
         />
       }
     >

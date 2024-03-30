@@ -20,7 +20,7 @@ import { months } from "@/constants/data";
 
 export default function RouteChat() {
   const { form } = useNewTripForm();
-  const { setTripMetadata } = useTrip();
+  const { setTripMetadata, destinationData } = useTrip();
 
   const routeBufferRef = useRef<any>({});
 
@@ -55,13 +55,22 @@ export default function RouteChat() {
             content: "Je réfléchis à votre itinéraire...",
           },
         ]);
-        favel.sendFirstRouteChatMessage(
-          `${form.destination}. ${
-            parseInt(form.flexDates.duration!) || 4
-          } jours en ${months[form.flexDates.month || new Date().getMonth()]}`,
-          id,
-          messageId
-        );
+        if (
+          destinationData!.result === "destination" ||
+          destinationData!.result === "unknown"
+        ) {
+          favel.sendFirstRouteChatMessage(
+            `${form.destination}. ${
+              parseInt(form.flexDates.duration!) || 4
+            } jours en ${
+              months[form.flexDates.month || new Date().getMonth()]
+            }`,
+            id,
+            messageId
+          );
+        } else if (destinationData!.result === "route") {
+          favel.sendNewRouteChatMessage([], id, messageId, form);
+        }
       }
     }
 

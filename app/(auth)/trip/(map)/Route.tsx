@@ -16,6 +16,8 @@ import MapboxGL, { MarkerView } from "@rnmapbox/maps";
 import Colors from "@/constants/Colors";
 import Hotspot from "./Hotspot";
 import { useCamera } from "@/context/cameraContext";
+import { secondsToHoursMinutes } from "@/lib/utils";
+import Icon from "@/components/Icon";
 
 function getMidpoint(route?: RouteType) {
   if (!route) return pointOnFeature({ type: "Point", coordinates: [0, 0] });
@@ -26,11 +28,11 @@ function getMidpoint(route?: RouteType) {
 export default function Route() {
   const { trip, tripMetadata } = useTrip();
 
-  const { move } = useCamera();
+  const { move, viewState } = useCamera();
 
   const transferDaysTrip = useMemo(() => {
     if (trip) {
-      const result = trip.filter((day) => day.type === "transfer");
+      const result = trip.filter((day) => day.transfer === true);
       return result;
     } else {
       return [];
@@ -91,6 +93,12 @@ export default function Route() {
     }
   }, [tripMetadata?.route]);
 
+  useEffect(() => {
+    if (routeLines.features.length > 0) {
+      console.log(routeLines.features[0].properties);
+    }
+  }, [routeLines]);
+
   return (
     <>
       <MapboxGL.ShapeSource
@@ -113,7 +121,7 @@ export default function Route() {
               Colors.light.primary,
             ],
             lineWidth: 4,
-            // lineOpacity: state === "transparent" ? 0.3 : 1,
+            lineOpacity: viewState === "days" ? 0.3 : 1,
           }}
           aboveLayerID="waterway-label"
         />
@@ -122,22 +130,24 @@ export default function Route() {
           style={{
             lineColor: "#fff",
             lineWidth: 6,
-            // lineOpacity: state === "transparent" ? 0 : 1,
+            lineOpacity: viewState === "days" ? 0 : 1,
           }}
           aboveLayerID="waterway-label"
         />
       </MapboxGL.ShapeSource>
-      {/* {routeLines.features.map((day, index) => (
+      {routeLines.features.map((day, index) => (
+        <>
+          {day.properties && day.properties.midpoint && (
             <MarkerView
               key={`day-${index}`}
               id={`day-${index}`}
-              coordinate={
-                day.properties
-                  ? day.properties.midpoint.geometry.coordinates
-                  : [0, 0]
-              }
+              coordinate={day.properties.midpoint.geometry.coordinates}
             >
-              <Animated.View style={[animatedStyle]}>
+              <View
+                style={{
+                  opacity: viewState === "days" ? 0.3 : 1,
+                }}
+              >
                 <View
                   style={{
                     borderRadius: 7,
@@ -173,9 +183,11 @@ export default function Route() {
                     {secondsToHoursMinutes(day.properties?.duration || 0)}
                   </Text>
                 </View>
-              </Animated.View>
+              </View>
             </MarkerView>
-          ))} */}
+          )}
+        </>
+      ))}
       {tripMetadata &&
         tripMetadata.route &&
         tripMetadata.route.map((route, index) => (
@@ -187,13 +199,19 @@ export default function Route() {
           >
             {/* <Animated.View style={[animatedStyle]}>
             </Animated.View>  */}
-            <Hotspot
-              data={{
-                id: route.id ? route.id : "",
-                location: route.location,
-                duration: route.duration,
+            <View
+              style={{
+                opacity: viewState === "days" ? 0 : 1,
               }}
-            />
+            >
+              <Hotspot
+                data={{
+                  id: route.id ? route.id : "",
+                  location: route.location,
+                  duration: route.duration,
+                }}
+              />
+            </View>
           </MarkerView>
         ))}
     </>

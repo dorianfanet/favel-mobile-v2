@@ -186,7 +186,7 @@ export default function login() {
         <Pressable
           style={{
             position: "absolute",
-            bottom: 20,
+            bottom: 30,
             width: "100%",
             left: 20,
           }}

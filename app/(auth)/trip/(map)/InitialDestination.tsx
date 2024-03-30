@@ -7,12 +7,13 @@ import { useCamera } from "@/context/cameraContext";
 import { midpoint, point } from "@turf/turf";
 
 export default function InitialDestination() {
-  const { destinationData } = useTrip();
+  const { destinationData, tripMetadata } = useTrip();
 
   const { move, updatePadding } = useCamera();
 
   useEffect(() => {
     if (
+      tripMetadata?.status === "new.route" &&
       destinationData?.result === "destination" &&
       destinationData.destination.bounds
     ) {
@@ -29,7 +30,7 @@ export default function InitialDestination() {
         ],
       });
     }
-  }, [destinationData]);
+  }, [destinationData, tripMetadata?.status]);
 
   const centerPoint = useMemo(() => {
     if (
@@ -45,7 +46,9 @@ export default function InitialDestination() {
   }, [destinationData]);
 
   return destinationData &&
+    tripMetadata?.status === "new.route" &&
     destinationData.result === "destination" &&
+    !tripMetadata?.route &&
     centerPoint ? (
     <>
       <MarkerView

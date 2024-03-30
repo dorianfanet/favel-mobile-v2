@@ -15,6 +15,7 @@ import { useTrip } from "@/context/tripContext";
 import { BlurView, Text } from "@/components/Themed";
 import { padding } from "@/constants/values";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import MenuModal from "./MenuModal";
 // import MenuModal from "./MenuModal";
 
 export default function Header() {
@@ -150,7 +151,7 @@ export default function Header() {
                 />
               </Pressable>
             </BlurView>
-            {tripMetadata && tripMetadata.status?.startsWith("trip") && (
+            {/* {tripMetadata && tripMetadata.status?.startsWith("trip") && (
               <BlurView
                 style={{
                   flex: 0,
@@ -174,7 +175,7 @@ export default function Header() {
                   />
                 </Pressable>
               </BlurView>
-            )}
+            )} */}
           </View>
         )}
       </SafeAreaView>

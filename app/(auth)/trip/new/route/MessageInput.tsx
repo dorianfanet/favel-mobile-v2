@@ -18,7 +18,7 @@ import { useTrip } from "@/context/tripContext";
 export default function MessageInput() {
   const { messages, setMessages } = useNewTripChat();
 
-  const { setDestinationData } = useTrip();
+  const { setDestinationData, destinationData } = useTrip();
 
   const { form } = useNewTripForm();
 
@@ -76,7 +76,6 @@ export default function MessageInput() {
             });
             setMessages(tempMessages);
             setInputValue("");
-            setDestinationData(null);
           }}
           style={{
             backgroundColor: Colors.light.accent, // Button color

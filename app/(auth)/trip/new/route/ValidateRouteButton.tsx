@@ -13,8 +13,9 @@ import Animated, {
 import { useTrip } from "@/context/tripContext";
 import { BottomSheetFlatListMethods } from "@gorhom/bottom-sheet";
 import { useNewTripForm } from "@/context/newTrip";
-import { TripMetadata } from "@/types/types";
+import { Form, TripMetadata } from "@/types/types";
 import { borderRadius } from "@/constants/values";
+import { favel } from "@/lib/favelApi";
 
 export default function ValidateRouteButton({
   listRef,
@@ -34,8 +35,7 @@ export default function ValidateRouteButton({
     // listRef.current?.scrollToEnd();
   }, []);
 
-  const { setForm } = useNewTripForm();
-  const { setTripMetadata } = useTrip();
+  const { setDestinationData, tripMetadata } = useTrip();
 
   const { rest } = useLocalSearchParams();
 
@@ -65,13 +65,9 @@ export default function ValidateRouteButton({
           width: "100%",
         }}
         onPress={async () => {
-          // @ts-ignore
-          setForm((currentForm: Form) => {
-            return {
-              ...currentForm,
-              status: null,
-            };
-          });
+          setDestinationData(null);
+          if (tripMetadata && tripMetadata.route)
+            favel.createTripName(tripMetadata.route, id);
           await new Promise((resolve) => setTimeout(resolve, 500));
           const { error } = await supabase
             .from("trips_v2")

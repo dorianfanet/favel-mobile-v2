@@ -1,14 +1,34 @@
 import { View, Text } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
+import { useTrip } from "@/context/tripContext";
+import { favel } from "@/lib/favelApi";
+import { useLocalSearchParams } from "expo-router";
+import TripBottomSheet from "./TripBottomSheet";
 
 export default function Trip() {
+  const { trip, tripMetadata } = useTrip();
+
+  const { rest } = useLocalSearchParams();
+
+  const id = rest[0];
+
+  useEffect(() => {
+    if (trip) return;
+
+    if (
+      tripMetadata &&
+      tripMetadata.prompt &&
+      tripMetadata.status === "trip.initLoading" &&
+      tripMetadata.route
+    ) {
+      console.log("creating trip");
+      favel.createTrip(tripMetadata.prompt, id, tripMetadata.route);
+    }
+  }, [trip]);
+
   return (
-    <View
-      style={{
-        position: "absolute",
-      }}
-    >
-      <Text>Trip</Text>
-    </View>
+    <>
+      <TripBottomSheet />
+    </>
   );
 }

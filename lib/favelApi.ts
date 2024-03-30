@@ -1,4 +1,4 @@
-import { DestinationData, Route } from "@/types/types";
+import { DestinationData, Route, TripRoute } from "@/types/types";
 import { getDaysDiff } from "./utils";
 
 class ApiClient {
@@ -73,10 +73,37 @@ class ApiClient {
     });
   }
 
-  async createTripName(route: Route, tripId: string): Promise<void> {
+  async createTripName(
+    route: TripRoute | { location: string }[],
+    tripId: string
+  ): Promise<void> {
     return this.request(`create-name`, "POST", {
       route,
       tripId,
+    });
+  }
+
+  async singleDestination(
+    tripId: string,
+    destination: string,
+    duration: number
+  ): Promise<void> {
+    return this.request(`single-destination`, "POST", {
+      tripId,
+      destination,
+      duration,
+    });
+  }
+
+  async createTrip(
+    prompt: string,
+    tripId: string,
+    route: TripRoute
+  ): Promise<void> {
+    return this.request(`new-trip-back`, "POST", {
+      prompt,
+      tripId,
+      route,
     });
   }
 }

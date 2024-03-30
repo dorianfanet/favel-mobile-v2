@@ -37,6 +37,8 @@ export type CameraContext = {
         }
       | number
   ) => void;
+  viewState: "days" | "hotspots";
+  setViewState: (viewState: "days" | "hotspots") => void;
 };
 
 type Coordinate = {
@@ -69,6 +71,8 @@ export const CameraProvider = ({
   const [zoom, setZoom] = useState(0);
   const [minZoom, setMinZoom] = useState<number | undefined>(undefined);
   const [maxZoom, setMaxZoom] = useState<number | undefined>(undefined);
+
+  const [viewState, setViewState] = useState<"days" | "hotspots">("days");
 
   const centerOrBounds = useMemo((): {
     centerCoordinate?: Position;
@@ -153,6 +157,8 @@ export const CameraProvider = ({
         centerOrBounds,
         move,
         updatePadding,
+        viewState,
+        setViewState,
       }}
     >
       {children}

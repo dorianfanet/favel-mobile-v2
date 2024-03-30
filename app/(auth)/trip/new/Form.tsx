@@ -55,6 +55,7 @@ export default function Form() {
           form.destination,
           form.flexDates.duration ? parseInt(form.flexDates.duration) : 4
         );
+        console.log("Destination data", data);
         setDestinationData(data);
       }
     } else if (currentIndex === data.length - 1) {

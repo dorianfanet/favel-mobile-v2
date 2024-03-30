@@ -6,7 +6,7 @@ import {
   ImageSourcePropType,
   ScrollView,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -58,6 +58,16 @@ export default function Question({
   });
 
   const { form, setForm } = useNewTripForm();
+
+  const updatedMonths: string[] | undefined = useMemo(() => {
+    if (question.type === "flexDates") {
+      const currentMonth = new Date().getMonth();
+      const monthsCopy = [...months];
+      const firstPart = monthsCopy.slice(currentMonth);
+      const secondPart = monthsCopy.slice(0, currentMonth);
+      return firstPart.concat(secondPart);
+    }
+  }, []);
 
   return (
     <Animated.View
@@ -170,35 +180,36 @@ export default function Question({
                 height: 140,
               }}
             >
-              {months.map((month, index) => (
-                <RadioButton
-                  key={`month-${index}`}
-                  onPress={() => {
-                    setForm({
-                      ...form,
-                      flexDates: {
-                        ...form.flexDates,
-                        month: index,
-                      },
-                    });
-                    onNext && onNext();
-                  }}
-                  item={{
-                    value: index.toString(),
-                    name: month,
-                  }}
-                  selected={form.flexDates.month === index}
-                  containerStyle={{
-                    width: 120,
-                    height: 120,
-                  }}
-                  contentStyle={{
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    paddingHorizontal: 10,
-                  }}
-                />
-              ))}
+              {updatedMonths &&
+                updatedMonths.map((month, index) => (
+                  <RadioButton
+                    key={`month-${index}`}
+                    onPress={() => {
+                      setForm({
+                        ...form,
+                        flexDates: {
+                          ...form.flexDates,
+                          month: index,
+                        },
+                      });
+                      onNext && onNext();
+                    }}
+                    item={{
+                      value: index.toString(),
+                      name: month,
+                    }}
+                    selected={form.flexDates.month === index}
+                    containerStyle={{
+                      width: 120,
+                      height: 120,
+                    }}
+                    contentStyle={{
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      paddingHorizontal: 10,
+                    }}
+                  />
+                ))}
             </ScrollView>
           </View>
         </View>

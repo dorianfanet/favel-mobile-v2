@@ -13,7 +13,10 @@
       "autoIncrement": true
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qteehkigcapivkertawb.supabase.co"
+      }
     }
   },
   "submit": {

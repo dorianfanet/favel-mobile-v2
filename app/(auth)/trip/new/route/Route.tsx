@@ -1,10 +1,12 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import BottomSheet, { BottomSheetFooter } from "@gorhom/bottom-sheet";
 import { useTrip } from "@/context/tripContext";
 import { BlurView } from "@/components/Themed";
 import MessageInput from "./MessageInput";
 import RouteChat from "./RouteChat";
+import { favel } from "@/lib/favelApi";
+import { useLocalSearchParams } from "expo-router";
 
 export default function Route() {
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -15,15 +17,31 @@ export default function Route() {
     console.log("handleSheetChanges", index);
   }, []);
 
-  const { tripMetadata } = useTrip();
+  const { tripMetadata, destinationData } = useTrip();
+
+  const [loading, setLoading] = React.useState(true);
+
+  const { rest } = useLocalSearchParams();
+
+  const id = rest[0];
 
   useEffect(() => {
-    if (tripMetadata?.status === "new.route") {
-      bottomSheetRef.current?.expand();
+    if (tripMetadata?.status === "new.route" && destinationData) {
+      if (destinationData.result === "single") {
+        favel.createTripName([destinationData.destination], tripMetadata.id);
+        favel.singleDestination(
+          id,
+          destinationData.destination.location,
+          destinationData.destination.duration
+        );
+      } else {
+        bottomSheetRef.current?.expand();
+        setLoading(false);
+      }
     } else {
       bottomSheetRef.current?.close();
     }
-  }, [tripMetadata?.status]);
+  }, [tripMetadata?.status, destinationData]);
 
   const renderFooter = useCallback(
     (props: any) => (
@@ -38,47 +56,68 @@ export default function Route() {
   );
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      index={-1}
-      snapPoints={snapPoints}
-      onChange={handleSheetChanges}
-      backgroundComponent={(props) => (
+    <>
+      {loading && tripMetadata?.status === "new.route" && (
         <View
           style={{
-            flex: 1,
-            padding: 0,
-            margin: 0,
+            position: "absolute",
+            bottom: 100,
+            width: "100%",
+            justifyContent: "center",
           }}
-          {...props}
         >
-          <BlurView />
+          <View>
+            <ActivityIndicator
+              size="large"
+              color={"#fff"}
+            />
+          </View>
         </View>
       )}
-      handleIndicatorStyle={{
-        backgroundColor: "white",
-      }}
-      footerComponent={renderFooter}
-      keyboardBlurBehavior="restore"
-    >
-      <View
-        style={{
-          flex: 1,
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        backgroundComponent={(props) => (
+          <View
+            style={{
+              flex: 1,
+              padding: 0,
+              margin: 0,
+            }}
+            {...props}
+          >
+            <BlurView />
+          </View>
+        )}
+        handleIndicatorStyle={{
+          backgroundColor: "white",
         }}
+        footerComponent={renderFooter}
+        keyboardBlurBehavior="restore"
       >
         <View
           style={{
             flex: 1,
           }}
         >
-          {tripMetadata?.status === "new.route" ? <RouteChat /> : null}
+          <View
+            style={{
+              flex: 1,
+            }}
+          >
+            {!loading && tripMetadata?.status === "new.route"
+              ? destinationData && <RouteChat />
+              : null}
+          </View>
+          <View
+            style={{
+              height: 84,
+            }}
+          ></View>
         </View>
-        <View
-          style={{
-            height: 84,
-          }}
-        ></View>
-      </View>
-    </BottomSheet>
+      </BottomSheet>
+    </>
   );
 }

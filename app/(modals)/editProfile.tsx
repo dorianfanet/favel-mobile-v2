@@ -6,7 +6,7 @@ import { Button, TextInput } from "@/components/Themed";
 import * as ImagePicker from "expo-image-picker";
 import { padding } from "@/constants/values";
 import { View as ThemedView, Text } from "@/components/Themed";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 
 export default function editProfile() {
   const { user } = useUser();
@@ -18,6 +18,9 @@ export default function editProfile() {
   );
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+
+  const pathname = usePathname();
+  console.log(pathname);
 
   const pickImageAsync = async () => {
     try {

@@ -87,6 +87,7 @@ export interface Day {
   day?: number;
   activities?: Activity[];
   type: "day" | "transfer";
+  transfer?: boolean;
   origin?: string;
   destination?: string;
   origin_coordinates?: [number, number];
@@ -206,7 +207,7 @@ export interface Form {
     departure: Date;
     return: Date;
   };
-  status: "initial" | "form" | "destinationFunnel";
+  status: "initial" | "form" | "destinationFunnel" | null;
   bounds?: number[][];
   featureCollection?: FeatureCollection;
   destinationDataSent?: boolean;
@@ -221,12 +222,26 @@ export type Hotspot = {
   coordinates: [number, number];
 };
 
-export type DestinationData = {
-  result: "destination";
-  destination: {
-    location: string;
-    duration: number;
-    bounds?: Position[];
-    center: Position;
-  };
-};
+export type DestinationData =
+  | {
+      result: "destination";
+      destination: {
+        location: string;
+        duration: number;
+        bounds?: Position[];
+        center: Position;
+      };
+    }
+  | {
+      result: "route";
+    }
+  | {
+      result: "single";
+      destination: {
+        location: string;
+        duration: number;
+      };
+    }
+  | {
+      result: "unknown";
+    };
