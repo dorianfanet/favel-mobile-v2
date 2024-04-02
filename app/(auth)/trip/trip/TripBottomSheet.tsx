@@ -28,10 +28,11 @@ import { BlurView } from "@/components/Themed";
 import { useEditor } from "@/context/editorContext";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import { useUser } from "@clerk/clerk-expo";
-import { updateTripFromFormatted } from "@/lib/supabase";
+import { getActivity, updateTripFromFormatted } from "@/lib/supabase";
 import DayCard from "../components/DayCard";
 import ActivityCard from "../components/ActivityCard";
 import { newTripEdit } from "@/lib/tripEdits";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TripBottomSheet() {
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -39,12 +40,14 @@ export default function TripBottomSheet() {
 
   const { user } = useUser();
 
-  const snapPoints = useMemo(() => ["10%", "35%", "80%"], []);
+  const snapPoints = useMemo(() => ["10%", "35%", "100%"], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
     setSheetIndex(index);
   }, []);
+
+  const inset = useSafeAreaInsets();
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -68,6 +71,8 @@ export default function TripBottomSheet() {
         origin: day.origin,
         destination: day.destination,
         coordinates: day.coordinates,
+        transfer: day.transfer,
+        origin_coordinates: day.origin_coordinates,
       });
 
       if (day.activities) {
@@ -96,7 +101,7 @@ export default function TripBottomSheet() {
 
   useEffect(() => {
     if (!bottomSheetRef.current) return;
-    if (tripMetadata?.status?.includes("Loading")) {
+    if (tripMetadata && tripMetadata.status.includes("loading")) {
       bottomSheetRef.current?.close();
     } else {
       try {
@@ -105,7 +110,7 @@ export default function TripBottomSheet() {
         console.log(error);
       }
     }
-  }, [tripMetadata]);
+  }, [tripMetadata?.status]);
 
   const { editor } = useEditor();
 
@@ -208,6 +213,7 @@ export default function TripBottomSheet() {
       handleIndicatorStyle={{
         backgroundColor: "white",
       }}
+      topInset={inset.top}
     >
       {formattedTrip && (
         <DraggableFlatList
@@ -238,6 +244,9 @@ export default function TripBottomSheet() {
               : `${item.id!}-${index}`
           }
           onDragEnd={({ data, from, to }) => updateFormattedTrip(data, to)}
+          contentContainerStyle={{
+            paddingBottom: 80,
+          }}
         />
       )}
     </BottomSheet>

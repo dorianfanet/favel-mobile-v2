@@ -9,29 +9,41 @@ import { mapPinIcon } from "@/constants/icons";
 import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
 import ActivityCard from "./ActivityCard";
+import { formatTimestamp } from "@/lib/utils";
+import { favel } from "@/lib/favelApi";
+import { MMKV } from "../_layout";
 
 export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
   const [name, setName] = React.useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchName() {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", tripEdit.author_id);
-      if (error) console.error(error);
-      if (data) {
-        setName(data[0].full_name);
+    async function checkUser() {
+      const cachedActivity = await MMKV.getStringAsync(
+        `user-${tripEdit.author_id}`
+      );
+
+      if (cachedActivity) {
+        setName(JSON.parse(cachedActivity).firstName);
+      } else {
+        favel.getUser(tripEdit.author_id).then((user: any) => {
+          setName(user?.message?.firstName);
+          MMKV.setStringAsync(
+            `user-${tripEdit.author_id}`,
+            JSON.stringify({
+              data: { firstName: user?.message?.firstName },
+              expiresAt: new Date().getTime() + 86400000,
+            })
+          );
+        });
       }
     }
-
-    fetchName();
+    checkUser();
   }, [tripEdit]);
 
   return (
     <View
       style={{
-        backgroundColor: "white",
+        // backgroundColor: "white",
         padding: padding,
       }}
     >
@@ -52,6 +64,7 @@ export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
             style={{
               fontSize: 16,
               fontFamily: "Outfit_600SemiBold",
+              color: Colors.dark.primary,
             }}
           >
             {`${name} `}
@@ -60,6 +73,7 @@ export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
             style={{
               fontSize: 16,
               fontFamily: "Outfit_400Regular",
+              color: Colors.dark.primary,
             }}
           >
             a{" "}
@@ -80,32 +94,66 @@ export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
               id: tripEdit.activity_id,
               formattedType: "activity",
             }}
-            theme="light"
+            theme="dark"
             style={{ paddingHorizontal: 0 }}
           />
         )}
       </View>
       <View
         style={{
-          position: "absolute",
-          bottom: 15,
-          right: 15,
           flexDirection: "row",
+          justifyContent: "space-between",
+          width: "100%",
           alignItems: "center",
           gap: 5,
+          opacity: 0.8,
         }}
       >
-        <Text>{`${
-          tripEdit.day_index !== undefined
-            ? `Jour ${tripEdit.day_index + 1}`
-            : ""
-        }`}</Text>
-        <Icon
-          icon={"mapPinIcon"}
-          size={15}
-          color={Colors.light.primary}
-        />
-        <Text>{tripEdit.location}</Text>
+        {tripEdit.created_at && (
+          <Text
+            style={{
+              color: Colors.dark.primary,
+              fontSize: 12,
+              fontFamily: "Outfit_400Regular",
+            }}
+          >
+            {formatTimestamp(tripEdit.created_at)}
+          </Text>
+        )}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 5,
+          }}
+        >
+          <Text
+            style={{
+              color: Colors.dark.primary,
+              fontSize: 12,
+              fontFamily: "Outfit_400Regular",
+            }}
+          >{`${
+            tripEdit.day_index !== undefined
+              ? `Jour ${tripEdit.day_index + 1}`
+              : ""
+          }`}</Text>
+          <Icon
+            icon={"mapPinIcon"}
+            size={15}
+            color={Colors.dark.primary}
+          />
+          <Text
+            style={{
+              color: Colors.dark.primary,
+              fontSize: 12,
+
+              fontFamily: "Outfit_400Regular",
+            }}
+          >
+            {tripEdit.location}
+          </Text>
+        </View>
       </View>
     </View>
   );

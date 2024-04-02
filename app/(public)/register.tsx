@@ -1,14 +1,8 @@
-import {
-  Button,
-  TextInput,
-  StyleSheet,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { Button, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import { useSignUp } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { Stack } from "expo-router";
-import { Text, View } from "@/components/Themed";
+import { Text, TextInput, View } from "@/components/Themed";
 import { logInStyles } from "./login";
 
 const Register = () => {
@@ -83,16 +77,16 @@ const Register = () => {
             placeholder="Email"
             value={emailAddress}
             onChangeText={setEmailAddress}
-            style={logInStyles.inputField}
             placeholderTextColor={"#083E4F8b"}
+            autoComplete="email"
           />
           <TextInput
             placeholder="Mot de passe"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            style={logInStyles.inputField}
             placeholderTextColor={"#083E4F8b"}
+            autoComplete="password"
           />
 
           <Pressable

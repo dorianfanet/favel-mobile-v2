@@ -1,0 +1,339 @@
+import {
+  View,
+  DimensionValue,
+  Platform,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  Pressable,
+  StatusBar,
+} from "react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetFlatList,
+  BottomSheetFlatListMethods,
+  BottomSheetFooter,
+  BottomSheetModal,
+  BottomSheetView,
+  TouchableOpacity,
+} from "@gorhom/bottom-sheet";
+import Colors from "@/constants/Colors";
+import {
+  Activity,
+  FormattedTrip,
+  Route,
+  Trip,
+  TripChatMessage,
+} from "@/types/types";
+import { useTrip } from "@/context/tripContext";
+import { FlatList } from "react-native-gesture-handler";
+import { ScrollView } from "react-native-gesture-handler";
+import { BlurView, Text } from "@/components/Themed";
+import ImageWithFallback from "@/components/ImageWithFallback";
+import {
+  router,
+  useLocalSearchParams,
+  usePathname,
+  useSegments,
+} from "expo-router";
+import { padding } from "@/constants/values";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import Icon from "@/components/Icon";
+import Input from "./Input";
+import { supabase } from "@/lib/supabase";
+import { useTripChat } from "@/context/tripChat";
+import Edits from "./Edits";
+
+export default function TripChat({
+  bottomSheetModalRef,
+}: {
+  bottomSheetModalRef: React.RefObject<BottomSheetModal>;
+}) {
+  const snapPoints = useMemo(() => ["100%"], []);
+
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+    if (index === -1) {
+      StatusBar.setBarStyle("dark-content");
+    } else {
+      StatusBar.setBarStyle("light-content");
+    }
+    flatListRef.current?.scrollToEnd({ animated: false });
+  }, []);
+
+  const inset = useSafeAreaInsets();
+
+  const { tripMetadata } = useTrip();
+  const { setMessages, messages } = useTripChat();
+
+  const flatListRef = useRef<BottomSheetFlatListMethods>(null);
+
+  useEffect(() => {
+    if (!tripMetadata?.id) return;
+    const channel = supabase
+      .channel(`${tripMetadata?.id}-trip-chat`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "trip_chat",
+          filter: `trip_id=eq.${tripMetadata?.id}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            console.log(payload.new);
+            setMessages((currentMessages: TripChatMessage[]) => {
+              let updatedMessages = [...currentMessages];
+              if (updatedMessages.length > 0 && payload.new.content) {
+                updatedMessages[updatedMessages.length - 1].content =
+                  payload.new.content;
+              }
+              if (updatedMessages.length > 0 && payload.new.edits) {
+                updatedMessages[updatedMessages.length - 1].edits =
+                  payload.new.edits;
+              }
+              return updatedMessages;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tripMetadata?.id]);
+
+  useEffect(() => {
+    async function fetchMessages() {
+      if (!tripMetadata?.id) return;
+      const { data, error } = await supabase
+        .from("trip_chat")
+        .select("id, role, content, edits")
+        .eq("trip_id", tripMetadata?.id)
+        .order("created_at", { ascending: true });
+      if (error) {
+        console.log(error);
+      } else {
+        setMessages(data as TripChatMessage[]);
+      }
+    }
+
+    if (messages.length === 0) {
+      fetchMessages();
+    }
+  }, []);
+
+  const renderFooter = useCallback(
+    (props: any) => (
+      <BottomSheetFooter
+        {...props}
+        bottomInset={24}
+      >
+        <Input
+          messages={messages}
+          setMessages={setMessages}
+          tripId={tripMetadata?.id!}
+        />
+      </BottomSheetFooter>
+    ),
+    [messages]
+  );
+
+  return (
+    <>
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        index={0}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        backgroundComponent={(props) => (
+          <View
+            style={{
+              flex: 1,
+              padding: 0,
+              margin: 0,
+            }}
+            {...props}
+          >
+            <BlurView />
+          </View>
+        )}
+        handleIndicatorStyle={{
+          backgroundColor: "transparent",
+        }}
+        handleComponent={(props) => (
+          <View
+            style={{
+              backgroundColor: "",
+              height: inset.top,
+            }}
+            {...props}
+          ></View>
+        )}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            enableTouchThrough={true}
+            pressBehavior="close"
+          />
+        )}
+        footerComponent={renderFooter}
+        keyboardBlurBehavior="restore"
+      >
+        <BottomSheetView
+          style={{
+            paddingTop: inset.top,
+            paddingBottom: 5,
+            paddingHorizontal: padding,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              height: 40,
+              position: "relative",
+            }}
+          >
+            <TouchableOpacity
+              onPress={async () => {
+                const { data, error } = await supabase
+                  .from("trip_chat")
+                  .select("id, role, content, edits")
+                  .eq("trip_id", tripMetadata?.id)
+                  .order("created_at", { ascending: true });
+                if (error) {
+                  console.log(error);
+                } else {
+                  setMessages(data as TripChatMessage[]);
+                }
+              }}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                height: 40,
+                justifyContent: "center",
+              }}
+            >
+              {/* <Icon
+                icon="chevronLeftIcon"
+                size={20}
+                color={Colors.dark.primary}
+              /> */}
+              <Text
+                style={{
+                  color: Colors.dark.primary,
+                  fontSize: 16,
+                  fontFamily: "Outfit_500Medium",
+                }}
+              >
+                Rafraîchir
+              </Text>
+            </TouchableOpacity>
+            <Text
+              style={{
+                fontSize: 18,
+                color: Colors.dark.primary,
+                fontFamily: "Outfit_600SemiBold",
+              }}
+            >
+              Chat IA
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                bottomSheetModalRef.current?.close();
+              }}
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 0,
+                height: 40,
+                justifyContent: "center",
+              }}
+            >
+              {/* <Icon
+                icon="chevronLeftIcon"
+                size={20}
+                color={Colors.dark.primary}
+              /> */}
+              <Text
+                style={{
+                  color: Colors.dark.primary,
+                  fontSize: 16,
+                  fontFamily: "Outfit_500Medium",
+                }}
+              >
+                Fermer
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </BottomSheetView>
+        <BottomSheetFlatList
+          data={messages}
+          ref={flatListRef}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+          keyExtractor={(item: any, index) => item.id + index.toString()}
+          renderItem={({ item, index }) => {
+            return item.role !== "system" ? (
+              <View
+                style={{
+                  padding: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontFamily: "Outfit_600SemiBold",
+                    color: "white",
+                    marginBottom: 10,
+                  }}
+                >
+                  {item.role === "assistant" ? "Favel" : "Vous"}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: "Outfit_400Regular",
+                    color: "white",
+                  }}
+                >
+                  {item.content}
+                </Text>
+                <Edits edits={item.edits} />
+              </View>
+            ) : null;
+          }}
+          ItemSeparatorComponent={() => (
+            <View
+              style={{
+                height: 2,
+                backgroundColor: "#ffffff",
+                opacity: 0.2,
+                width: "100%",
+              }}
+            />
+          )}
+          style={{
+            flex: 1,
+            marginBottom: inset.bottom + 50,
+          }}
+        />
+      </BottomSheetModal>
+    </>
+  );
+}

@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useTrip } from "@/context/tripContext";
 import Colors from "@/constants/Colors";
-import { supabase } from "@/lib/supabase";
-import { TripMetadata } from "@/types/types";
+import { getActivity, supabase } from "@/lib/supabase";
+import { Day, TripMetadata } from "@/types/types";
 import { useUser } from "@clerk/clerk-expo";
 import { BlurView } from "@/components/Themed";
 
@@ -38,13 +38,52 @@ export default function Index() {
     async function checkForTrip() {
       const { data, error } = await supabase
         .from("trips_v2")
-        .select("id, trip, status, preferences, route, status_message, prompt")
+        .select(
+          "id, trip, status, preferences, route, status_message, prompt, name, dates"
+        )
         .eq("id", id)
         .single();
       if (data) {
         setTripMetadata(data as TripMetadata);
         if (data.trip) {
-          setTrip(data.trip);
+          async function getTrip() {
+            const newTrip = await Promise.all(
+              data!.trip.map(async (day: Day, index: number) => {
+                if (day.activities) {
+                  console.log(
+                    `✅ Day ${index} has ${day.activities.length} activities \n`
+                  );
+                  const activities = await Promise.all(
+                    day.activities.map(async (activity) => {
+                      if (activity.route) {
+                        console.log(
+                          ` 🚘 Activity ${activity.id} has a route\n`
+                        );
+                        return activity;
+                      } else {
+                        console.log(` 📍 Activity ${activity.id} is a place`);
+                        const newActivity = await getActivity(activity);
+                        console.log(`   - Id: ${newActivity.id},
+                - Name: ${newActivity.name},
+                - Category: ${newActivity.category},
+                - Coordinates: ${newActivity.coordinates?.latitude}, ${newActivity.coordinates?.longitude},
+                - Duration: ${newActivity.avg_duration},
+                - DCategory: ${newActivity.display_category},\n`);
+                        return newActivity;
+                      }
+                    })
+                  );
+                  return { ...day, activities };
+                } else {
+                  console.log(`❌ Day ${index} has no activities\n`);
+                  return day;
+                }
+              })
+            );
+            console.log(newTrip);
+            setTrip(newTrip as Day[]);
+          }
+          getTrip();
         }
         router.navigate(`/(auth)/trip/${id}/trip`);
       } else {

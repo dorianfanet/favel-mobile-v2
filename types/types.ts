@@ -13,7 +13,7 @@ export type CachedActivity = {
   expiresAt: number;
 };
 
-export type TripEditType = "move" | "delete";
+export type TripEditType = "move" | "delete" | "add";
 
 export type TripEdit = {
   id?: string;
@@ -68,10 +68,27 @@ export type TripMetadata = {
   prompt?: string;
   preferences?: Form;
   author_id?: string;
-  status: "new" | "new.form" | "new.route" | "trip" | "trip.initLoading";
+  status:
+    | "new"
+    | "new.form"
+    | "new.route"
+    | "trip"
+    | "trip.init"
+    | "trip.loading";
   route?: TripRoute;
   status_message?: StatusMessage;
   name?: string;
+  dates?:
+    | {
+        type: "flexDates";
+        duration: number;
+        month: number;
+      }
+    | {
+        type: "dates";
+        departureDate: string;
+        returnDate: string;
+      };
 };
 
 export type Trip = Day[];
@@ -181,6 +198,25 @@ export type ChatMessage = {
   content: string;
   route?: TripRoute;
   status?: "running" | "finished" | null;
+};
+
+export type TripChatMessage = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  trip?: Trip;
+  edits?: TripChatEditDay[];
+};
+
+export type TripChatEditDay = {
+  day_index: number;
+  actions: TripChatEdit[];
+};
+
+export type TripChatEdit = {
+  name: string;
+  id?: string;
+  action: "add" | "delete";
 };
 
 export interface Form {

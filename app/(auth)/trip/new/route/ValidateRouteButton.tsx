@@ -71,7 +71,7 @@ export default function ValidateRouteButton({
           await new Promise((resolve) => setTimeout(resolve, 500));
           const { error } = await supabase
             .from("trips_v2")
-            .update({ status: "trip.initLoading" })
+            .update({ status: "trip.init" })
             .eq("id", id);
           if (error) {
             console.log(error);

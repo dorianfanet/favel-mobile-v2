@@ -1,4 +1,4 @@
-import { Text, View } from "@/components/Themed";
+import { Text, TextInput, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth, useSignIn } from "@clerk/clerk-expo";
@@ -6,7 +6,6 @@ import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   StyleSheet,
-  TextInput,
   Button,
   Pressable,
   Alert,
@@ -65,7 +64,7 @@ export default function login() {
         router.back();
       }
     } catch (err) {
-      console.error("OAuth error", err);
+      console.log("OAuth error", JSON.stringify(err));
     }
   };
 
@@ -97,16 +96,16 @@ export default function login() {
         placeholder="Email"
         value={emailAddress}
         onChangeText={setEmailAddress}
-        style={logInStyles.inputField}
         placeholderTextColor={"#083E4F8b"}
+        autoComplete="email"
       />
       <TextInput
         placeholder="Mot de passe"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={logInStyles.inputField}
         placeholderTextColor={"#083E4F8b"}
+        autoComplete="password"
       />
 
       <Link
@@ -168,14 +167,28 @@ export default function login() {
           style={[logInStyles.inputField, logInStyles.providers]}
           onPress={() => onSelectAuth(Strategy.Apple)}
         >
-          <Text>Se connecter avec Apple</Text>
+          <Text
+            style={{
+              fontFamily: "Outfit_600SemiBold",
+              fontSize: 16,
+            }}
+          >
+            Se connecter avec Apple
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[logInStyles.inputField, logInStyles.providers]}
           onPress={() => onSelectAuth(Strategy.Google)}
         >
-          <Text>Se connecter avec Google</Text>
+          <Text
+            style={{
+              fontFamily: "Outfit_600SemiBold",
+              fontSize: 16,
+            }}
+          >
+            Se connecter avec Google
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -214,12 +227,18 @@ export const logInStyles = StyleSheet.create({
     padding: 20,
   },
   inputField: {
-    fontFamily: "Outfit_400Regular",
     marginVertical: 8,
     height: 60,
     borderRadius: 20,
     padding: 15,
     backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#2f2f2f5d",
+    shadowColor: "#030731",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
   },
   button: {
     marginTop: 20,

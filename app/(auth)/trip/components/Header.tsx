@@ -38,7 +38,7 @@ export default function Header() {
           top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
         }}
       >
-        {tripMetadata && tripMetadata.status?.includes("Loading") ? (
+        {tripMetadata && tripMetadata.status?.includes("loading") ? (
           <View
             style={{
               flex: 1,
@@ -151,7 +151,7 @@ export default function Header() {
                 />
               </Pressable>
             </BlurView>
-            {/* {tripMetadata && tripMetadata.status?.startsWith("trip") && (
+            {tripMetadata && tripMetadata.status?.startsWith("trip") && (
               <BlurView
                 style={{
                   flex: 0,
@@ -175,11 +175,11 @@ export default function Header() {
                   />
                 </Pressable>
               </BlurView>
-            )} */}
+            )}
           </View>
         )}
       </SafeAreaView>
-      {/* <MenuModal bottomSheetModalRef={bottomSheetModalRef} /> */}
+      <MenuModal bottomSheetModalRef={bottomSheetModalRef} />
     </>
   );
 }

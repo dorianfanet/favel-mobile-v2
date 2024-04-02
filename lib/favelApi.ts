@@ -106,6 +106,21 @@ class ApiClient {
       route,
     });
   }
+
+  async sendTripChatMessage(
+    tripId: string,
+    userMsg: {
+      id: string;
+      content: string;
+    },
+    messageId: string
+  ): Promise<void> {
+    return this.request(`trip-chat`, "POST", {
+      tripId,
+      userMsg,
+      messageId,
+    });
+  }
 }
 
-export const favel = new ApiClient("http://localhost:3000/api");
+export const favel = new ApiClient(`${process.env.EXPO_PUBLIC_API_URL}/api`);

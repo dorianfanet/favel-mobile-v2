@@ -80,7 +80,7 @@ export default function Route() {
   }, [transferDaysTrip, tripMetadata?.route]);
 
   useEffect(() => {
-    if (tripMetadata?.route) {
+    if (tripMetadata?.route && !tripMetadata.status.includes("loading")) {
       move({
         coordinates: tripMetadata.route.map((route) => {
           return {

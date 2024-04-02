@@ -1,6 +1,7 @@
 import "react-native-url-polyfill/auto";
 import { createClient } from "@supabase/supabase-js";
-import { FormattedTrip, Trip } from "@/types/types";
+import { Activity, CachedActivity, FormattedTrip, Trip } from "@/types/types";
+import { MMKV } from "@/app/(auth)/trip/_layout";
 
 console.log("supabaseUrl", process.env.EXPO_PUBLIC_SUPABASE_URL);
 
@@ -35,4 +36,48 @@ export async function updateTripFromFormatted(
   if (error) {
     console.log("error", error);
   }
+}
+
+export async function getActivity(activity: Activity): Promise<Activity> {
+  let activityData = activity;
+
+  async function fetchActivityFromDb() {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("avg_duration, category, name, display_category, coordinates")
+      .eq("id", activity.id)
+      .single();
+
+    if (error) {
+      console.log(error);
+    }
+
+    if (data) {
+      activityData = { ...activityData, ...data };
+      MMKV.setStringAsync(
+        `activity-${activity.id}`,
+        JSON.stringify({
+          data: data,
+          expiresAt: new Date().getTime() + 86400000,
+        })
+      );
+    }
+  }
+
+  const cachedActivity = await MMKV.getStringAsync(`activity-${activity.id}`);
+
+  if (cachedActivity) {
+    console.log("in cache");
+    const { data, expiresAt } = JSON.parse(cachedActivity) as CachedActivity;
+    if (expiresAt < new Date().getTime()) {
+      fetchActivityFromDb();
+    } else {
+      activityData = { ...activityData, ...data };
+    }
+  } else {
+    console.log("not in cache");
+    fetchActivityFromDb();
+  }
+
+  return activityData;
 }

@@ -69,3 +69,18 @@ export function secondsToHoursMinutes(seconds: number): string {
 export function capitalizeFirstLetter(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+export function formatTimestamp(timestamp: string): string {
+  // Parse the timestamp and create a Date object
+  const date = new Date(timestamp);
+
+  // Extract components of the date
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Months are 0-indexed
+  const year = date.getFullYear();
+  const hour = date.getHours().toString().padStart(2, "0");
+  const minute = date.getMinutes().toString().padStart(2, "0");
+
+  // Format the date in the desired format
+  return `Le ${day}/${month}/${year} à ${hour}h${minute}`;
+}

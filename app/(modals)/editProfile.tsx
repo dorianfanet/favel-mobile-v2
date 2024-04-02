@@ -11,10 +11,10 @@ import { usePathname, useRouter } from "expo-router";
 export default function editProfile() {
   const { user } = useUser();
   const [firstName, setFirstName] = useState(
-    user!.firstName ? user!.firstName : ""
+    user && user.firstName ? user.firstName : ""
   );
   const [lastName, setLastName] = useState(
-    user!.lastName ? user!.lastName : ""
+    user && user.lastName ? user!.lastName : ""
   );
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
@@ -78,6 +78,7 @@ export default function editProfile() {
       style={{
         flex: 1,
         position: "relative",
+        backgroundColor: "white",
       }}
     >
       <SafeAreaView>

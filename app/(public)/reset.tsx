@@ -1,8 +1,8 @@
-import { StyleSheet, TextInput, Button, Pressable } from "react-native";
+import { StyleSheet, Button, Pressable } from "react-native";
 import React, { useState } from "react";
 import { Stack } from "expo-router";
 import { useSignIn } from "@clerk/clerk-expo";
-import { Text, View } from "@/components/Themed";
+import { Text, TextInput, View } from "@/components/Themed";
 import { logInStyles } from "./login";
 import Colors from "@/constants/Colors";
 
@@ -57,8 +57,8 @@ const PwReset = () => {
             placeholder="Email"
             value={emailAddress}
             onChangeText={setEmailAddress}
-            style={logInStyles.inputField}
             placeholderTextColor={"#083E4F8b"}
+            autoComplete="email"
           />
 
           <Pressable

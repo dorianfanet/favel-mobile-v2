@@ -7,7 +7,7 @@ import Reanimated, {
   withTiming,
 } from "react-native-reanimated";
 import { Swipeable } from "react-native-gesture-handler";
-import { supabase } from "@/lib/supabase";
+import { getActivity, supabase } from "@/lib/supabase";
 import { MMKV } from "../_layout";
 import Colors from "@/constants/Colors";
 import ImageWithFallback from "@/components/ImageWithFallback";
@@ -41,9 +41,7 @@ export default function PlaceCard({
   noCache?: boolean;
   onDelete?: () => void;
 }) {
-  const { trip } = useTrip();
-  const { rest } = useLocalSearchParams();
-  const id = rest[0];
+  const { trip, tripMetadata } = useTrip();
   const { user } = useUser();
 
   const renderRightActions = (
@@ -121,7 +119,7 @@ export default function PlaceCard({
         location: trip[activity.index].location,
         activity_id: activity.id!,
         author_id: user?.id!,
-        trip_id: id,
+        trip_id: tripMetadata?.id!,
       });
     }
   }
@@ -186,50 +184,10 @@ function ActivityCardContent({
   const [activityData, setActivityData] = useState<Activity>(activity);
 
   useEffect(() => {
-    async function fetchActivityFromDb() {
-      const { data, error } = await supabase
-        .from("activities")
-        .select("avg_duration, category, name, display_category, coordinates")
-        .eq("id", activity.id)
-        .single();
-
-      if (error) {
-        console.log(error);
-      }
-
-      if (data) {
-        setActivityData((prev) => ({ ...prev, ...data }));
-        MMKV.setStringAsync(
-          `activity-${activity.id}`,
-          JSON.stringify({
-            data: data,
-            expiresAt: new Date().getTime() + 86400000,
-          })
-        );
-      }
-    }
-
-    async function fetchActivity() {
-      const cachedActivity = await MMKV.getStringAsync(
-        `activity-${activity.id}`
-      );
-
-      if (cachedActivity) {
-        const { data, expiresAt } = JSON.parse(
-          cachedActivity
-        ) as CachedActivity;
-        if (expiresAt < new Date().getTime()) {
-          fetchActivityFromDb();
-        } else {
-          setActivityData((prev) => ({ ...prev, ...data }));
-        }
-      } else {
-        fetchActivityFromDb();
-      }
-    }
-
     if (!noCache) {
-      fetchActivity();
+      getActivity(activity).then((data) => {
+        setActivityData(data);
+      });
     }
   }, []);
 

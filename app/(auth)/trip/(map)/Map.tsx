@@ -8,8 +8,9 @@ import InitialDestination from "./InitialDestination";
 import { Dimensions } from "react-native";
 import Activities from "./Activities";
 import { booleanPointInPolygon, polygon } from "@turf/turf";
+import Loading from "./Loading";
 
-MapboxGL.setAccessToken(process.env.MAPBOX_KEY!);
+MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY!);
 
 export default function Map() {
   const mapRef = useRef<MapboxGL.MapView>(null);
@@ -48,12 +49,21 @@ export default function Map() {
         paddingRight: 50,
       });
     } else if (tripMetadata?.status.startsWith("trip")) {
-      updatePadding({
-        paddingTop: 50,
-        paddingBottom: screenHeight * 0.35,
-        paddingLeft: 50,
-        paddingRight: 50,
-      });
+      if (tripMetadata?.status === "trip.loading") {
+        updatePadding({
+          paddingTop: 100,
+          paddingBottom: 150,
+          paddingLeft: 50,
+          paddingRight: 50,
+        });
+      } else {
+        updatePadding({
+          paddingTop: 50,
+          paddingBottom: screenHeight * 0.35,
+          paddingLeft: 50,
+          paddingRight: 50,
+        });
+      }
     }
   }, [tripMetadata?.status]);
 
@@ -83,7 +93,7 @@ export default function Map() {
 
     console.log(currentZoom);
 
-    if (pointsInBounds === 1 && currentZoom > 8) {
+    if (pointsInBounds < 2 && currentZoom > 8) {
       setViewState("days");
     } else {
       setViewState("hotspots");
@@ -120,6 +130,7 @@ export default function Map() {
         animationDuration={2000}
         animationMode={easing}
       />
+      <Loading />
       <Activities />
       <Route />
       <InitialDestination />

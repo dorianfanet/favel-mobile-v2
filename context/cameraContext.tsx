@@ -41,7 +41,7 @@ export type CameraContext = {
   setViewState: (viewState: "days" | "hotspots") => void;
 };
 
-type Coordinate = {
+export type Coordinate = {
   longitude: number;
   latitude: number;
 };

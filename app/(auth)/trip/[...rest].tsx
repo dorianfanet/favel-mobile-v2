@@ -3,9 +3,9 @@ import React, { useEffect } from "react";
 import { useLocalSearchParams } from "expo-router";
 import New from "./new/New";
 import Trip from "./trip/Trip";
-import { supabase } from "@/lib/supabase";
+import { getActivity, supabase } from "@/lib/supabase";
 import { useTrip } from "@/context/tripContext";
-import { TripMetadata } from "@/types/types";
+import { Day, TripEdit, TripMetadata } from "@/types/types";
 
 enum Action {
   NEW = "new",
@@ -16,7 +16,7 @@ export default function Rest() {
   const { rest } = useLocalSearchParams();
   const action = rest[1] as Action;
 
-  const { setTripMetadata, setTrip } = useTrip();
+  const { setTripMetadata, setTrip, setTripEdits } = useTrip();
 
   const id = rest[0];
 
@@ -36,36 +36,77 @@ export default function Rest() {
             console.log(payload.new);
             setTripMetadata(payload.new as TripMetadata);
             if (payload.new.trip) {
-              setTrip(payload.new.trip);
+              async function getTrip() {
+                const newTrip = await Promise.all(
+                  payload.new.trip.map(async (day: Day, index: number) => {
+                    if (day.activities) {
+                      console.log(
+                        `✅ Day ${index} has ${day.activities.length} activities \n`
+                      );
+                      const activities = await Promise.all(
+                        day.activities.map(async (activity) => {
+                          if (activity.route) {
+                            console.log(
+                              ` 🚘 Activity ${activity.id} has a route\n`
+                            );
+                            return activity;
+                          } else {
+                            console.log(
+                              ` 📍 Activity ${activity.id} is a place`
+                            );
+                            const newActivity = await getActivity(activity);
+                            console.log(`   - Id: ${newActivity.id},
+                    - Name: ${newActivity.name},
+                    - Category: ${newActivity.category},
+                    - Coordinates: ${newActivity.coordinates?.latitude}, ${newActivity.coordinates?.longitude},
+                    - Duration: ${newActivity.avg_duration},
+                    - DCategory: ${newActivity.display_category},\n`);
+                            return newActivity;
+                          }
+                        })
+                      );
+                      return { ...day, activities };
+                    } else {
+                      console.log(`❌ Day ${index} has no activities\n`);
+                      return day;
+                    }
+                  })
+                );
+                console.log(newTrip);
+                setTrip(newTrip as Day[]);
+              }
+              getTrip();
             }
           }
         }
       )
-      // .on(
-      //   "postgres_changes",
-      //   {
-      //     event: "INSERT",
-      //     schema: "public",
-      //     table: "tripv2_edits",
-      //     filter: `trip_id=eq.${id}`,
-      //   },
-      //   (payload) => {
-      //     if (payload.new as TripEdit) {
-      //       console.log(payload.new);
-      //       // @ts-ignore
-      //       setTripEdits((prev) => [payload.new, ...prev]);
-      //       if (payload.new.type === "move" || payload.new.type === "delete") {
-      //         console.log("new payload ", payload.new);
-      //         Toast.show({
-      //           type: "custom",
-      //           props: {
-      //             tripEdit: payload.new,
-      //           },
-      //         });
-      //       }
-      //     }
-      //   }
-      // )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "tripv2_edits",
+          filter: `trip_id=eq.${id}`,
+        },
+        (payload) => {
+          if (payload.new as TripEdit) {
+            console.log(payload.new);
+            // @ts-ignore
+            setTripEdits((prev: TripEdit[]): TripEdit[] => {
+              return [...(prev as TripEdit[]), payload.new as TripEdit];
+            });
+            if (payload.new.type === "move" || payload.new.type === "delete") {
+              console.log("new payload ", payload.new);
+              // Toast.show({
+              //   type: "custom",
+              //   props: {
+              //     tripEdit: payload.new,
+              //   },
+              // });
+            }
+          }
+        }
+      )
       .subscribe();
 
     return () => {

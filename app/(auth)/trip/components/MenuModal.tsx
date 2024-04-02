@@ -6,6 +6,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   Pressable,
+  StatusBar,
 } from "react-native";
 import React, {
   useCallback,
@@ -31,6 +32,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { BlurView } from "@/components/Themed";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import {
+  Stack,
   router,
   useLocalSearchParams,
   usePathname,
@@ -38,22 +40,10 @@ import {
 } from "expo-router";
 import { padding } from "@/constants/values";
 import TripEditCard from "./TripEditCard";
+import { months } from "@/constants/data";
+import { supabase } from "@/lib/supabase";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 // import * as MailComposer from "expo-mail-composer";
-
-const menus = [
-  {
-    title: "Historique des modifications",
-    value: "history",
-  },
-  {
-    title: "Signaler un problème",
-    value: "reportIssue",
-  },
-  {
-    title: "Partager le voyage",
-    value: "share",
-  },
-];
 
 export default function MenuModal({
   bottomSheetModalRef,
@@ -61,150 +51,179 @@ export default function MenuModal({
   bottomSheetModalRef: React.RefObject<BottomSheetModal>;
 }) {
   const snapPoints = useMemo(() => [340], []);
+  const historySnapPoints = useMemo(() => ["100%"], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
   }, []);
 
-  const [page, setPage] = useState<"/" | "/history">("/");
+  const historyModalRef = useRef<BottomSheetModal>(null);
+
+  function handleHistoryPress() {
+    bottomSheetModalRef.current?.dismiss();
+    historyModalRef.current?.present();
+    StatusBar.setBarStyle("light-content");
+  }
+
+  const { tripMetadata } = useTrip();
+
+  const inset = useSafeAreaInsets();
 
   return (
-    <BottomSheetModal
-      ref={bottomSheetModalRef}
-      index={0}
-      snapPoints={snapPoints}
-      onChange={handleSheetChanges}
-      backgroundComponent={(props) => (
-        <View
-          style={{
-            flex: 1,
-            padding: 0,
-            margin: 0,
-          }}
-          {...props}
-        >
-          <BlurView />
-        </View>
-      )}
-      handleIndicatorStyle={{
-        backgroundColor: "white",
-      }}
-      backdropComponent={(props) => (
-        <BottomSheetBackdrop
-          {...props}
-          appearsOnIndex={0}
-          disappearsOnIndex={-1}
-          enableTouchThrough={true}
-          pressBehavior="close"
-        />
-      )}
-    >
-      <BottomSheetView
-        style={{
-          padding: padding,
-          gap: 30,
+    <>
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        index={0}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        backgroundComponent={(props) => (
+          <View
+            style={{
+              flex: 1,
+              padding: 0,
+              margin: 0,
+            }}
+            {...props}
+          >
+            <BlurView />
+          </View>
+        )}
+        handleIndicatorStyle={{
+          backgroundColor: "white",
         }}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            enableTouchThrough={true}
+            pressBehavior="close"
+          />
+        )}
       >
-        {page === "/" && (
-          <>
+        <BottomSheetView
+          style={{
+            padding: padding,
+            gap: 30,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 15,
+              alignItems: "center",
+            }}
+          >
             <View
               style={{
-                flexDirection: "row",
-                gap: 15,
-                alignItems: "center",
+                width: 100,
+                height: 100,
+                borderRadius: 100,
+                overflow: "hidden",
               }}
             >
-              <View
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 100,
-                  overflow: "hidden",
+              <ImageWithFallback
+                style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                source={{
+                  uri: `https://storage.googleapis.com/favel-photos/hotspots/${tripMetadata?.route?.[0]?.id}-700.jpg`,
                 }}
-              >
-                <ImageWithFallback
-                  style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                  source={{
-                    uri: `https://storage.googleapis.com/favel-photos/activites/7841135a-02a2-4d95-9cb6-a9ecbff96d73-400.jpg`,
-                  }}
-                  fallbackSource={require("@/assets/images/adaptive-icon.png")}
-                />
-              </View>
-              <View
-                style={{
-                  gap: 5,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    fontFamily: "Outfit_600SemiBold",
-                    fontSize: 18,
-                  }}
-                >
-                  Voyage en Allemagne
-                </Text>
-                <Text
-                  style={{
-                    color: "white",
-                    fontFamily: "Outfit_400Regular",
-                    fontSize: 12,
-                    opacity: 0.8,
-                  }}
-                >
-                  Du 4 au 9 juin
-                </Text>
-              </View>
+                fallbackSource={require("@/assets/images/adaptive-icon.png")}
+              />
             </View>
             <View
               style={{
-                backgroundColor: "#3d638771",
-                borderRadius: 15,
+                gap: 5,
               }}
             >
-              <FlatList
-                data={menus}
-                keyExtractor={(item) => item.value}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
+              <Text
+                style={{
+                  color: "white",
+                  fontFamily: "Outfit_600SemiBold",
+                  fontSize: 18,
+                }}
+              >
+                {tripMetadata?.name}
+              </Text>
+              {tripMetadata?.dates &&
+                tripMetadata.dates.type === "flexDates" && (
+                  <Text
                     style={{
-                      height: 45,
-                      justifyContent: "center",
-                      paddingHorizontal: padding,
-                    }}
-                    onPress={() => {
-                      if (item.value === "reportIssue") {
-                        // MailComposer.composeAsync({
-                        //   recipients: ["contact@favel.net"],
-                        // });
-                      } else {
-                        // router.navigate(`/(auth)${pathname}/menu/` + item.value);
-                        // router.push(`/(auth)/(menu)/history/${tripMetadata!.id}`);
-                        setPage("/history");
-                      }
+                      color: "white",
+                      fontFamily: "Outfit_400Regular",
+                      fontSize: 12,
+                      opacity: 0.8,
                     }}
                   >
-                    <Text
-                      style={{
-                        color: "white",
-                        fontFamily: "Outfit_500Medium",
-                        fontSize: 16,
-                      }}
-                    >
-                      {item.title}
-                    </Text>
-                  </TouchableOpacity>
+                    {`${tripMetadata.dates.duration} jours en ${
+                      months[tripMetadata.dates.month]
+                    }`}
+                  </Text>
                 )}
-                ItemSeparatorComponent={() => (
-                  <View
+            </View>
+          </View>
+          <View
+            style={{
+              borderRadius: 15,
+              overflow: "hidden",
+              gap: 1,
+            }}
+          >
+            <MenuButton
+              title="Historique des modifications"
+              onPress={handleHistoryPress}
+            />
+            {/* <MenuButton
+              title="Signaler un problème"
+              onPress={() => {}}
+            />
+            <MenuButton
+              title="Partager le voyage"
+              onPress={() => {}}
+            /> */}
+            {/* <FlatList
+              data={menus}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={{
+                    height: 45,
+                    justifyContent: "center",
+                    paddingHorizontal: padding,
+                  }}
+                  onPress={() => {
+                    if (item.value === "reportIssue") {
+                      // MailComposer.composeAsync({
+                      //   recipients: ["contact@favel.net"],
+                      // });
+                    } else {
+                      // router.navigate(`/(auth)${pathname}/menu/` + item.value);
+                      // router.push(`/(auth)/(menu)/history/${tripMetadata!.id}`);
+                      // setPage("/history");
+                      handleHistoryPress();
+                    }
+                  }}
+                >
+                  <Text
                     style={{
-                      height: 1,
-                      backgroundColor: "#1D3852",
+                      color: "white",
+                      fontFamily: "Outfit_500Medium",
+                      fontSize: 16,
                     }}
-                  />
-                )}
-              />
-              {/* <Pressable
+                  >
+                    {item.title}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              ItemSeparatorComponent={() => (
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: "#1D3852",
+                  }}
+                />
+              )}
+            /> */}
+            {/* <Pressable
             style={{
               height: 45,
               justifyContent: "center",
@@ -221,29 +240,108 @@ export default function MenuModal({
               Historique des modifications
             </Text>
           </Pressable> */}
-            </View>
-          </>
+          </View>
+        </BottomSheetView>
+      </BottomSheetModal>
+      <BottomSheetModal
+        ref={historyModalRef}
+        index={0}
+        snapPoints={historySnapPoints}
+        onChange={handleSheetChanges}
+        backgroundComponent={(props) => (
+          <View
+            style={{
+              flex: 1,
+              padding: 0,
+              margin: 0,
+            }}
+            {...props}
+          >
+            <BlurView />
+          </View>
         )}
-        {page === "/history" && <TripEdits />}
-      </BottomSheetView>
-    </BottomSheetModal>
+        handleIndicatorStyle={{
+          backgroundColor: "transparent",
+        }}
+        handleComponent={(props) => (
+          <View
+            style={{
+              backgroundColor: "",
+              height: inset.top + 50,
+            }}
+            {...props}
+          ></View>
+        )}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            enableTouchThrough={true}
+            pressBehavior="close"
+          />
+        )}
+        onDismiss={() => {
+          StatusBar.setBarStyle("dark-content");
+        }}
+      >
+        <View
+          style={{
+            marginTop: inset.top,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 0,
+            position: "relative",
+            // marginBottom: 20,
+          }}
+        >
+          {/* <Text
+            style={{
+              fontSize: 18,
+              color: Colors.dark.primary,
+              fontFamily: "Outfit_600SemiBold",
+            }}
+          >
+            Historique des modifications
+          </Text> */}
+        </View>
+        <TripEdits />
+      </BottomSheetModal>
+    </>
   );
 }
 
 function TripEdits() {
-  const { tripEdits } = useTrip();
+  const { tripEdits, setTripEdits, tripMetadata } = useTrip();
+
+  async function fetchTripEdits() {
+    const { data, error } = await supabase
+      .from("tripv2_edits")
+      .select("*")
+      .eq("trip_id", tripMetadata?.id)
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      console.log(data);
+      setTripEdits(data);
+    }
+  }
+
+  useEffect(() => {
+    fetchTripEdits();
+  }, []);
 
   return (
     <>
       {tripEdits && tripEdits.length > 0 ? (
-        <FlatList
+        <BottomSheetFlatList
           contentContainerStyle={{
             rowGap: 10,
             paddingBottom: 60,
           }}
           style={{
             padding: 0,
-            backgroundColor: Colors.light.background,
           }}
           data={tripEdits}
           keyExtractor={(item, index) =>
@@ -266,14 +364,54 @@ function TripEdits() {
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: Colors.light.background,
             width: "100%",
             height: "100%",
+            padding: padding,
           }}
         >
-          <Text>Vous n'avez pas encore modifié votre voyage</Text>
+          <Text
+            style={{
+              color: "white",
+              fontFamily: "Outfit_600SemiBold",
+              fontSize: 18,
+              textAlign: "center",
+            }}
+          >
+            Vous n'avez pas encore modifié votre voyage. Déplacez, ajoutez ou
+            supprimez des activités pour voir les modifications ici.
+          </Text>
         </View>
       )}
     </>
+  );
+}
+
+function MenuButton({
+  title,
+  onPress,
+}: {
+  title: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={{
+        height: 45,
+        justifyContent: "center",
+        paddingHorizontal: padding,
+        backgroundColor: "#3d638771",
+      }}
+      onPress={onPress}
+    >
+      <Text
+        style={{
+          color: "white",
+          fontFamily: "Outfit_500Medium",
+          fontSize: 16,
+        }}
+      >
+        {title}
+      </Text>
+    </TouchableOpacity>
   );
 }

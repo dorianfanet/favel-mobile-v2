@@ -78,31 +78,39 @@ export default function DayLines() {
       id: string;
     }[] = [];
 
-    trip.map((day, index) => {
-      if (day.activities && day.activities.length > 1 && day.type === "day") {
-        const pointsOfDay: Position[] = [];
+    trip.forEach((day, index) => {
+      try {
+        if (day.activities && day.activities.length > 1 && day.type === "day") {
+          const noRouteActivities = day.activities?.filter(
+            (activity) => activity.type !== "route"
+          );
 
-        day.activities.map((activity) => {
-          if (activity.coordinates) {
-            pointsOfDay.push([
-              activity.coordinates.longitude,
-              activity.coordinates.latitude,
-            ]);
-          }
-        });
+          const pointsOfDay: Position[] = [];
 
-        const features = points(pointsOfDay);
-        const centerPoint = center(features);
+          noRouteActivities.map((activity) => {
+            if (activity.coordinates) {
+              pointsOfDay.push([
+                activity.coordinates.longitude,
+                activity.coordinates.latitude,
+              ]);
+            }
+          });
 
-        const line = lineString(pointsOfDay);
-        const bounds = bbox(line);
+          const features = points(pointsOfDay);
+          const centerPoint = center(features);
 
-        tempFeatures.push({
-          coordinates: centerPoint.geometry.coordinates,
-          bounds: bounds,
-          index: index,
-          id: day.id!,
-        });
+          const line = lineString(pointsOfDay);
+          const bounds = bbox(line);
+
+          tempFeatures.push({
+            coordinates: centerPoint.geometry.coordinates,
+            bounds: bounds,
+            index: index,
+            id: day.id!,
+          });
+        }
+      } catch (e) {
+        console.log(e);
       }
     });
 

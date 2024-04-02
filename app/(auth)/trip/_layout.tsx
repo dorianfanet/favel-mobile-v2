@@ -27,8 +27,8 @@ export default function Layout() {
         <BottomSheetModalProvider>
           <>
             <MapWrapper />
-            <Slot />
             <Header />
+            <Slot />
           </>
         </BottomSheetModalProvider>
       </TripProvider>

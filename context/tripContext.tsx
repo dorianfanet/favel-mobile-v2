@@ -12,8 +12,8 @@ export interface TripContext {
   setLoading: (loading: Loading | null) => void;
   tripMetadata: TripMetadata | null;
   setTripMetadata: React.Dispatch<React.SetStateAction<TripMetadata | null>>;
-  tripEdits: TripEdit[] | null;
-  setTripEdits: (tripEdits: TripEdit[] | null) => void;
+  tripEdits: TripEdit[];
+  setTripEdits: (tripEdits: TripEdit[]) => void;
   destinationData: DestinationData | null;
   setDestinationData: (destinationData: DestinationData | null) => void;
 }
@@ -24,7 +24,7 @@ export const TripProvider = ({ children }: { children: React.JSX.Element }) => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState<Loading | null>(null);
   const [tripMetadata, setTripMetadata] = useState<TripMetadata | null>(null);
-  const [tripEdits, setTripEdits] = useState<TripEdit[] | null>(null);
+  const [tripEdits, setTripEdits] = useState<TripEdit[]>([]);
 
   const [destinationData, setDestinationData] =
     useState<DestinationData | null>(null);
