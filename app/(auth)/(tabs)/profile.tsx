@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { useCallback, useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Text, View as ThemedView, Button } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { Image } from "expo-image";
@@ -19,6 +20,7 @@ import { favel } from "@/lib/favelApi";
 
 export default function profile() {
   const { user } = useUser();
+  const { signOut } = useAuth();
 
   const router = useRouter();
 
@@ -27,22 +29,83 @@ export default function profile() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
 
-    const { data, count } = await supabase
+    const { data, error } = await supabase
       .from("trips_v2")
-      .select("*", { count: "exact", head: true })
-      .eq("author_id", user?.id)
+      .select("author_id, invited_ids")
+      .or(`author_id.eq.${user?.id},invited_ids.cs.{${user!.id}}`)
       .like("status", "trip%");
 
-    await favel.updateUser(user!.id, {
-      publicMetadata: {
-        trips: count,
-      },
-    });
+    if (error) {
+      console.error(error);
+      setRefreshing(false);
+      return;
+    }
 
-    await user?.reload();
+    if (data) {
+      let travelers = data.map((trip: any) => {
+        let temp = [];
+        if (trip.author_id) temp.push(trip.author_id);
+        if (trip.invited_ids) temp.push(...trip.invited_ids);
+        return temp;
+      });
+
+      const userMetadata = await favel.getUser(user!.id);
+
+      if (
+        userMetadata &&
+        userMetadata.publicMetadata &&
+        userMetadata.publicMetadata.coTravelers
+      ) {
+        travelers.push(userMetadata.publicMetadata.coTravelers);
+      }
+
+      const coTravelers = Array.from(
+        new Set(travelers.flat().filter((id: string) => id !== user!.id))
+      );
+
+      console.log("trips", data.length);
+      console.log("coTravelersCountr", coTravelers.length);
+      console.log("coTravelers", coTravelers);
+
+      await favel.updateUser(user!.id, {
+        publicMetadata: {
+          trips: data.length,
+          coTravelers: coTravelers,
+        },
+      });
+
+      await user?.reload();
+    }
 
     setRefreshing(false);
   }, []);
+
+  const handleDeleteAccount = async () => {
+    favel.deleteUser(user!.id);
+    await signOut();
+  };
+
+  const showConfirmationDialog = () => {
+    Alert.alert(
+      "Supprimer le compte",
+      "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+      [
+        {
+          text: "Oui",
+          onPress: () => {
+            handleDeleteAccount();
+          },
+          style: "destructive",
+        },
+        {
+          text: "Non",
+          onPress: () => {},
+          style: "cancel",
+        },
+      ],
+      { cancelable: false }
+    );
+  };
 
   return (
     <ScrollView
@@ -142,11 +205,13 @@ export default function profile() {
                 <Text
                   style={{ fontSize: 18, fontFamily: "Outfit_600SemiBold" }}
                 >
-                  0
+                  {user &&
+                  user.publicMetadata &&
+                  user.publicMetadata.coTravelers
+                    ? (user.publicMetadata.coTravelers as string[]).length
+                    : 0}
                 </Text>
-                <Text style={{ fontSize: 14, opacity: 0.8 }}>
-                  Compagnons de voyage
-                </Text>
+                <Text style={{ fontSize: 14, opacity: 0.8 }}>Covoyageurs</Text>
               </View>
             </Pressable>
           </Link>
@@ -163,6 +228,11 @@ export default function profile() {
           onPress={() => {
             router.navigate("/(modals)/editProfile");
           }}
+        />
+        <Button
+          title="Supprimer mon compte"
+          color={"#ff0000"}
+          onPress={showConfirmationDialog}
         />
       </View>
     </ScrollView>

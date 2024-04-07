@@ -101,14 +101,6 @@ export default function Form() {
         .eq("id", rest[0]);
       if (error) {
         console.error("Error updating trip", error);
-      } else {
-        // setTripMetadata((prev) => {
-        //   return {
-        //     ...(prev as TripMetadata),
-        //     prompt,
-        //     status: "new.route",
-        //   };
-        // });
       }
     }
   };

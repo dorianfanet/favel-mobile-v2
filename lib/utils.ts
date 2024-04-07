@@ -1,3 +1,6 @@
+import { MMKV } from "@/app/(auth)/trip/_layout";
+import { favel } from "./favelApi";
+
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
     "Janvier",
@@ -83,4 +86,31 @@ export function formatTimestamp(timestamp: string): string {
 
   // Format the date in the desired format
   return `Le ${day}/${month}/${year} à ${hour}h${minute}`;
+}
+
+export async function getUserMetadata(userId: string) {
+  const cachedUser = await MMKV.getStringAsync(`user-${userId}`);
+
+  if (cachedUser) {
+    return JSON.parse(cachedUser).data;
+  } else {
+    const response = await favel.getUser(userId);
+    const data = {
+      id: response.id,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      imageUrl: response.imageUrl,
+      publicMetadata: response.publicMetadata,
+    };
+
+    MMKV.setStringAsync(
+      `user-${userId}`,
+      JSON.stringify({
+        data: data,
+        expiresAt: new Date().getTime() + 7200000,
+      })
+    );
+
+    return data;
+  }
 }

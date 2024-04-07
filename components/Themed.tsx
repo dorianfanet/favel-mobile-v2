@@ -115,6 +115,7 @@ export function TextInput(props: TextInputProps) {
         },
         style,
       ]}
+      placeholderTextColor={"#2f2f2f5d"}
       {...otherProps}
     />
   );

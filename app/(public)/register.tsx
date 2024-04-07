@@ -107,6 +107,18 @@ const Register = () => {
 
       {pendingVerification && (
         <>
+          <Text
+            style={{
+              fontSize: 14,
+              fontFamily: "Outfit_600SemiBold",
+              marginBottom: 20,
+              textAlign: "center",
+              opacity: 0.8,
+            }}
+          >
+            Nous vous avons envoyé un code de vérification par email. Veuillez
+            le saisir ci-dessous.
+          </Text>
           <View>
             <TextInput
               value={code}

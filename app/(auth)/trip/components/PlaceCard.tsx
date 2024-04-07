@@ -112,7 +112,7 @@ export default function PlaceCard({
     setTimeout(() => {
       onDelete && onDelete();
     }, 400);
-    if (trip && activity.index) {
+    if (trip && activity.index !== undefined) {
       newTripEdit({
         type: "delete",
         day_index: activity.index,
@@ -186,7 +186,8 @@ function ActivityCardContent({
   useEffect(() => {
     if (!noCache) {
       getActivity(activity).then((data) => {
-        setActivityData(data);
+        console.log("ActivityCardContent", data);
+        return setActivityData(data);
       });
     }
   }, []);
@@ -299,6 +300,7 @@ function ActivityCardContent({
       </View>
       {draggable && (
         <TouchableOpacity
+          delayLongPress={0}
           onLongPress={drag}
           disabled={isActive}
           style={{

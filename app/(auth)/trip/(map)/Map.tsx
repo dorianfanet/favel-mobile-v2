@@ -59,7 +59,7 @@ export default function Map() {
       } else {
         updatePadding({
           paddingTop: 50,
-          paddingBottom: screenHeight * 0.35,
+          paddingBottom: screenHeight * 0.45,
           paddingLeft: 50,
           paddingRight: 50,
         });

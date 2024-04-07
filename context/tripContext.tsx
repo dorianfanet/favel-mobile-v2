@@ -1,4 +1,11 @@
-import { DestinationData, Trip, TripEdit, TripMetadata } from "@/types/types";
+import {
+  DestinationData,
+  Trip,
+  TripEdit,
+  TripMetadata,
+  UserActivity,
+  UserActivityState,
+} from "@/types/types";
 import React, { createContext, useContext, useState } from "react";
 
 export interface Loading {
@@ -16,6 +23,10 @@ export interface TripContext {
   setTripEdits: (tripEdits: TripEdit[]) => void;
   destinationData: DestinationData | null;
   setDestinationData: (destinationData: DestinationData | null) => void;
+  userActivity: UserActivityState | null;
+  setUserActivity: React.Dispatch<
+    React.SetStateAction<UserActivityState | null>
+  >;
 }
 
 const tripContext = createContext<TripContext>({} as any);
@@ -25,6 +36,9 @@ export const TripProvider = ({ children }: { children: React.JSX.Element }) => {
   const [loading, setLoading] = useState<Loading | null>(null);
   const [tripMetadata, setTripMetadata] = useState<TripMetadata | null>(null);
   const [tripEdits, setTripEdits] = useState<TripEdit[]>([]);
+  const [userActivity, setUserActivity] = useState<UserActivityState | null>(
+    null
+  );
 
   const [destinationData, setDestinationData] =
     useState<DestinationData | null>(null);
@@ -42,6 +56,8 @@ export const TripProvider = ({ children }: { children: React.JSX.Element }) => {
         setTripEdits,
         destinationData,
         setDestinationData,
+        userActivity,
+        setUserActivity,
       }}
     >
       {children}

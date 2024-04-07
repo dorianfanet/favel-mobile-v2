@@ -115,7 +115,7 @@ export default function editProfile() {
           <TextInput
             value={lastName}
             onChangeText={setLastName}
-            placeholder="Nom de familler"
+            placeholder="Nom de famille"
           />
         </View>
         <Button

@@ -6,7 +6,7 @@ import { BlurView } from "@/components/Themed";
 import MessageInput from "./MessageInput";
 import RouteChat from "./RouteChat";
 import { favel } from "@/lib/favelApi";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 export default function Route() {
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -25,6 +25,8 @@ export default function Route() {
 
   const id = rest[0];
 
+  const router = useRouter();
+
   useEffect(() => {
     if (tripMetadata?.status === "new.route" && destinationData) {
       if (destinationData.result === "single") {
@@ -34,6 +36,7 @@ export default function Route() {
           destinationData.destination.location,
           destinationData.destination.duration
         );
+        router.navigate(`/(auth)/trip/${id}/trip`);
       } else {
         bottomSheetRef.current?.expand();
         setLoading(false);

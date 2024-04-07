@@ -1,26 +1,37 @@
-import { View, PressableProps, Pressable } from "react-native";
+import {
+  View,
+  Pressable,
+  TouchableOpacity,
+  TouchableOpacityProps,
+} from "react-native";
 import React from "react";
 import { Text } from "./Themed";
 import Colors from "@/constants/Colors";
 import { borderRadius } from "@/constants/values";
 
-type ContainedButtonProps = PressableProps & {
+type ContainedButtonProps = TouchableOpacityProps & {
   title?: string;
+  onPress: () => void;
 };
 
 export default function ContainedButton(props: ContainedButtonProps) {
-  const { onPress, title = "Save" } = props;
+  const { onPress, title = "Save", style, ...otherProps } = props;
+
   return (
-    <Pressable
-      style={{
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: 12,
-        paddingHorizontal: 32,
-        borderRadius: borderRadius,
-        backgroundColor: Colors.light.accent,
-      }}
+    <TouchableOpacity
+      style={[
+        {
+          alignItems: "center",
+          justifyContent: "center",
+          paddingVertical: 12,
+          paddingHorizontal: 32,
+          borderRadius: borderRadius,
+          backgroundColor: Colors.light.accent,
+        },
+        style,
+      ]}
       onPress={onPress}
+      {...otherProps}
     >
       <Text
         style={{
@@ -31,6 +42,6 @@ export default function ContainedButton(props: ContainedButtonProps) {
       >
         {title}
       </Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 }

@@ -40,7 +40,7 @@ export default function TripBottomSheet() {
 
   const { user } = useUser();
 
-  const snapPoints = useMemo(() => ["10%", "35%", "100%"], []);
+  const snapPoints = useMemo(() => ["10%", "45%", "100%"], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
@@ -77,7 +77,10 @@ export default function TripBottomSheet() {
 
       if (day.activities) {
         day.activities.forEach((activity) => {
-          temp.push(activity as Activity);
+          temp.push({
+            ...(activity as Activity),
+            index: index,
+          });
         });
       }
     });

@@ -39,7 +39,7 @@ export type Editor = {
 export type SavedTrip = {
   id: string;
   name?: string;
-  author: User;
+  author_id: string;
   route?: TripRoute;
   dates?:
     | {
@@ -89,6 +89,7 @@ export type TripMetadata = {
         departureDate: string;
         returnDate: string;
       };
+  invited_ids?: string[];
 };
 
 export type Trip = Day[];
@@ -206,6 +207,8 @@ export type TripChatMessage = {
   content: string;
   trip?: Trip;
   edits?: TripChatEditDay[];
+  status: null | "loading" | "generating" | "finished";
+  function?: "modifications";
 };
 
 export type TripChatEditDay = {
@@ -281,3 +284,30 @@ export type DestinationData =
   | {
       result: "unknown";
     };
+
+export type UserMetadata = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+  publicMetadata?: {
+    trips: number;
+    coTravelers?: string[];
+  };
+  privateMetadata?: {
+    origin?: string;
+  };
+};
+
+export type UserActivity = {
+  id: string;
+  created_at: string;
+  last_activity: string;
+  trip_id: string;
+  user_id: string;
+};
+
+export type UserActivityState = {
+  count: number;
+  activity: UserActivity[];
+};

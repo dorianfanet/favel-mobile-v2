@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   DimensionValue,
   Platform,
   NativeSyntheticEvent,
@@ -29,7 +28,7 @@ import { Activity, FormattedTrip, Route, Trip } from "@/types/types";
 import { useTrip } from "@/context/tripContext";
 import { FlatList } from "react-native-gesture-handler";
 import { ScrollView } from "react-native-gesture-handler";
-import { BlurView } from "@/components/Themed";
+import { BlurView, Text } from "@/components/Themed";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import {
   Stack,
@@ -39,10 +38,11 @@ import {
   useSegments,
 } from "expo-router";
 import { padding } from "@/constants/values";
-import TripEditCard from "./TripEditCard";
+import TripEditCard from "../TripEditCard";
 import { months } from "@/constants/data";
 import { supabase } from "@/lib/supabase";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Travelers from "./Travelers";
 // import * as MailComposer from "expo-mail-composer";
 
 export default function MenuModal({
@@ -58,14 +58,14 @@ export default function MenuModal({
   }, []);
 
   const historyModalRef = useRef<BottomSheetModal>(null);
+  const travelersModalRef = useRef<BottomSheetModal>(null);
 
-  function handleHistoryPress() {
+  function handleModalLinkPress() {
     bottomSheetModalRef.current?.dismiss();
-    historyModalRef.current?.present();
     StatusBar.setBarStyle("light-content");
   }
 
-  const { tripMetadata } = useTrip();
+  const { tripMetadata, userActivity } = useTrip();
 
   const inset = useSafeAreaInsets();
 
@@ -170,7 +170,18 @@ export default function MenuModal({
           >
             <MenuButton
               title="Historique des modifications"
-              onPress={handleHistoryPress}
+              onPress={() => {
+                handleModalLinkPress();
+                historyModalRef.current?.present();
+              }}
+            />
+            <MenuButton
+              title="Voyageurs"
+              onPress={() => {
+                handleModalLinkPress();
+                travelersModalRef.current?.present();
+              }}
+              notifications={userActivity?.count}
             />
             {/* <MenuButton
               title="Signaler un problème"
@@ -291,12 +302,12 @@ export default function MenuModal({
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
-            height: 0,
+            height: 50,
             position: "relative",
             // marginBottom: 20,
           }}
         >
-          {/* <Text
+          <Text
             style={{
               fontSize: 18,
               color: Colors.dark.primary,
@@ -304,9 +315,74 @@ export default function MenuModal({
             }}
           >
             Historique des modifications
-          </Text> */}
+          </Text>
         </View>
         <TripEdits />
+      </BottomSheetModal>
+      <BottomSheetModal
+        ref={travelersModalRef}
+        index={0}
+        snapPoints={historySnapPoints}
+        onChange={handleSheetChanges}
+        backgroundComponent={(props) => (
+          <View
+            style={{
+              flex: 1,
+              padding: 0,
+              margin: 0,
+            }}
+            {...props}
+          >
+            <BlurView />
+          </View>
+        )}
+        handleIndicatorStyle={{
+          backgroundColor: "transparent",
+        }}
+        handleComponent={(props) => (
+          <View
+            style={{
+              backgroundColor: "",
+              height: inset.top + 50,
+            }}
+            {...props}
+          ></View>
+        )}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            enableTouchThrough={true}
+            pressBehavior="close"
+          />
+        )}
+        onDismiss={() => {
+          StatusBar.setBarStyle("dark-content");
+        }}
+      >
+        <View
+          style={{
+            marginTop: inset.top,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 50,
+            position: "relative",
+            // marginBottom: 20,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              color: Colors.dark.primary,
+              fontFamily: "Outfit_600SemiBold",
+            }}
+          >
+            Voyageurs
+          </Text>
+        </View>
+        <Travelers />
       </BottomSheetModal>
     </>
   );
@@ -389,9 +465,13 @@ function TripEdits() {
 function MenuButton({
   title,
   onPress,
+  notificationComponent,
+  notifications,
 }: {
   title: string;
   onPress: () => void;
+  notificationComponent?: React.FC;
+  notifications?: number;
 }) {
   return (
     <TouchableOpacity
@@ -412,6 +492,47 @@ function MenuButton({
       >
         {title}
       </Text>
+      {notifications && notifications > 0 && (
+        <View
+          style={{
+            position: "absolute",
+            right: padding,
+            top: 20,
+            height: 14,
+            width: 14,
+            backgroundColor: Colors.light.notification,
+            borderRadius: 10,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontSize: 10,
+              fontFamily: "Outfit_500Medium",
+              textAlign: "center",
+            }}
+          >
+            {notifications > 9 ? "9+" : notifications}
+          </Text>
+        </View>
+      )}
+      {/* {notificationComponent ? (
+        notificationComponent
+      ) : (
+        <View
+          style={{
+            position: "absolute",
+            right: padding,
+            top: 20,
+            height: 10,
+            width: 10,
+            backgroundColor: Colors.light.notification,
+            borderRadius: 10,
+          }}
+        ></View>
+      )} */}
     </TouchableOpacity>
   );
 }

@@ -2,21 +2,26 @@
   "expo": {
     "name": "Favel",
     "slug": "favel-mobile",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "favel",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#44C0E7"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "5"
+      "buildNumber": "10",
+      "associatedDomains": [
+        "applinks:favel.net"
+      ]
     },
     "android": {
       "adaptiveIcon": {

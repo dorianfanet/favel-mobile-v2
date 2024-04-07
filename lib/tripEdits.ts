@@ -16,6 +16,15 @@ export async function newTripEdit({
   author_id: string;
   trip_id: string;
 }) {
+  console.log(
+    "newTripEdit",
+    type,
+    day_index,
+    location,
+    activity_id,
+    author_id,
+    trip_id
+  );
   const { data, error } = await supabase
     .from("tripv2_edits")
     .insert([{ type, day_index, location, activity_id, author_id, trip_id }]);

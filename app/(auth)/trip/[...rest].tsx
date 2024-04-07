@@ -5,7 +5,14 @@ import New from "./new/New";
 import Trip from "./trip/Trip";
 import { getActivity, supabase } from "@/lib/supabase";
 import { useTrip } from "@/context/tripContext";
-import { Day, TripEdit, TripMetadata } from "@/types/types";
+import {
+  Day,
+  TripEdit,
+  TripMetadata,
+  UserActivity,
+  UserActivityState,
+} from "@/types/types";
+import Toast from "react-native-toast-message";
 
 enum Action {
   NEW = "new",
@@ -14,6 +21,7 @@ enum Action {
 
 export default function Rest() {
   const { rest } = useLocalSearchParams();
+  console.log(rest);
   const action = rest[1] as Action;
 
   const { setTripMetadata, setTrip, setTripEdits } = useTrip();
@@ -97,12 +105,12 @@ export default function Rest() {
             });
             if (payload.new.type === "move" || payload.new.type === "delete") {
               console.log("new payload ", payload.new);
-              // Toast.show({
-              //   type: "custom",
-              //   props: {
-              //     tripEdit: payload.new,
-              //   },
-              // });
+              Toast.show({
+                type: "custom",
+                props: {
+                  tripEdit: payload.new,
+                },
+              });
             }
           }
         }

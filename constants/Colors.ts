@@ -1,10 +1,12 @@
 export default {
   light: {
-    background: "#D4E8F3",
+    // background: "#D4E8F3",
+    background: "#E2F2FB",
     primary: "#083E4F",
     secondary: "#FFF",
     tertiary: "#1C344B",
     accent: "#44C0E7",
+    notification: "#fe3d2f",
   },
   dark: {
     background: "#2e648b",

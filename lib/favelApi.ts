@@ -1,4 +1,4 @@
-import { DestinationData, Route, TripRoute } from "@/types/types";
+import { DestinationData, Route, TripRoute, UserMetadata } from "@/types/types";
 import { getDaysDiff } from "./utils";
 
 class ApiClient {
@@ -30,12 +30,28 @@ class ApiClient {
     return response.json();
   }
 
-  async getUser(id: string): Promise<void> {
-    return this.request(`user/get-user?id=${id}`, "GET", null);
+  async getUser(id: string): Promise<UserMetadata> {
+    const result = await this.request(`user/get-user?id=${id}`, "GET", null);
+    return result.user;
   }
 
   async updateUser(id: string, data: any): Promise<void> {
     return this.request(`user/update-user?id=${id}`, "POST", { data: data });
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    return this.request(`user/delete-user?id=${id}`, "GET", null);
+  }
+
+  async inviteUser(
+    tripId: string,
+    userId: string
+  ): Promise<{ status: number; message: string }> {
+    return this.request(
+      `invite-user?tripId=${tripId}&userId=${userId}`,
+      "GET",
+      null
+    );
   }
 
   async fetchDestinationData(

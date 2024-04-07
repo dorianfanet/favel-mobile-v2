@@ -1,41 +1,24 @@
 import { View } from "react-native";
 import React, { useEffect } from "react";
-import { Activity, TripEdit } from "@/types/types";
+import { Activity, TripEdit, UserMetadata } from "@/types/types";
 import Icon from "@/components/Icon";
 import { editTypes } from "@/constants/categories";
-import { supabase } from "@/lib/supabase";
 import { Text } from "@/components/Themed";
-import { mapPinIcon } from "@/constants/icons";
 import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
 import ActivityCard from "./ActivityCard";
-import { formatTimestamp } from "@/lib/utils";
-import { favel } from "@/lib/favelApi";
-import { MMKV } from "../_layout";
+import { formatTimestamp, getUserMetadata } from "@/lib/utils";
 
 export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
   const [name, setName] = React.useState<string | null>(null);
 
+  console.log("TripEditCard", tripEdit);
+
   useEffect(() => {
     async function checkUser() {
-      const cachedActivity = await MMKV.getStringAsync(
-        `user-${tripEdit.author_id}`
-      );
+      const user = await getUserMetadata(tripEdit.author_id);
 
-      if (cachedActivity) {
-        setName(JSON.parse(cachedActivity).firstName);
-      } else {
-        favel.getUser(tripEdit.author_id).then((user: any) => {
-          setName(user?.message?.firstName);
-          MMKV.setStringAsync(
-            `user-${tripEdit.author_id}`,
-            JSON.stringify({
-              data: { firstName: user?.message?.firstName },
-              expiresAt: new Date().getTime() + 86400000,
-            })
-          );
-        });
-      }
+      setName(user?.firstName || "Anonyme");
     }
     checkUser();
   }, [tripEdit]);

@@ -3,7 +3,7 @@ import TabButton from "@/components/TabButton";
 import { Text, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Tabs, useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
 import {
@@ -15,9 +15,31 @@ import {
 } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 import "react-native-get-random-values";
+import { favel } from "@/lib/favelApi";
+import { MMKV } from "../trip/_layout";
 
 export default function Layout() {
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      favel.getUser(user.id).then((res) => {
+        console.log("res", res);
+        if (!res.privateMetadata || !res.privateMetadata.origin) {
+          MMKV.setString(
+            `mandatoryInfos-${user.id}`,
+            JSON.stringify({
+              firstName: user.firstName ? false : true,
+              origin: true,
+            })
+          );
+          router.push("/(modals)/mandatoryInfos");
+        }
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     StatusBar.setBarStyle("light-content");
@@ -33,8 +55,6 @@ export default function Layout() {
       />
     );
   }, []);
-
-  const router = useRouter();
 
   return (
     <Tabs

@@ -23,7 +23,14 @@ const PwReset = () => {
       });
       setSuccessfulCreation(true);
     } catch (err: any) {
-      alert(err.errors[0].message);
+      console.error(JSON.stringify(err));
+      if (err.errors[0].code === "form_conditional_param_value_disallowed") {
+        alert(
+          "Le compte créé avec cet email ne possède pas de mot de passe. Veuillez vous connecter avec Google ou Apple."
+        );
+      } else {
+        alert(err.errors[0].message);
+      }
     }
   };
 
@@ -37,7 +44,9 @@ const PwReset = () => {
         password,
       });
       console.log(result);
-      alert("Password reset successfully");
+      alert(
+        "Mot de passe réinitialisé avec succès. Vous êtes maintenant connecté."
+      );
 
       // Set the user session active, which will log in the user automatically
       await setActive({ session: result.createdSessionId });

@@ -39,11 +39,22 @@ export default function Index() {
       const { data, error } = await supabase
         .from("trips_v2")
         .select(
-          "id, trip, status, preferences, route, status_message, prompt, name, dates"
+          "id, trip, status, preferences, route, status_message, prompt, name, dates, author_id, invited_ids"
         )
         .eq("id", id)
         .single();
       if (data) {
+        if (data.author_id !== user?.id) {
+          if (
+            data.invited_ids !== null &&
+            data.invited_ids.includes(user?.id)
+          ) {
+            console.log("🎉 User is invited to the trip");
+          } else {
+            router.navigate("/home");
+            return;
+          }
+        }
         setTripMetadata(data as TripMetadata);
         if (data.trip) {
           async function getTrip() {

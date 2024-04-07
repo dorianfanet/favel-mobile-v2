@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity } from "react-native";
 import React, { RefObject, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import "react-native-get-random-values";
 import Colors from "@/constants/Colors";
 import Animated, {
@@ -41,6 +41,8 @@ export default function ValidateRouteButton({
 
   const id = rest[0];
 
+  const router = useRouter();
+
   return (
     <Animated.View
       style={[
@@ -69,6 +71,7 @@ export default function ValidateRouteButton({
           if (tripMetadata && tripMetadata.route)
             favel.createTripName(tripMetadata.route, id);
           await new Promise((resolve) => setTimeout(resolve, 500));
+          router.navigate(`/(auth)/trip/${id}/trip`);
           const { error } = await supabase
             .from("trips_v2")
             .update({ status: "trip.init" })

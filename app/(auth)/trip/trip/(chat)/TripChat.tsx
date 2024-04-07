@@ -6,6 +6,7 @@ import {
   NativeScrollEvent,
   Pressable,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import React, {
   useCallback,
@@ -36,12 +37,6 @@ import { FlatList } from "react-native-gesture-handler";
 import { ScrollView } from "react-native-gesture-handler";
 import { BlurView, Text } from "@/components/Themed";
 import ImageWithFallback from "@/components/ImageWithFallback";
-import {
-  router,
-  useLocalSearchParams,
-  usePathname,
-  useSegments,
-} from "expo-router";
 import { padding } from "@/constants/values";
 import {
   SafeAreaView,
@@ -52,6 +47,7 @@ import Input from "./Input";
 import { supabase } from "@/lib/supabase";
 import { useTripChat } from "@/context/tripChat";
 import Edits from "./Edits";
+import Markdown from "react-native-markdown-display";
 
 export default function TripChat({
   bottomSheetModalRef,
@@ -102,6 +98,10 @@ export default function TripChat({
                 updatedMessages[updatedMessages.length - 1].edits =
                   payload.new.edits;
               }
+              updatedMessages[updatedMessages.length - 1].status =
+                payload.new.status;
+              updatedMessages[updatedMessages.length - 1].function =
+                payload.new.function;
               return updatedMessages;
             });
           }
@@ -119,7 +119,7 @@ export default function TripChat({
       if (!tripMetadata?.id) return;
       const { data, error } = await supabase
         .from("trip_chat")
-        .select("id, role, content, edits")
+        .select("id, role, content, edits, status, function")
         .eq("trip_id", tripMetadata?.id)
         .order("created_at", { ascending: true });
       if (error) {
@@ -286,8 +286,12 @@ export default function TripChat({
         <BottomSheetFlatList
           data={messages}
           ref={flatListRef}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-          keyExtractor={(item: any, index) => item.id + index.toString()}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: false })
+          }
+          keyExtractor={(item: TripChatMessage, index) =>
+            item.id + index.toString()
+          }
           renderItem={({ item, index }) => {
             return item.role !== "system" ? (
               <View
@@ -305,16 +309,52 @@ export default function TripChat({
                 >
                   {item.role === "assistant" ? "Favel" : "Vous"}
                 </Text>
-                <Text
+                <Markdown
                   style={{
-                    fontSize: 16,
-                    fontFamily: "Outfit_400Regular",
-                    color: "white",
+                    body: {
+                      fontSize: 16,
+                      fontFamily: "Outfit_400Regular",
+                      color: "white",
+                    },
+                    strong: {
+                      fontSize: 16,
+                      fontFamily: "Outfit_700Bold",
+                      color: "white",
+                    },
                   }}
                 >
                   {item.content}
-                </Text>
-                <Edits edits={item.edits} />
+                </Markdown>
+                <Edits edits={item.edits!} />
+                {item.status &&
+                  ["loading", "generating"].includes(item.status) && (
+                    <View
+                      style={{
+                        width: "100%",
+                        flexDirection: "row",
+                        justifyContent: "flex-start",
+                        marginTop: 10,
+                      }}
+                    >
+                      <ActivityIndicator />
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontFamily: "Outfit_400Regular",
+                          color: "white",
+                          marginLeft: 10,
+                        }}
+                      >
+                        {item.status === "loading"
+                          ? item.function
+                            ? item.function === "modifications"
+                              ? "Je réfléchis à des modifications..."
+                              : "Je réfléchis..."
+                            : "Je réfléchis..."
+                          : ""}
+                      </Text>
+                    </View>
+                  )}
               </View>
             ) : null;
           }}
@@ -331,6 +371,9 @@ export default function TripChat({
           style={{
             flex: 1,
             marginBottom: inset.bottom + 50,
+          }}
+          contentContainerStyle={{
+            paddingBottom: 20,
           }}
         />
       </BottomSheetModal>

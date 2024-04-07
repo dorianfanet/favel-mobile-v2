@@ -189,7 +189,7 @@ export default function Question({
                         ...form,
                         flexDates: {
                           ...form.flexDates,
-                          month: index,
+                          month: months.indexOf(month),
                         },
                       });
                       onNext && onNext();
@@ -198,7 +198,7 @@ export default function Question({
                       value: index.toString(),
                       name: month,
                     }}
-                    selected={form.flexDates.month === index}
+                    selected={form.flexDates.month === months.indexOf(month)}
                     containerStyle={{
                       width: 120,
                       height: 120,

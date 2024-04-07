@@ -137,7 +137,6 @@ function Card({
               height: 100,
             }}
             loading
-            noCache
           />
         </Animated.View>
       </AnimatedBlurView>

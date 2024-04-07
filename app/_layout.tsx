@@ -14,6 +14,16 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "react-native-gesture-handler";
+import CustomToast from "@/components/CustomToast";
+import Toast from "react-native-toast-message";
+import Constants from "expo-constants";
+
+const toastConfig = {
+  custom: (props: any) => {
+    console.log("custom toast props: ", props);
+    return <CustomToast {...props} />;
+  },
+};
 
 function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -64,13 +74,30 @@ function InitialLayout() {
           name="(modals)/travelCompanions"
           options={{
             presentation: "modal",
-            title: "Compagnons de voyage",
+            title: "Covoyageurs",
             headerRight: () => (
               <Button
                 title="Fermer"
                 onPress={() => router.back()}
               />
             ),
+            headerTransparent: true,
+          }}
+        />
+        <Stack.Screen
+          name="(modals)/mandatoryInfos"
+          options={{
+            presentation: "modal",
+            title: "Informations supplémentaires",
+            headerTransparent: true,
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="(modals)/share/[id]"
+          options={{
+            presentation: "modal",
+            title: "Partager le voyage",
             headerTransparent: true,
           }}
         />
@@ -87,6 +114,10 @@ function InitialLayout() {
           }}
         />
       </Stack>
+      <Toast
+        config={toastConfig}
+        topOffset={Constants.statusBarHeight}
+      />
     </GestureHandlerRootView>
   );
 }

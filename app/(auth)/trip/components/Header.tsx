@@ -3,6 +3,7 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
+  Share,
   StatusBar,
   StyleSheet,
   View,
@@ -15,11 +16,11 @@ import { useTrip } from "@/context/tripContext";
 import { BlurView, Text } from "@/components/Themed";
 import { padding } from "@/constants/values";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import MenuModal from "./MenuModal";
+import MenuModal from "./(menu-modals)/MenuModal";
 // import MenuModal from "./MenuModal";
 
 export default function Header() {
-  const { tripMetadata } = useTrip();
+  const { tripMetadata, userActivity } = useTrip();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -123,7 +124,6 @@ export default function Header() {
               flexDirection: "row",
               paddingHorizontal: padding,
               borderRadius: 15,
-              overflow: "hidden",
             }}
           >
             <BlurView
@@ -151,7 +151,12 @@ export default function Header() {
                 />
               </Pressable>
             </BlurView>
-            {tripMetadata && tripMetadata.status?.startsWith("trip") && (
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 10,
+              }}
+            >
               <BlurView
                 style={{
                   flex: 0,
@@ -160,7 +165,28 @@ export default function Header() {
                 }}
               >
                 <Pressable
-                  onPress={handlePresentModalPress}
+                  // onPress={() => {
+                  //   router.push(`/(modals)/share/${tripMetadata?.id}`);
+                  // }}
+                  onPress={async () => {
+                    try {
+                      const result = await Share.share({
+                        message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
+                      });
+
+                      if (result.action === Share.sharedAction) {
+                        if (result.activityType) {
+                          // shared with activity type of result.activityType
+                        } else {
+                          // shared
+                        }
+                      } else if (result.action === Share.dismissedAction) {
+                        // dismissed
+                      }
+                    } catch (error) {
+                      alert(error);
+                    }
+                  }}
                   style={{
                     width: 40,
                     height: 40,
@@ -169,13 +195,74 @@ export default function Header() {
                   }}
                 >
                   <Icon
-                    icon="menuIcon"
+                    icon="shareIcon"
                     size={20}
                     color={Colors.dark.primary}
                   />
                 </Pressable>
               </BlurView>
-            )}
+              {tripMetadata && tripMetadata.status?.startsWith("trip") && (
+                <View
+                  style={{
+                    position: "relative",
+                  }}
+                >
+                  <BlurView
+                    style={{
+                      flex: 0,
+                      width: 40,
+                      height: 40,
+                    }}
+                  >
+                    <Pressable
+                      onPress={handlePresentModalPress}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Icon
+                        icon="menuIcon"
+                        size={20}
+                        color={Colors.dark.primary}
+                      />
+                    </Pressable>
+                  </BlurView>
+                  {userActivity && userActivity.count > 0 && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: -5,
+                        right: -5,
+                        padding: 2,
+                        borderRadius: 5,
+                        backgroundColor: "white",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 2,
+                      }}
+                    >
+                      <Icon
+                        icon="profileIcon"
+                        size={10}
+                        color={Colors.light.primary}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontFamily: "Outfit_500Medium",
+                        }}
+                      >
+                        {userActivity.count > 9 ? "9+" : userActivity.count}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
           </View>
         )}
       </SafeAreaView>

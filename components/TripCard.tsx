@@ -1,17 +1,20 @@
 import { View, StyleSheet, Pressable } from "react-native";
 import React, { useEffect } from "react";
-import { SavedTrip } from "@/types/types";
+import { SavedTrip, UserMetadata } from "@/types/types";
 import { supabase } from "@/lib/supabase";
 import { Link } from "expo-router";
 import { Image } from "expo-image";
 import { Text } from "./Themed";
-import { formatTimestamps } from "@/lib/utils";
+import { formatTimestamps, getUserMetadata } from "@/lib/utils";
 import { borderRadius } from "@/constants/values";
 import ImageWithFallback from "./ImageWithFallback";
 import { months } from "@/constants/data";
 import Colors from "@/constants/Colors";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function TripCard({ trip }: { trip: SavedTrip }) {
+  const { user } = useUser();
+
   return (
     <View
       style={{
@@ -78,8 +81,70 @@ export default function TripCard({ trip }: { trip: SavedTrip }) {
               )}
             </View>
           </View>
+          {trip.author_id !== user?.id && (
+            <CreatedBy authorId={trip.author_id} />
+          )}
         </Pressable>
       </Link>
+    </View>
+  );
+}
+
+function CreatedBy({ authorId }: { authorId: string }) {
+  const [author, setAuthor] = React.useState<UserMetadata | null>(null);
+
+  useEffect(() => {
+    async function fetchAuthor() {
+      const user = await getUserMetadata(authorId);
+
+      setAuthor({
+        id: user?.id,
+        firstName: user?.firstName || "Anonyme",
+        lastName: user?.lastName,
+        imageUrl: user?.imageUrl,
+      });
+    }
+    fetchAuthor();
+  }, [authorId]);
+
+  return (
+    <View
+      style={{
+        marginTop: 15,
+      }}
+    >
+      {/* <Text
+        style={{
+          fontSize: 14,
+          color: Colors.light.primary,
+          opacity: 0.8,
+          fontFamily: "Outfit_400Regular",
+          marginBottom: 5,
+        }}
+      >
+        Crée par
+      </Text> */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          alignItems: "center",
+        }}
+      >
+        <Image
+          source={{ uri: author?.imageUrl }}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 15,
+            // marginLeft: 10,
+            marginRight: 5,
+          }}
+        />
+        <Text>
+          {author?.firstName} {author?.lastName}
+        </Text>
+      </View>
     </View>
   );
 }
