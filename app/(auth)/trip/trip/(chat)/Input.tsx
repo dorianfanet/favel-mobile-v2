@@ -65,7 +65,7 @@ export default function Input({
             // maxHeight: 200,
             height: height,
             borderRadius: borderRadius,
-            backgroundColor: "#08223a",
+            backgroundColor: Colors.dark.secondary,
             paddingTop: paddingVertical,
             paddingBottom: paddingVertical,
             paddingLeft: paddingHorizontal,

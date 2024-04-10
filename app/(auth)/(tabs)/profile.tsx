@@ -17,6 +17,7 @@ import { padding } from "@/constants/values";
 import { Link, useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { favel } from "@/lib/favelApi";
+import { months } from "@/constants/data";
 
 export default function profile() {
   const { user } = useUser();
@@ -149,8 +150,10 @@ export default function profile() {
               {user!.firstName} {user!.lastName}
             </Text>
             <Text style={{ fontSize: 14, opacity: 0.8 }}>
-              {user!.primaryEmailAddress
-                ? user!.primaryEmailAddress.emailAddress
+              {user!.createdAt
+                ? `A rejoint Favel en ${
+                    months[user!.createdAt.getMonth()]
+                  } ${user!.createdAt.getFullYear()}`
                 : ""}
             </Text>
           </View>

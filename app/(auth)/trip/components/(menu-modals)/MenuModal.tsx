@@ -43,6 +43,8 @@ import { months } from "@/constants/data";
 import { supabase } from "@/lib/supabase";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Travelers from "./Travelers";
+import Icon from "@/components/Icon";
+import UserActivityCount from "@/components/UserActivityCount";
 // import * as MailComposer from "expo-mail-composer";
 
 export default function MenuModal({
@@ -133,6 +135,7 @@ export default function MenuModal({
             <View
               style={{
                 gap: 5,
+                flex: 1,
               }}
             >
               <Text
@@ -181,7 +184,10 @@ export default function MenuModal({
                 handleModalLinkPress();
                 travelersModalRef.current?.present();
               }}
-              notifications={userActivity?.count}
+              // notifications={userActivity?.count}
+              NotificationsComponent={() => (
+                <UserActivityCount userActivity={userActivity} />
+              )}
             />
             {/* <MenuButton
               title="Signaler un problème"
@@ -465,19 +471,21 @@ function TripEdits() {
 function MenuButton({
   title,
   onPress,
-  notificationComponent,
   notifications,
+  NotificationsComponent,
 }: {
   title: string;
   onPress: () => void;
-  notificationComponent?: React.FC;
   notifications?: number;
+  NotificationsComponent?: React.ComponentType;
 }) {
   return (
     <TouchableOpacity
       style={{
         height: 45,
-        justifyContent: "center",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexDirection: "row",
         paddingHorizontal: padding,
         backgroundColor: "#3d638771",
       }}
@@ -492,32 +500,33 @@ function MenuButton({
       >
         {title}
       </Text>
-      {notifications && notifications > 0 && (
-        <View
-          style={{
-            position: "absolute",
-            right: padding,
-            top: 20,
-            height: 14,
-            width: 14,
-            backgroundColor: Colors.light.notification,
-            borderRadius: 10,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text
+      {NotificationsComponent ? <NotificationsComponent /> : null}
+      {/* {notifications && notifications > 0 && (
+          <View
             style={{
-              color: "white",
-              fontSize: 10,
-              fontFamily: "Outfit_500Medium",
-              textAlign: "center",
+              position: "absolute",
+              right: padding,
+              top: 20,
+              height: 14,
+              width: 14,
+              backgroundColor: Colors.light.notification,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            {notifications > 9 ? "9+" : notifications}
-          </Text>
-        </View>
-      )}
+            <Text
+              style={{
+                color: "white",
+                fontSize: 10,
+                fontFamily: "Outfit_500Medium",
+                textAlign: "center",
+              }}
+            >
+              {notifications > 9 ? "9+" : notifications}
+            </Text>
+          </View>
+        )} */}
       {/* {notificationComponent ? (
         notificationComponent
       ) : (

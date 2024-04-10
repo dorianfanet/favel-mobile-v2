@@ -44,7 +44,9 @@ export async function getActivity(activity: Activity): Promise<Activity> {
   async function fetchActivityFromDb() {
     const { data, error } = await supabase
       .from("activities")
-      .select("avg_duration, category, name, display_category, coordinates")
+      .select(
+        "avg_duration, category, name, display_category, coordinates, g_maps_id"
+      )
       .eq("id", activity.id)
       .single();
 

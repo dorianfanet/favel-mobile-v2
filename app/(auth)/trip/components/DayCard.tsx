@@ -10,31 +10,34 @@ export default function DayCard({ day }: { day: Day }) {
   const { setEditor } = useEditor();
 
   return (
-    <Pressable
-      onPress={() => {
-        // setEditor({
-        //   type: "day",
-        //   dayId: day.id,
-        // });
+    <View
+      style={{
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
       }}
     >
-      <View
+      <Text
         style={{
-          paddingHorizontal: 15,
-          paddingVertical: 10,
-          flexDirection: "row",
-          justifyContent: "space-between",
+          fontSize: 32,
+          fontFamily: "Outfit_700Bold",
+          color: Colors.dark.primary,
         }}
       >
-        <Text
-          style={{
-            fontSize: 32,
-            fontFamily: "Outfit_700Bold",
-            color: Colors.dark.primary,
-          }}
-        >
-          Jour {typeof day.day === "number" ? day.day + 1 : ""}
-        </Text>
+        Jour {typeof day.day === "number" ? day.day + 1 : ""}
+      </Text>
+      <Pressable
+      // onPress={() => {
+      //   setEditor({
+      //     type: "day",
+      //     day: {
+      //       id: day.id!,
+      //       center: day.coordinates!,
+      //     },
+      //   });
+      // }}
+      >
         {day.type === "day" && (
           <View
             style={{
@@ -86,7 +89,7 @@ export default function DayCard({ day }: { day: Day }) {
             </Text>
           </View>
         )}
-      </View>
-    </Pressable>
+      </Pressable>
+    </View>
   );
 }

@@ -1,4 +1,5 @@
 import { IconByKey } from "@/components/Icon";
+import { Coordinate } from "@/context/cameraContext";
 import {
   BBox,
   Feature,
@@ -26,15 +27,23 @@ export type TripEdit = {
   trip_id: string;
 };
 
-export type Editor = {
-  type?: "day" | "activity";
-  day?: {
-    center: Position;
-    bounds: BBox;
-    index: number;
-    id?: string;
-  };
-};
+export type Editor =
+  | {
+      type: "day";
+      day: {
+        center: Position;
+        bounds?: BBox;
+        id: string;
+      };
+    }
+  | {
+      type: "activity";
+      scrollOnly?: boolean;
+      activity: {
+        center: Coordinate;
+        id: string;
+      };
+    };
 
 export type SavedTrip = {
   id: string;
@@ -138,6 +147,7 @@ export interface Activity {
   avg_duration?: number;
   index?: number;
   route?: Route;
+  g_maps_id?: string;
 }
 
 export type User = {

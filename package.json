@@ -51,7 +51,9 @@
     "react-native-svg": "^15.1.0",
     "react-native-toast-message": "^2.2.0",
     "react-native-web": "~0.19.6",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "expo-mail-composer": "~12.7.1",
+    "expo-updates": "~0.24.12"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

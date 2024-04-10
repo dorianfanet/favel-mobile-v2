@@ -17,6 +17,7 @@ import { BlurView, Text } from "@/components/Themed";
 import { padding } from "@/constants/values";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import MenuModal from "./(menu-modals)/MenuModal";
+import UserActivityCount from "@/components/UserActivityCount";
 // import MenuModal from "./MenuModal";
 
 export default function Header() {
@@ -230,36 +231,15 @@ export default function Header() {
                       />
                     </Pressable>
                   </BlurView>
-                  {userActivity && userActivity.count > 0 && (
-                    <View
-                      style={{
-                        position: "absolute",
-                        bottom: -5,
-                        right: -5,
-                        padding: 2,
-                        borderRadius: 5,
-                        backgroundColor: "white",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 2,
-                      }}
-                    >
-                      <Icon
-                        icon="profileIcon"
-                        size={10}
-                        color={Colors.light.primary}
-                      />
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontFamily: "Outfit_500Medium",
-                        }}
-                      >
-                        {userActivity.count > 9 ? "9+" : userActivity.count}
-                      </Text>
-                    </View>
-                  )}
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: -5,
+                      right: -5,
+                    }}
+                  >
+                    <UserActivityCount userActivity={userActivity} />
+                  </View>
                 </View>
               )}
             </View>

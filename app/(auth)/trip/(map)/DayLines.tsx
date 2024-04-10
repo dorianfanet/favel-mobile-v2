@@ -21,6 +21,8 @@ import { useEditor } from "@/context/editorContext";
 export default function DayLines() {
   const { trip } = useTrip();
 
+  const { setEditor, editor } = useEditor();
+
   const [dayLines, setDayLines] =
     useState<GeoJSON.FeatureCollection<GeoJSON.LineString> | null>(null);
 
@@ -40,6 +42,11 @@ export default function DayLines() {
           type: "Feature",
           properties: {
             id: day.id,
+            opacity: editor
+              ? editor.type === "day" && editor.day.id === day.id
+                ? 1
+                : 0.3
+              : 1,
           },
           geometry: {
             type: "LineString",
@@ -66,7 +73,7 @@ export default function DayLines() {
     });
 
     setDayLines(tempFeatureColletion);
-  }, [trip]);
+  }, [trip, editor]);
 
   const dayLabels = useMemo(() => {
     if (!trip) return;
@@ -130,7 +137,7 @@ export default function DayLines() {
             lineWidth: 3,
             lineCap: MapboxGL.LineJoin.Round,
             lineJoin: MapboxGL.LineJoin.Round,
-            lineOpacity: 1,
+            lineOpacity: ["get", "opacity"],
           }}
         />
       </MapboxGL.ShapeSource>
@@ -148,6 +155,21 @@ export default function DayLines() {
                   backgroundColor: "#0d4376dc",
                   padding: 5,
                   borderRadius: 5,
+                  opacity: editor
+                    ? editor.type === "day" && editor.day.id === label.id
+                      ? 1
+                      : 0.3
+                    : 1,
+                }}
+                onPress={() => {
+                  setEditor({
+                    type: "day",
+                    day: {
+                      center: label.coordinates,
+                      bounds: label.bounds,
+                      id: label.id,
+                    },
+                  });
                 }}
               >
                 <Text

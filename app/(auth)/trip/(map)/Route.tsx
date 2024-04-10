@@ -93,12 +93,6 @@ export default function Route() {
     }
   }, [tripMetadata?.route]);
 
-  useEffect(() => {
-    if (routeLines.features.length > 0) {
-      console.log(routeLines.features[0].properties);
-    }
-  }, [routeLines]);
-
   return (
     <>
       <MapboxGL.ShapeSource

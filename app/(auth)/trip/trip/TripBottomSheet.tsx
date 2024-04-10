@@ -118,15 +118,40 @@ export default function TripBottomSheet() {
   const { editor } = useEditor();
 
   useEffect(() => {
-    if (editor && editor.day && formattedTrip) {
-      const index = formattedTrip.findIndex(
-        (item) => item.id === editor.day?.id
-      );
+    if (editor) {
+      if (editor.type === "day" && formattedTrip) {
+        const index = formattedTrip.findIndex(
+          (item) => item.id === editor.day.id
+        );
 
-      flatListRef.current?.scrollToIndex({
-        index: index,
-        animated: true,
-      });
+        flatListRef.current?.scrollToIndex({
+          index: index,
+          animated: true,
+        });
+      } else if (editor.type === "activity" && formattedTrip) {
+        const index = formattedTrip.findIndex(
+          (item) => item.id === editor.activity.id
+        );
+
+        flatListRef.current?.scrollToIndex({
+          index: index,
+          animated: true,
+        });
+
+        if (!editor.scrollOnly) {
+          bottomSheetRef.current?.close();
+        }
+      }
+    } else {
+      setTimeout(() => {
+        if (bottomSheetRef.current) {
+          try {
+            bottomSheetRef.current.snapToIndex(1);
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      }, 200);
     }
   }, [editor]);
 

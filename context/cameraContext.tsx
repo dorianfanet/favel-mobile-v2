@@ -26,6 +26,7 @@ export type CameraContext = {
     centerCoordinate?: Position;
     bounds?: CameraBounds;
   };
+  animationDuration?: number;
   move: (options: { coordinates: Coordinate[]; customZoom?: number }) => void;
   updatePadding: (
     padding:
@@ -71,6 +72,9 @@ export const CameraProvider = ({
   const [zoom, setZoom] = useState(0);
   const [minZoom, setMinZoom] = useState<number | undefined>(undefined);
   const [maxZoom, setMaxZoom] = useState<number | undefined>(undefined);
+  const [animationDuration, setAnimationDuration] = useState<
+    number | undefined
+  >(1200);
 
   const [viewState, setViewState] = useState<"days" | "hotspots">("days");
 
@@ -109,6 +113,11 @@ export const CameraProvider = ({
       coordinates: Coordinate[];
       customZoom?: number;
     }) => {
+      if (coordinates.length === 1) {
+        setEasing("flyTo");
+      } else {
+        setEasing("easeTo");
+      }
       if (customZoom) setZoom(customZoom);
       setCoordinates(coordinates);
     },
@@ -155,6 +164,7 @@ export const CameraProvider = ({
         minZoom,
         maxZoom,
         centerOrBounds,
+        animationDuration,
         move,
         updatePadding,
         viewState,

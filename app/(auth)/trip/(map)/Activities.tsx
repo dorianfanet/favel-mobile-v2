@@ -4,10 +4,13 @@ import { MarkerView } from "@rnmapbox/maps";
 import MapMarker from "./MapMarker";
 import DayLines from "./DayLines";
 import { useCamera } from "@/context/cameraContext";
+import { useEditor } from "@/context/editorContext";
 
 export default function Activities() {
   const { trip } = useTrip();
   const { viewState } = useCamera();
+
+  const { editor, setEditor } = useEditor();
 
   return trip && viewState === "days" ? (
     <>
@@ -28,7 +31,28 @@ export default function Activities() {
               >
                 <MapMarker
                   activity={point}
-                  state="inactive"
+                  state={
+                    editor
+                      ? editor.type === "day"
+                        ? editor.day.id === day.id
+                          ? "active"
+                          : "half"
+                        : editor.type === "activity" &&
+                          editor.activity.id === point.id
+                        ? "active"
+                        : "inactive"
+                      : "inactive"
+                  }
+                  onPress={() => {
+                    setEditor({
+                      type: "activity",
+                      scrollOnly: true,
+                      activity: {
+                        id: point.id!,
+                        center: point.coordinates!,
+                      },
+                    });
+                  }}
                 />
               </MarkerView>
             ) : null

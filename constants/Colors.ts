@@ -11,7 +11,7 @@ export default {
   dark: {
     background: "#2e648b",
     primary: "#fff",
-    secondary: "#FFF",
+    secondary: "#08223a",
     accent: "#44C0E7",
   },
   map: {

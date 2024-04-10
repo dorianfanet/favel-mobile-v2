@@ -9,6 +9,7 @@ import TripChatWrapper from "./(chat)/TripChatWrapper";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@clerk/clerk-expo";
 import { UserActivityState } from "@/types/types";
+import ActivityModal from "./(activity)/ActivityModal";
 
 export default function Trip() {
   const { trip, tripMetadata, setUserActivity } = useTrip();
@@ -34,7 +35,6 @@ export default function Trip() {
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      console.log("ping");
       const { error } = await supabase.from("user_activity").upsert([
         {
           id: `${id}-${user?.id}`,
@@ -54,8 +54,6 @@ export default function Trip() {
         .eq("trip_id", id)
         .gt("last_activity", date12SecondsAgo.toISOString())
         .not("user_id", "eq", user?.id);
-
-      console.log(data);
 
       if (data) {
         setUserActivity({
@@ -94,6 +92,7 @@ export default function Trip() {
       {tripMetadata && !tripMetadata.status.includes("loading") && (
         <TripChatWrapper />
       )}
+      <ActivityModal />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { MMKV } from "@/app/(auth)/trip/_layout";
 import { favel } from "./favelApi";
+import { BBox } from "@turf/turf";
 
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
@@ -113,4 +114,17 @@ export async function getUserMetadata(userId: string) {
 
     return data;
   }
+}
+
+export function bboxToCoordinatesArray(bbox: BBox) {
+  const [minLongitude, minLatitude, maxLongitude, maxLatitude] = bbox;
+
+  const corners = [
+    { longitude: minLongitude, latitude: minLatitude }, // Southwest corner
+    { longitude: maxLongitude, latitude: minLatitude }, // Southeast corner
+    { longitude: maxLongitude, latitude: maxLatitude }, // Northeast corner
+    { longitude: minLongitude, latitude: maxLatitude }, // Northwest corner
+  ];
+
+  return corners;
 }

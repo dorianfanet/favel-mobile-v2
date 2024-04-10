@@ -19,6 +19,7 @@ import { useTrip } from "@/context/tripContext";
 import { newTripEdit } from "@/lib/tripEdits";
 import { useLocalSearchParams } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
+import { useEditor } from "@/context/editorContext";
 
 export default function PlaceCard({
   swipeable,
@@ -192,131 +193,146 @@ function ActivityCardContent({
     }
   }, []);
 
+  const { setEditor } = useEditor();
+
   return (
-    <View
-      style={[
-        {
-          backgroundColor: isActive ? Colors.dark.background : "transparent",
-          padding: 5,
-          // borderRadius: 10,
-          marginVertical: 5,
-          height: 100,
-          flexDirection: "row",
-          paddingHorizontal: 15,
-          // marginHorizontal: 15,
-        },
-        style,
-      ]}
+    <TouchableOpacity
+      onPress={() => {
+        setEditor({
+          type: "activity",
+          activity: {
+            center: activityData.coordinates!,
+            id: activityData.id!,
+          },
+        });
+      }}
     >
       <View
-        style={{
-          width: style && style.height !== undefined ? style.height - 10 : 90,
-          height: "100%",
-          position: "relative",
-        }}
+        style={[
+          {
+            backgroundColor: isActive ? Colors.dark.background : "transparent",
+            padding: 5,
+            // borderRadius: 10,
+            marginVertical: 5,
+            height: 100,
+            flexDirection: "row",
+            paddingHorizontal: 15,
+            // marginHorizontal: 15,
+          },
+          style,
+        ]}
       >
-        {/* <Image
+        <View
+          style={{
+            width: style && style.height !== undefined ? style.height - 10 : 90,
+            height: "100%",
+            position: "relative",
+          }}
+        >
+          {/* <Image
           style={{ width: "100%", height: "100%", borderRadius: 10 }}
           source={{
             uri: `https://storage.googleapis.com/favel-photos/activites/${activity.id}-400.jpg`,
           }}
         /> */}
-        <ImageWithFallback
-          key={activityData.id}
-          style={{ width: "100%", height: "100%", borderRadius: 10 }}
-          source={{
-            uri: `https://storage.googleapis.com/favel-photos/activites/${activityData.id}-700.jpg`,
-          }}
-          fallbackSource={require("@/assets/images/adaptive-icon.png")}
-        />
+          <ImageWithFallback
+            key={activityData.id}
+            style={{ width: "100%", height: "100%", borderRadius: 10 }}
+            source={{
+              uri: `https://storage.googleapis.com/favel-photos/activites/${activityData.id}-700.jpg`,
+            }}
+            fallbackSource={require("@/assets/images/adaptive-icon.png")}
+          />
+          <View
+            style={{
+              position: "absolute",
+              bottom: 5,
+              right: 5,
+              backgroundColor: categories.includes(
+                activityData.category as Category
+              )
+                ? categoryColor[activityData.category as Category]
+                : categoryColor.unknown,
+              padding: 5,
+              borderRadius: 5,
+              width: 30,
+              height: 30,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Icon
+              icon={`${
+                categories.includes(activityData.category as Category)
+                  ? (activityData.category as Category)
+                  : "unknown"
+              }Icon`}
+              size={15}
+              color={"white"}
+            />
+          </View>
+        </View>
         <View
           style={{
-            position: "absolute",
-            bottom: 5,
-            right: 5,
-            backgroundColor: categories.includes(
-              activityData.category as Category
-            )
-              ? categoryColor[activityData.category as Category]
-              : categoryColor.unknown,
-            padding: 5,
-            borderRadius: 5,
-            width: 30,
-            height: 30,
-            justifyContent: "center",
-            alignItems: "center",
+            flex: 1,
+            justifyContent: "space-between",
+            paddingVertical: 5,
+            marginLeft: 15,
           }}
         >
-          <Icon
-            icon={`${
-              categories.includes(activityData.category as Category)
-                ? (activityData.category as Category)
-                : "unknown"
-            }Icon`}
-            size={15}
-            color={"white"}
-          />
+          <View>
+            <Text
+              style={{
+                fontFamily: "Outfit_600SemiBold",
+                fontSize: 16,
+                color: Colors[theme].primary,
+              }}
+            >
+              {activityData.name}
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                opacity: 0.8,
+                color: Colors[theme].primary,
+              }}
+            >
+              {activityData.display_category}
+            </Text>
+          </View>
+          {activityData.avg_duration && (
+            <Text
+              style={{
+                fontSize: 12,
+                opacity: 0.8,
+                color: Colors[theme].primary,
+              }}
+            >
+              {formatHoursToHoursAndMinutes(activityData.avg_duration)} sur
+              place
+            </Text>
+          )}
         </View>
-      </View>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "space-between",
-          paddingVertical: 5,
-          marginLeft: 15,
-        }}
-      >
-        <View>
-          <Text
+        {draggable && (
+          <TouchableOpacity
+            delayLongPress={0}
+            onLongPress={drag}
+            disabled={isActive}
             style={{
-              fontFamily: "Outfit_600SemiBold",
-              fontSize: 16,
-              color: Colors[theme].primary,
+              position: "absolute",
+              right: 15,
+              top: 40,
+              zIndex: 1,
             }}
           >
-            {activityData.name}
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              opacity: 0.8,
-              color: Colors[theme].primary,
-            }}
-          >
-            {activityData.display_category}
-          </Text>
-        </View>
-        {activityData.avg_duration && (
-          <Text
-            style={{
-              fontSize: 12,
-              opacity: 0.8,
-              color: Colors[theme].primary,
-            }}
-          >
-            {formatHoursToHoursAndMinutes(activityData.avg_duration)} sur place
-          </Text>
+            <Icon
+              icon="dragIcon"
+              size={20}
+              color={Colors[theme].primary}
+            />
+          </TouchableOpacity>
         )}
       </View>
-      {draggable && (
-        <TouchableOpacity
-          delayLongPress={0}
-          onLongPress={drag}
-          disabled={isActive}
-          style={{
-            position: "absolute",
-            right: 15,
-            top: 40,
-            zIndex: 1,
-          }}
-        >
-          <Icon
-            icon="dragIcon"
-            size={20}
-            color={Colors[theme].primary}
-          />
-        </TouchableOpacity>
-      )}
-    </View>
+    </TouchableOpacity>
   );
 }

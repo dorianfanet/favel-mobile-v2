@@ -8,6 +8,7 @@ import { CameraProvider } from "@/context/cameraContext";
 import { MMKVLoader, useMMKVStorage } from "react-native-mmkv-storage";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
+import { EditorProvider } from "@/context/editorContext";
 
 export const MMKV = new MMKVLoader().initialize();
 
@@ -25,11 +26,13 @@ export default function Layout() {
       />
       <TripProvider>
         <BottomSheetModalProvider>
-          <>
-            <MapWrapper />
-            <Header />
-            <Slot />
-          </>
+          <EditorProvider>
+            <>
+              <MapWrapper />
+              <Header />
+              <Slot />
+            </>
+          </EditorProvider>
         </BottomSheetModalProvider>
       </TripProvider>
     </>

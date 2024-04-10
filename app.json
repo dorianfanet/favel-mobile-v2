@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "10",
+      "buildNumber": "11",
       "associatedDomains": [
         "applinks:favel.net"
       ]
@@ -28,7 +28,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#44C0E7"
       },
-      "package": "net.favel.favel"
+      "package": "net.favel.favel",
+      "versionCode": 4
     },
     "web": {
       "bundler": "metro",
@@ -56,6 +57,10 @@
       "eas": {
         "projectId": "ff571a29-96db-453f-85d1-9983778a1806"
       }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/ff571a29-96db-453f-85d1-9983778a1806"
     }
   }
 }

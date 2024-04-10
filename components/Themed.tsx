@@ -124,7 +124,7 @@ export function TextInput(props: TextInputProps) {
 export const BlurView = forwardRef<typeof View, BlurViewProps>((props, ref) => {
   const { style, ...otherProps } = props;
 
-  return Platform.OS === "ios" ? (
+  return Platform.OS === "ios" || Platform.OS === "android" ? (
     <DefaultBlurView
       ref={ref as any}
       intensity={40}
@@ -139,7 +139,7 @@ export const BlurView = forwardRef<typeof View, BlurViewProps>((props, ref) => {
           borderRadius: 20,
           opacity: 1,
           // backgroundColor: "#5d9bd5b9",
-          backgroundColor: "#0d4376b8",
+          backgroundColor: Platform.OS === "ios" ? "#0d4376b8" : "#0d4376",
         },
         style,
       ]}

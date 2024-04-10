@@ -9,6 +9,8 @@ import { Dimensions } from "react-native";
 import Activities from "./Activities";
 import { booleanPointInPolygon, polygon } from "@turf/turf";
 import Loading from "./Loading";
+import { useEditor } from "@/context/editorContext";
+import { bboxToCoordinatesArray } from "@/lib/utils";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY!);
 
@@ -24,6 +26,7 @@ export default function Map() {
     minZoom,
     maxZoom,
     centerOrBounds,
+    animationDuration,
     move,
     updatePadding,
     setViewState,
@@ -58,10 +61,10 @@ export default function Map() {
         });
       } else {
         updatePadding({
-          paddingTop: 50,
+          paddingTop: 120,
           paddingBottom: screenHeight * 0.45,
-          paddingLeft: 50,
-          paddingRight: 50,
+          paddingLeft: 80,
+          paddingRight: 80,
         });
       }
     }
@@ -91,14 +94,36 @@ export default function Map() {
       });
     }
 
-    console.log(currentZoom);
-
     if (pointsInBounds < 2 && currentZoom > 8) {
       setViewState("days");
     } else {
       setViewState("hotspots");
     }
   }
+
+  const { editor, setEditor } = useEditor();
+
+  useEffect(() => {
+    if (editor) {
+      if (editor.type === "day") {
+        move({
+          coordinates: editor.day.bounds
+            ? bboxToCoordinatesArray(editor.day.bounds)
+            : [
+                {
+                  latitude: editor.day.center[1],
+                  longitude: editor.day.center[0],
+                },
+              ],
+        });
+      } else if (editor.type === "activity") {
+        move({
+          coordinates: [editor.activity.center],
+          customZoom: 15,
+        });
+      }
+    }
+  }, [editor]);
 
   return (
     <MapboxGL.MapView
@@ -115,6 +140,9 @@ export default function Map() {
         setCurrentZoom(camera.properties.zoom);
         checkForHotspotsInBounds(camera);
       }}
+      onPress={() => {
+        setEditor(null);
+      }}
     >
       <MapboxGL.Camera
         {...centerOrBounds}
@@ -127,7 +155,7 @@ export default function Map() {
           paddingLeft: padding.paddingLeft,
           paddingRight: padding.paddingRight,
         }}
-        animationDuration={2000}
+        animationDuration={animationDuration}
         animationMode={easing}
       />
       <Loading />

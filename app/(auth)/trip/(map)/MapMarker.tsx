@@ -81,101 +81,113 @@ export default function MapMarker({
   }, [state]);
 
   return (
-    <Animated.View
-      style={[
-        {
-          position: "relative",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 10,
-          width: 40,
-          height: 40,
-        },
-        markerOpacityStyle,
-      ]}
+    <View
+      style={{
+        width: 180,
+        height: 140,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
     >
-      <View
-        style={{
-          position: "absolute",
-          top: -20,
-        }}
+      <Animated.View
+        style={[
+          {
+            position: "relative",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 10,
+            width: 40,
+            height: 40,
+            overflow: "visible",
+          },
+          markerOpacityStyle,
+        ]}
       >
-        <Pressable onPress={onPress}>
+        <View
+          style={{
+            position: "absolute",
+            top: -20,
+            overflow: "visible",
+          }}
+        >
+          <Pressable onPress={onPress}>
+            <Animated.View
+              style={[
+                {
+                  width: 40,
+                  height: 40,
+                  overflow: "visible",
+                },
+                markerStyle,
+              ]}
+            >
+              <Icon
+                icon="activitiesMapPin"
+                size={40}
+                color={
+                  categoryColor[activity.category as Category] ||
+                  categoryColor.unknown
+                }
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  padding: 11,
+                  paddingTop: 8,
+                }}
+              >
+                <Icon
+                  icon={`${
+                    categories.includes(activity.category as Category)
+                      ? (activity.category as Category)
+                      : "unknown"
+                  }Icon`}
+                  size={18}
+                  color={"white"}
+                />
+              </View>
+            </Animated.View>
+          </Pressable>
+        </View>
+        <View
+          style={{
+            position: "absolute",
+            top: 25,
+            width: 150,
+          }}
+        >
           <Animated.View
             style={[
               {
-                width: 40,
-                height: 40,
+                backgroundColor:
+                  categoryColor[activity.category as Category] ||
+                  categoryColor.unknown,
+                // backgroundColor: "#426682",
+                borderRadius: 4,
+                padding: 2,
+                paddingHorizontal: 4,
+                alignSelf: "center",
               },
-              markerStyle,
+              textStyle,
             ]}
           >
-            <Icon
-              icon="activitiesMapPin"
-              size={40}
-              color={
-                categoryColor[activity.category as Category] ||
-                categoryColor.unknown
-              }
-            />
-            <View
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                padding: 11,
-                paddingTop: 8,
+                fontSize: 12,
+                color: "white",
+                fontFamily: "Outfit_500Medium",
+                textAlign: "center",
               }}
             >
-              <Icon
-                icon={`${
-                  categories.includes(activity.category as Category)
-                    ? (activity.category as Category)
-                    : "unknown"
-                }Icon`}
-                size={18}
-                color={"white"}
-              />
-            </View>
+              {activity.name}
+            </Text>
           </Animated.View>
-        </Pressable>
-      </View>
-      <View
-        style={{
-          position: "absolute",
-          top: 25,
-          width: 150,
-        }}
-      >
-        <Animated.View
-          style={[
-            {
-              backgroundColor:
-                categoryColor[activity.category as Category] ||
-                categoryColor.unknown,
-              // backgroundColor: "#426682",
-              borderRadius: 4,
-              padding: 2,
-              paddingHorizontal: 4,
-              alignSelf: "center",
-            },
-            textStyle,
-          ]}
-        >
-          <Text
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={{
-              fontSize: 12,
-              color: "white",
-              fontFamily: "Outfit_500Medium",
-              textAlign: "center",
-            }}
-          >
-            {activity.name}
-          </Text>
-        </Animated.View>
-      </View>
-    </Animated.View>
+        </View>
+      </Animated.View>
+    </View>
   );
 }
