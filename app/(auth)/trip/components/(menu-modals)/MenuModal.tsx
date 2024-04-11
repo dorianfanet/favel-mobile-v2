@@ -129,7 +129,7 @@ export default function MenuModal({
                 source={{
                   uri: `https://storage.googleapis.com/favel-photos/hotspots/${tripMetadata?.route?.[0]?.id}-700.jpg`,
                 }}
-                fallbackSource={require("@/assets/images/adaptive-icon.png")}
+                fallbackSource={require("@/assets/images/no-image.png")}
               />
             </View>
             <View

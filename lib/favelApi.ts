@@ -137,6 +137,39 @@ class ApiClient {
       messageId,
     });
   }
+
+  async updateActivity(
+    id: string,
+    params: {
+      metadata?: boolean;
+      description?: boolean;
+    }
+  ): Promise<{
+    metadata?: {
+      avg_duration: number;
+      category: string;
+      display_category: string;
+    };
+    description?: string;
+  }> {
+    return this.request(`update-activity`, "POST", {
+      id,
+      params,
+    });
+  }
+
+  async updateImage(
+    placeId: string,
+    id: string
+  ): Promise<{
+    result: "ok" | "error";
+  }> {
+    return this.request(
+      `find-activity-image?id=${id}&placeId=${placeId}`,
+      "GET",
+      null
+    );
+  }
 }
 
 export const favel = new ApiClient(`${process.env.EXPO_PUBLIC_API_URL}/api`);

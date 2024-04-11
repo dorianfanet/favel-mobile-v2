@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Alert } from "react-native";
 import React, { useEffect } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useTrip } from "@/context/tripContext";
@@ -52,6 +52,7 @@ export default function Index() {
             console.log("🎉 User is invited to the trip");
           } else {
             router.navigate("/home");
+            Alert.alert("Vous n'êtes pas autorisé à voir ce voyage");
             return;
           }
         }
@@ -61,37 +62,22 @@ export default function Index() {
             const newTrip = await Promise.all(
               data!.trip.map(async (day: Day, index: number) => {
                 if (day.activities) {
-                  console.log(
-                    `✅ Day ${index} has ${day.activities.length} activities \n`
-                  );
                   const activities = await Promise.all(
                     day.activities.map(async (activity) => {
                       if (activity.route) {
-                        console.log(
-                          ` 🚘 Activity ${activity.id} has a route\n`
-                        );
                         return activity;
                       } else {
-                        console.log(` 📍 Activity ${activity.id} is a place`);
                         const newActivity = await getActivity(activity);
-                        console.log(`   - Id: ${newActivity.id},
-                - Name: ${newActivity.name},
-                - Category: ${newActivity.category},
-                - Coordinates: ${newActivity.coordinates?.latitude}, ${newActivity.coordinates?.longitude},
-                - Duration: ${newActivity.avg_duration},
-                - DCategory: ${newActivity.display_category},\n`);
                         return newActivity;
                       }
                     })
                   );
                   return { ...day, activities };
                 } else {
-                  console.log(`❌ Day ${index} has no activities\n`);
                   return day;
                 }
               })
             );
-            console.log(newTrip);
             setTrip(newTrip as Day[]);
           }
           getTrip();

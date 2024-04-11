@@ -3,13 +3,14 @@ import Colors from "@/constants/Colors";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth, useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Button,
   Pressable,
   Alert,
   TouchableOpacity,
+  StatusBar,
 } from "react-native";
 
 enum Strategy {
@@ -19,6 +20,10 @@ enum Strategy {
 
 export default function login() {
   const { signIn, setActive, isLoaded } = useSignIn();
+
+  useEffect(() => {
+    StatusBar.setBarStyle("dark-content");
+  });
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -44,42 +49,8 @@ export default function login() {
     }
   };
 
-  useWarmUpBrowser();
-
-  const router = useRouter();
-  const { startOAuthFlow: googleAuth } = useOAuth({ strategy: "oauth_google" });
-  const { startOAuthFlow: appleAuth } = useOAuth({ strategy: "oauth_apple" });
-
-  const onSelectAuth = async (strategy: Strategy) => {
-    const selectedAuth = {
-      [Strategy.Google]: googleAuth,
-      [Strategy.Apple]: appleAuth,
-    }[strategy];
-
-    try {
-      const { createdSessionId, setActive } = await selectedAuth();
-
-      if (createdSessionId) {
-        setActive!({ session: createdSessionId });
-        router.back();
-      }
-    } catch (err) {
-      console.log("OAuth error", JSON.stringify(err));
-    }
-  };
-
   return (
     <View style={logInStyles.container}>
-      <Text
-        style={{
-          fontSize: 32,
-          fontFamily: "Outfit_600SemiBold",
-          marginBottom: 10,
-          textAlign: "center",
-        }}
-      >
-        Se connecter
-      </Text>
       <Text
         style={{
           fontSize: 14,
@@ -139,58 +110,6 @@ export default function login() {
           Se connecter
         </Text>
       </Pressable>
-
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginVertical: 20,
-          gap: 20,
-        }}
-      >
-        <View style={logInStyles.or} />
-        <Text
-          style={{
-            fontFamily: "Outfit_600SemiBold",
-            fontSize: 16,
-            lineHeight: 16,
-          }}
-        >
-          ou
-        </Text>
-        <View style={logInStyles.or} />
-      </View>
-
-      <View>
-        <TouchableOpacity
-          style={[logInStyles.inputField, logInStyles.providers]}
-          onPress={() => onSelectAuth(Strategy.Apple)}
-        >
-          <Text
-            style={{
-              fontFamily: "Outfit_600SemiBold",
-              fontSize: 16,
-            }}
-          >
-            Se connecter avec Apple
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[logInStyles.inputField, logInStyles.providers]}
-          onPress={() => onSelectAuth(Strategy.Google)}
-        >
-          <Text
-            style={{
-              fontFamily: "Outfit_600SemiBold",
-              fontSize: 16,
-            }}
-          >
-            Se connecter avec Google
-          </Text>
-        </TouchableOpacity>
-      </View>
 
       <Link
         href="/register"

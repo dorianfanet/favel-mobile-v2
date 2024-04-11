@@ -5,6 +5,7 @@ import {
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Dimensions,
 } from "react-native";
 import React, {
   useCallback,
@@ -34,9 +35,13 @@ import ActivityCard from "../components/ActivityCard";
 import { newTripEdit } from "@/lib/tripEdits";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const windowHeight = Dimensions.get("window").height;
+
 export default function TripBottomSheet() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [sheetIndex, setSheetIndex] = useState(1);
+
+  const flatListHeight = useRef<number>(0);
 
   const { user } = useUser();
 
@@ -88,16 +93,12 @@ export default function TripBottomSheet() {
     setFormattedTrip(temp);
   }, [trip]);
 
-  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    console.log("handleScroll", e.nativeEvent.contentOffset.y);
-    const flatListHeight = e.nativeEvent.contentSize.height;
-    const flatListHeight2 = e.nativeEvent.layoutMeasurement.height;
-    if (e.nativeEvent.contentOffset.y < -20) {
+  function handleScroll(offset: number) {
+    const totalFlatListHeight = flatListHeight.current + windowHeight * 0.45;
+    console.log("offset", offset, totalFlatListHeight);
+    if (offset < -20) {
       bottomSheetRef.current?.snapToIndex(1);
-    } else if (
-      e.nativeEvent.contentOffset.y >
-      flatListHeight - flatListHeight2
-    ) {
+    } else if (totalFlatListHeight > 0 && offset > totalFlatListHeight) {
       bottomSheetRef.current?.snapToIndex(2);
     }
   }
@@ -245,7 +246,12 @@ export default function TripBottomSheet() {
     >
       {formattedTrip && (
         <DraggableFlatList
-          onScroll={handleScroll}
+          onScrollOffsetChange={handleScroll}
+          onLayout={(e) => {
+            if (e.nativeEvent.layout.height > 0) {
+              flatListHeight.current = e.nativeEvent.layout.height;
+            }
+          }}
           data={formattedTrip}
           ref={flatListRef}
           renderItem={({ item, drag, isActive }) => {

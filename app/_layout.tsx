@@ -41,7 +41,7 @@ function InitialLayout() {
     if (isSignedIn && !inAuthPage) {
       router.replace("/(auth)/(tabs)/home");
     } else if (!isSignedIn) {
-      router.replace("/(public)/login");
+      router.replace("/(public)/auth");
     }
   }, [isSignedIn]);
 

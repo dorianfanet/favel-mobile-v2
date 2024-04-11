@@ -241,7 +241,7 @@ function ActivityCardContent({
             source={{
               uri: `https://storage.googleapis.com/favel-photos/activites/${activityData.id}-700.jpg`,
             }}
-            fallbackSource={require("@/assets/images/adaptive-icon.png")}
+            fallbackSource={require("@/assets/images/no-image.png")}
           />
           <View
             style={{

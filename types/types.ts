@@ -14,6 +14,11 @@ export type CachedActivity = {
   expiresAt: number;
 };
 
+export type CachedDescription = {
+  description: string;
+  expiresAt: number;
+};
+
 export type TripEditType = "move" | "delete" | "add";
 
 export type TripEdit = {

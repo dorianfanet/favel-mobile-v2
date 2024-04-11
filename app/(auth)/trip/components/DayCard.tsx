@@ -16,6 +16,7 @@ export default function DayCard({ day }: { day: Day }) {
         paddingVertical: 10,
         flexDirection: "row",
         justifyContent: "space-between",
+        alignItems: "center",
       }}
     >
       <Text

@@ -12,7 +12,6 @@ import Icon from "@/components/Icon";
 import Colors from "@/constants/Colors";
 import { Text } from "@/components/Themed";
 import { categories, colors as categoryColor } from "@/constants/categories";
-import ImageWithFallback from "@/components/ImageWithFallback";
 import { formatHoursToHoursAndMinutes } from "@/lib/utils";
 import RouteCard from "./RouteCard";
 import { RectButton, Swipeable } from "react-native-gesture-handler";

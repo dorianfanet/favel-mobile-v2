@@ -90,10 +90,12 @@ export default function editProfile() {
             marginVertical: 40,
           }}
         >
-          <Image
-            source={{ uri: user!.imageUrl }}
-            style={{ width: 100, height: 100, borderRadius: 50 }}
-          />
+          {user && user.imageUrl && (
+            <Image
+              source={{ uri: user!.imageUrl }}
+              style={{ width: 100, height: 100, borderRadius: 50 }}
+            />
+          )}
           <Button
             title="Sélectionner une image"
             onPress={pickImageAsync}

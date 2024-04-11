@@ -16,13 +16,17 @@ import { useEditor } from "@/context/editorContext";
 import { padding } from "@/constants/values";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { Activity, Category } from "@/types/types";
-import { getActivity } from "@/lib/supabase";
+import { getActivity, getActivityDescription } from "@/lib/supabase";
 import { categories, colors as categoryColor } from "@/constants/categories";
 import Icon, { IconProps } from "@/components/Icon";
 import Colors from "@/constants/Colors";
 import { formatHoursToHoursAndMinutes } from "@/lib/utils";
 import * as Linking from "expo-linking";
 import * as MailComposer from "expo-mail-composer";
+import { favel } from "@/lib/favelApi";
+import { MMKV } from "../../_layout";
+import { Image } from "expo-image";
+import ActivityImage from "@/components/ActivityImage";
 
 export default function ActivityModal() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -34,6 +38,7 @@ export default function ActivityModal() {
   }, []);
 
   const [activityData, setActivityData] = useState<Activity | null>(null);
+  const [description, setDescription] = useState<string>("");
 
   const { editor, setEditor } = useEditor();
 
@@ -43,7 +48,60 @@ export default function ActivityModal() {
         id: editor.activity.id,
         formattedType: "activity",
       });
+      console.log(activity);
+      const description = await getActivityDescription(editor.activity.id);
       setActivityData(activity);
+      if (description) setDescription(description);
+
+      if (
+        !description ||
+        !activity.avg_duration ||
+        !activity.display_category ||
+        !activity.category
+      ) {
+        const updatedActivity = await favel.updateActivity(editor.activity.id, {
+          metadata:
+            !activity.avg_duration ||
+            !activity.display_category ||
+            !activity.category
+              ? true
+              : false,
+          description: !description ? true : false,
+        });
+
+        if (
+          (updatedActivity && !activity.avg_duration) ||
+          !activity.display_category ||
+          !activity.category
+        ) {
+          setActivityData((prev) => {
+            return {
+              ...(prev as Activity),
+              ...updatedActivity.metadata,
+            };
+          });
+          MMKV.setStringAsync(
+            `activity-${editor.activity.id}`,
+            JSON.stringify({
+              data: {
+                ...activityData,
+                ...updatedActivity.metadata,
+              },
+              expiresAt: new Date().getTime() + 86400000,
+            })
+          );
+        }
+        if (updatedActivity && !description && updatedActivity.description) {
+          setDescription(updatedActivity.description);
+          MMKV.setStringAsync(
+            `activity_description-${editor.activity.id}`,
+            JSON.stringify({
+              description: updatedActivity.description,
+              expiresAt: new Date().getTime() + 86400000,
+            })
+          );
+        }
+      }
     }
   }
 
@@ -56,6 +114,7 @@ export default function ActivityModal() {
     } else {
       bottomSheetModalRef.current?.dismiss();
       setActivityData(null);
+      setDescription("");
     }
   }, [editor]);
 
@@ -156,13 +215,33 @@ export default function ActivityModal() {
                 position: "relative",
               }}
             >
-              <ImageWithFallback
+              {/* <ImageWithFallback
                 key={activityData.id}
                 style={{ width: "100%", height: "100%", borderRadius: 20 }}
                 source={{
                   uri: `https://storage.googleapis.com/favel-photos/activites/${activityData.id}-700.jpg`,
                 }}
-                fallbackSource={require("@/assets/images/adaptive-icon.png")}
+                fallbackSource={require("@/assets/images/no-image.png")}
+              />
+              <Image
+                key={activityData.id}
+                style={{ width: "100%", height: "100%", borderRadius: 20 }}
+                source={{
+                  uri: `https://storage.googleapis.com/favel-photos/activites/${activityData.id}-700.jpg`,
+                }}
+                onError={(e) => {
+                  console.log(e);
+
+                }}
+              /> */}
+              <ActivityImage
+                key={activityData.id}
+                style={{ width: "100%", height: "100%", borderRadius: 20 }}
+                source={{
+                  uri: `https://storage.googleapis.com/favel-photos/activites/${activityData.id}-700.jpg`,
+                }}
+                placeId={activityData.g_maps_id!}
+                id={activityData.id!}
               />
               <View
                 style={{
@@ -269,15 +348,7 @@ export default function ActivityModal() {
                     color: Colors.dark.primary,
                   }}
                 >
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
-                  ultrices posuere purus vitae efficitur. Phasellus luctus nisl
-                  eu porta bibendum. Donec aliquet purus et leo congue, vitae
-                  aliquet risus efficitur. Aliquam in nulla non nisi rutrum
-                  finibus non at felis. Maecenas risus dui, lobortis nec commodo
-                  a, sagittis a enim. Nulla ut feugiat neque, non tincidunt
-                  metus. Ut sit amet nisl quam. Integer dictum enim id elementum
-                  ullamcorper. Vivamus a ipsum ac risus viverra consequat eget
-                  ultricies diam.
+                  {description}
                 </Text>
               </View>
             </View>

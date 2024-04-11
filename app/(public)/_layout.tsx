@@ -3,10 +3,6 @@ import { Stack } from "expo-router";
 import { StatusBar, View } from "react-native";
 
 const PublicLayout = () => {
-  useEffect(() => {
-    StatusBar.setBarStyle("dark-content");
-  });
-
   return (
     <Stack
       screenOptions={{
@@ -14,8 +10,17 @@ const PublicLayout = () => {
       }}
     >
       <Stack.Screen
-        name="login"
+        name="auth"
         options={{}}
+      />
+      <Stack.Screen
+        name="login"
+        options={{
+          headerTitle: "Se connecter",
+          headerShown: true,
+          headerBackTitle: "Retour",
+          headerTransparent: true,
+        }}
       ></Stack.Screen>
       <Stack.Screen
         name="register"
