@@ -13,6 +13,7 @@ import ActivityModal from "./(activity)/ActivityModal";
 import { padding } from "@/constants/values";
 import Colors from "@/constants/Colors";
 import Icon from "@/components/Icon";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function Trip() {
   const { trip, tripMetadata, setUserActivity } = useTrip();
@@ -86,6 +87,10 @@ export default function Trip() {
     }, 10000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    track("Trip page viewed");
   }, []);
 
   return (

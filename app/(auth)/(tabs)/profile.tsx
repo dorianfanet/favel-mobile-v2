@@ -18,13 +18,14 @@ import { Link, useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { favel } from "@/lib/favelApi";
 import { months } from "@/constants/data";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function Profile() {
   const { user } = useUser();
   const { signOut } = useAuth();
 
   useEffect(() => {
-    console.log("Profile render");
+    track("Profile page viewed");
     onRefresh();
   }, []);
 

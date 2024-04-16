@@ -9,6 +9,7 @@ import { MMKVLoader, useMMKVStorage } from "react-native-mmkv-storage";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
 import { EditorProvider } from "@/context/editorContext";
+import { track } from "@amplitude/analytics-react-native";
 
 export const MMKV = new MMKVLoader().initialize();
 
@@ -16,6 +17,10 @@ export default function Layout() {
   useEffect(() => {
     StatusBar.setBarStyle("dark-content");
   });
+
+  useEffect(() => {
+    track("Trip page viewed");
+  }, []);
 
   return (
     <>

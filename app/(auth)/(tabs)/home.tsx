@@ -14,10 +14,14 @@ import {
 } from "react-native";
 import TripCard from "@/components/TripCard";
 import { useUser } from "@clerk/clerk-expo";
-import { favel } from "@/lib/favelApi";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function home() {
   const { user } = useUser();
+
+  useEffect(() => {
+    track("Home page viewed");
+  }, []);
 
   const [trips, setTrips] = React.useState<SavedTrip[] | []>([]);
 

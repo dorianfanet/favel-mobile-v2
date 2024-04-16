@@ -15,9 +15,14 @@ import { getUserMetadata } from "@/lib/utils";
 import Colors from "@/constants/Colors";
 import { useUser } from "@clerk/clerk-expo";
 import UserCard from "@/components/UserCard";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function Travelers() {
   const { tripMetadata, userActivity } = useTrip();
+
+  useEffect(() => {
+    track("Travelers modal viewed");
+  }, []);
 
   return (
     <BottomSheetScrollView

@@ -17,7 +17,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
       "buildNumber": "12",
-      "associatedDomains": ["applinks:favel.net"]
+      "associatedDomains": ["applinks:favel.net"],
+      "deploymentTarget": "15.0"
     },
     "android": {
       "adaptiveIcon": {

@@ -5,6 +5,7 @@ import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { favel } from "@/lib/favelApi";
 import { useUser } from "@clerk/clerk-expo";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -15,7 +16,8 @@ export default function Index() {
 
   useEffect(() => {
     if (!id || !user) return;
-    console.log("id", id, "user", user.id);
+    track("Invitation page viewed", { id: id });
+
     favel.inviteUser(id as string, user.id).then((res) => {
       if (res.message === "User invited") {
         router.navigate(`/trip/${id}`);

@@ -18,6 +18,7 @@ import { padding } from "@/constants/values";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import MenuModal from "./(menu-modals)/MenuModal";
 import UserActivityCount from "@/components/UserActivityCount";
+import { track } from "@amplitude/analytics-react-native";
 // import MenuModal from "./MenuModal";
 
 export default function Header() {
@@ -26,6 +27,7 @@ export default function Header() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   const handlePresentModalPress = useCallback(() => {
+    track("Trip Menu clicked");
     bottomSheetModalRef.current?.present();
   }, []);
 
@@ -136,6 +138,7 @@ export default function Header() {
             >
               <Pressable
                 onPress={() => {
+                  track("Back to home from trip");
                   router.navigate("/(auth)/(tabs)/home");
                 }}
                 style={{
@@ -170,6 +173,7 @@ export default function Header() {
                   //   router.push(`/(modals)/share/${tripMetadata?.id}`);
                   // }}
                   onPress={async () => {
+                    track("Share trip clicked");
                     try {
                       const result = await Share.share({
                         message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,

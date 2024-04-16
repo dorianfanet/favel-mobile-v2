@@ -18,6 +18,7 @@ import CustomToast from "@/components/CustomToast";
 import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import Intercom from "@intercom/intercom-react-native";
+import { init } from "@amplitude/analytics-react-native";
 
 const toastConfig = {
   custom: (props: any) => {
@@ -41,10 +42,19 @@ function InitialLayout() {
     console.log(isSignedIn);
 
     if (isSignedIn && !inAuthPage) {
-      Intercom.loginUserWithUserAttributes({
-        email: user?.primaryEmailAddress?.emailAddress,
-        userId: user?.id,
-      });
+      try {
+        Intercom.loginUserWithUserAttributes({
+          email: user?.primaryEmailAddress?.emailAddress,
+          userId: user?.id,
+        });
+      } catch (e) {
+        console.log(e);
+      }
+      try {
+        init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY!, user?.id);
+      } catch (e) {
+        console.log(e);
+      }
       router.replace("/(auth)/(tabs)/home");
     } else if (!isSignedIn) {
       router.replace("/(public)/auth");

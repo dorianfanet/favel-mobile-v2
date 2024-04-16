@@ -49,6 +49,7 @@ import { useTripChat } from "@/context/tripChat";
 import Edits from "./Edits";
 import Markdown from "react-native-markdown-display";
 import ActivityCard from "../../components/ActivityCard";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function TripChat({
   bottomSheetModalRef,
@@ -65,8 +66,16 @@ export default function TripChat({
     console.log("handleSheetChanges", index);
     if (index === -1) {
       StatusBar.setBarStyle("dark-content");
+      track("Chat closed", {
+        type: type,
+        activityId: activityId,
+      });
     } else {
       StatusBar.setBarStyle("light-content");
+      track("Chat opened", {
+        type: type,
+        activityId: activityId,
+      });
     }
     flatListRef.current?.scrollToEnd({ animated: false });
   }, []);

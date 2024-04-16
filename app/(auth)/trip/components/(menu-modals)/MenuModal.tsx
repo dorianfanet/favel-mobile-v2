@@ -55,6 +55,7 @@ import Icon from "@/components/Icon";
 import UserActivityCount from "@/components/UserActivityCount";
 import * as MailComposer from "expo-mail-composer";
 import { useUser } from "@clerk/clerk-expo";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function MenuModal({
   bottomSheetModalRef,
@@ -178,6 +179,7 @@ export default function MenuModal({
             <MenuButton
               title="Historique des modifications"
               onPress={() => {
+                track("history_modal_opened");
                 handleModalLinkPress();
                 historyModalRef.current?.present();
               }}
@@ -185,6 +187,7 @@ export default function MenuModal({
             <MenuButton
               title="Voyageurs"
               onPress={() => {
+                track("travelers_modal_opened");
                 handleModalLinkPress();
                 travelersModalRef.current?.present();
               }}
@@ -196,6 +199,7 @@ export default function MenuModal({
             <MenuButton
               title="Signaler un problème"
               onPress={() => {
+                track("issue_reported");
                 MailComposer.composeAsync({
                   recipients: ["contact@favel.net"],
                   subject: "Signalement d'un problème",

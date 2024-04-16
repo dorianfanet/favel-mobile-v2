@@ -72,6 +72,7 @@ export default function RouteCard({
             flexDirection: "row",
             flex: 1,
             justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <Text
@@ -83,15 +84,31 @@ export default function RouteCard({
           >
             Trajet en {route && route.type === "driving" ? "voiture" : "train"}
           </Text>
-          <Text
+          <View
             style={{
-              color: Colors.dark.primary,
-              fontSize: 16,
-              fontFamily: "Outfit_600SemiBold",
+              alignItems: "flex-end",
             }}
           >
-            {secondsToHoursMinutes(route?.duration || 0)}
-          </Text>
+            <Text
+              style={{
+                color: Colors.dark.primary,
+                fontSize: 16,
+                fontFamily: "Outfit_600SemiBold",
+              }}
+            >
+              {secondsToHoursMinutes(route?.duration || 0)}
+            </Text>
+            <Text
+              style={{
+                color: Colors.dark.primary,
+                fontSize: 12,
+                fontFamily: "Outfit_400Regular",
+                opacity: 0.8,
+              }}
+            >
+              {Math.floor(route?.distance / 1000)} km
+            </Text>
+          </View>
         </View>
       </View>
       {/* <View>
