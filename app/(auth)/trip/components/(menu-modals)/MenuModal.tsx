@@ -6,6 +6,7 @@ import {
   NativeScrollEvent,
   Pressable,
   StatusBar,
+  TextInput,
 } from "react-native";
 import React, {
   useCallback,
@@ -20,15 +21,22 @@ import BottomSheet, {
   BottomSheetFlatListMethods,
   BottomSheetFooter,
   BottomSheetModal,
+  BottomSheetTextInput,
   BottomSheetView,
   TouchableOpacity,
 } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
-import { Activity, FormattedTrip, Route, Trip } from "@/types/types";
+import {
+  Activity,
+  FormattedTrip,
+  Route,
+  Trip,
+  TripMetadata,
+} from "@/types/types";
 import { useTrip } from "@/context/tripContext";
 import { FlatList } from "react-native-gesture-handler";
 import { ScrollView } from "react-native-gesture-handler";
-import { BlurView, Text } from "@/components/Themed";
+import { BlurView, Button, Text } from "@/components/Themed";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import {
   Stack,
@@ -37,7 +45,7 @@ import {
   usePathname,
   useSegments,
 } from "expo-router";
-import { padding } from "@/constants/values";
+import { borderRadius, padding } from "@/constants/values";
 import TripEditCard from "../TripEditCard";
 import { months } from "@/constants/data";
 import { supabase } from "@/lib/supabase";
@@ -105,6 +113,7 @@ export default function MenuModal({
             pressBehavior="close"
           />
         )}
+        keyboardBlurBehavior="restore"
       >
         <BottomSheetView
           style={{
@@ -141,15 +150,7 @@ export default function MenuModal({
                 flex: 1,
               }}
             >
-              <Text
-                style={{
-                  color: "white",
-                  fontFamily: "Outfit_600SemiBold",
-                  fontSize: 18,
-                }}
-              >
-                {tripMetadata?.name}
-              </Text>
+              <TripName name={tripMetadata?.name} />
               {tripMetadata?.dates &&
                 tripMetadata.dates.type === "flexDates" && (
                   <Text
@@ -560,5 +561,83 @@ function MenuButton({
         ></View>
       )} */}
     </TouchableOpacity>
+  );
+}
+
+function TripName({ name }: { name: string | undefined }) {
+  const [inputValue, setInputValue] = useState(name);
+  const [state, setState] = useState<"view" | "edit">("view");
+
+  const { tripMetadata, setTripMetadata } = useTrip();
+
+  async function handleRenameClick() {
+    const { error } = await supabase
+      .from("trips_v2")
+      .update({ name: inputValue })
+      .eq("id", tripMetadata?.id);
+
+    if (error) {
+      console.error(error);
+    } else {
+      setTripMetadata((prev) => {
+        return {
+          ...(prev as TripMetadata),
+          name: inputValue,
+        };
+      });
+    }
+    setState("view");
+  }
+
+  return state === "edit" ? (
+    <View style={{}}>
+      <BottomSheetTextInput
+        style={{
+          height: 40,
+          borderRadius: borderRadius,
+          backgroundColor: Colors.dark.secondary,
+          padding: 10,
+          color: "white",
+          borderWidth: 1,
+          borderColor: "#19466f",
+        }}
+        value={inputValue}
+        onChangeText={setInputValue}
+        placeholder={name}
+        onBlur={() => {
+          setState("view");
+        }}
+        autoFocus
+      />
+      <Button
+        title="Renommer"
+        onPress={handleRenameClick}
+      />
+    </View>
+  ) : (
+    <Text
+      style={{
+        color: "white",
+        fontFamily: "Outfit_600SemiBold",
+        fontSize: 18,
+      }}
+    >
+      {name}
+      <TouchableOpacity
+        onPress={() => {
+          setState("edit");
+        }}
+      >
+        <Icon
+          icon="penIcon"
+          size={20}
+          color={Colors.dark.primary}
+          style={{
+            marginLeft: 10,
+            opacity: 0.8,
+          }}
+        />
+      </TouchableOpacity>
+    </Text>
   );
 }

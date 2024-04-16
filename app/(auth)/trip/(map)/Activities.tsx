@@ -12,6 +12,8 @@ export default function Activities() {
 
   const { editor, setEditor } = useEditor();
 
+  console.log(editor);
+
   return trip && viewState === "days" ? (
     <>
       <DayLines />
@@ -19,43 +21,39 @@ export default function Activities() {
         (day, index) =>
           day.activities &&
           day.activities.map((point, pointIndex) =>
-            point.category && point.coordinates && point.id ? (
-              <MarkerView
-                key={point.id}
-                id={`pointAnnotation${point.id}`}
-                coordinate={[
-                  point.coordinates.longitude,
-                  point.coordinates.latitude,
-                ]}
-                allowOverlap={true}
-              >
-                <MapMarker
-                  activity={point}
-                  state={
-                    editor
-                      ? editor.type === "day"
-                        ? editor.day.id === day.id
-                          ? "active"
-                          : "half"
-                        : editor.type === "activity" &&
-                          editor.activity.id === point.id
-                        ? "active"
-                        : "inactive"
-                      : "inactive"
-                  }
-                  onPress={() => {
-                    setEditor({
-                      type: "activity",
-                      scrollOnly: true,
-                      activity: {
-                        id: point.id!,
-                        center: point.coordinates!,
-                      },
-                    });
-                  }}
-                />
-              </MarkerView>
-            ) : null
+            point.category && point.coordinates && point.id
+              ? ((editor &&
+                  editor.type === "day" &&
+                  editor.day.id === day.id) ||
+                  (editor &&
+                    editor.type === "activity" &&
+                    editor.dayId === day.id)) && (
+                  <MarkerView
+                    key={point.id}
+                    id={`pointAnnotation${point.id}`}
+                    coordinate={[
+                      point.coordinates.longitude,
+                      point.coordinates.latitude,
+                    ]}
+                    allowOverlap={true}
+                  >
+                    <MapMarker
+                      activity={point}
+                      state={"active"}
+                      onPress={() => {
+                        setEditor({
+                          type: "activity",
+                          scrollOnly: true,
+                          activity: {
+                            id: point.id!,
+                            center: point.coordinates!,
+                          },
+                        });
+                      }}
+                    />
+                  </MarkerView>
+                )
+              : null
           )
       )}
     </>

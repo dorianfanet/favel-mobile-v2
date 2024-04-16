@@ -7,7 +7,7 @@ import {
   Outfit_600SemiBold,
   Outfit_700Bold,
 } from "@expo-google-fonts/outfit";
-import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth, useUser } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
@@ -17,6 +17,7 @@ import "react-native-gesture-handler";
 import CustomToast from "@/components/CustomToast";
 import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
+import Intercom from "@intercom/intercom-react-native";
 
 const toastConfig = {
   custom: (props: any) => {
@@ -27,6 +28,7 @@ const toastConfig = {
 
 function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const segments = useSegments();
   const router = useRouter();
 
@@ -39,6 +41,10 @@ function InitialLayout() {
     console.log(isSignedIn);
 
     if (isSignedIn && !inAuthPage) {
+      Intercom.loginUserWithUserAttributes({
+        email: user?.primaryEmailAddress?.emailAddress,
+        userId: user?.id,
+      });
       router.replace("/(auth)/(tabs)/home");
     } else if (!isSignedIn) {
       router.replace("/(public)/auth");

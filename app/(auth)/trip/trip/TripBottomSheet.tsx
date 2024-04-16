@@ -19,6 +19,7 @@ import BottomSheet, {
   BottomSheetFlatListMethods,
   BottomSheetFooter,
   BottomSheetView,
+  TouchableOpacity,
 } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
 import { Activity, FormattedTrip, Route, Trip, TripEdit } from "@/types/types";
@@ -35,6 +36,7 @@ import ActivityCard from "../components/ActivityCard";
 import { newTripEdit } from "@/lib/tripEdits";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import Animated from "react-native-reanimated";
 
 const windowHeight = Dimensions.get("window").height;
 
@@ -86,6 +88,7 @@ export default function TripBottomSheet() {
           temp.push({
             ...(activity as Activity),
             index: index,
+            dayId: day.id,
           });
         });
       }
@@ -262,6 +265,31 @@ export default function TripBottomSheet() {
         backgroundColor: "white",
       }}
       topInset={inset.top}
+      handleComponent={(props) => (
+        <Animated.View
+          style={{
+            height: 30,
+          }}
+        >
+          <View
+            style={{
+              height: 30,
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "white",
+                width: 40,
+                height: 5,
+                borderRadius: 2.5,
+              }}
+            />
+          </View>
+        </Animated.View>
+      )}
     >
       {formattedTrip && (
         <DraggableFlatList

@@ -36,13 +36,14 @@ export type Editor =
   | {
       type: "day";
       day: {
-        center: Position;
+        center?: Position;
         bounds?: BBox;
         id: string;
       };
     }
   | {
       type: "activity";
+      dayId?: string;
       scrollOnly?: boolean;
       activity: {
         center: Coordinate;
@@ -153,6 +154,7 @@ export interface Activity {
   index?: number;
   route?: Route;
   g_maps_id?: string;
+  dayId?: string;
 }
 
 export type User = {

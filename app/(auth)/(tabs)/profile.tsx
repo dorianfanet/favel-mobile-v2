@@ -19,17 +19,20 @@ import { supabase } from "@/lib/supabase";
 import { favel } from "@/lib/favelApi";
 import { months } from "@/constants/data";
 
-export default function profile() {
+export default function Profile() {
   const { user } = useUser();
   const { signOut } = useAuth();
+
+  useEffect(() => {
+    console.log("Profile render");
+    onRefresh();
+  }, []);
 
   const router = useRouter();
 
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-
     const { data, error } = await supabase
       .from("trips_v2")
       .select("author_id, invited_ids")
@@ -117,7 +120,10 @@ export default function profile() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={onRefresh}
+          onRefresh={() => {
+            setRefreshing(true);
+            onRefresh();
+          }}
           colors={[Colors.light.primary]}
           tintColor={Colors.light.primary}
         />

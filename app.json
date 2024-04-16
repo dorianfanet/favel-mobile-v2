@@ -12,16 +12,12 @@
       "resizeMode": "contain",
       "backgroundColor": "#44C0E7"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
       "buildNumber": "12",
-      "associatedDomains": [
-        "applinks:favel.net"
-      ]
+      "associatedDomains": ["applinks:favel.net"]
     },
     "android": {
       "adaptiveIcon": {
@@ -39,6 +35,14 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      [
+        "@intercom/intercom-react-native",
+        {
+          "appId": "d1btun1d",
+          "iosApiKey": "ios_sdk-a105507ee319d78ba1d0157c48ab29b0c4463aa6",
+          "androidApiKey": "android_sdk-084c483b5deef65903c6dff873e244c757a6193c"
+        }
+      ],
       [
         "@rnmapbox/maps",
         {

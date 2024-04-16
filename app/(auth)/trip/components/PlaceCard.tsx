@@ -209,6 +209,7 @@ export function ActivityCardContent({
         if (noClick) return;
         setEditor({
           type: "activity",
+          dayId: activity.dayId,
           activity: {
             center: activityData.coordinates!,
             id: activityData.id!,

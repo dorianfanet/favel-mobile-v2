@@ -106,16 +106,18 @@ export default function Map() {
   useEffect(() => {
     if (editor) {
       if (editor.type === "day") {
-        move({
-          coordinates: editor.day.bounds
-            ? bboxToCoordinatesArray(editor.day.bounds)
-            : [
-                {
-                  latitude: editor.day.center[1],
-                  longitude: editor.day.center[0],
-                },
-              ],
-        });
+        if (editor.day.center) {
+          move({
+            coordinates: editor.day.bounds
+              ? bboxToCoordinatesArray(editor.day.bounds)
+              : [
+                  {
+                    latitude: editor.day.center[1],
+                    longitude: editor.day.center[0],
+                  },
+                ],
+          });
+        }
       } else if (editor.type === "activity") {
         move({
           coordinates: [editor.activity.center],

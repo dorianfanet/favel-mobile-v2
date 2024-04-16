@@ -1,6 +1,7 @@
 import { MMKV } from "@/app/(auth)/trip/_layout";
 import { favel } from "./favelApi";
-import { BBox } from "@turf/turf";
+import { BBox, Position, bbox, center, lineString, points } from "@turf/turf";
+import { Day } from "@/types/types";
 
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
@@ -127,4 +128,29 @@ export function bboxToCoordinatesArray(bbox: BBox) {
   ];
 
   return corners;
+}
+
+export function getBoundsOfDay(activities: Day["activities"]) {
+  console.log(activities);
+  const noRouteActivities = activities?.filter(
+    (activity) => activity.type !== "route"
+  );
+
+  const pointsOfDay: Position[] = [];
+
+  if (!noRouteActivities) return undefined;
+
+  noRouteActivities.map((activity) => {
+    if (activity.coordinates) {
+      pointsOfDay.push([
+        activity.coordinates.longitude,
+        activity.coordinates.latitude,
+      ]);
+    }
+  });
+
+  const line = lineString(pointsOfDay);
+  const bounds = bbox(line);
+
+  return bounds;
 }

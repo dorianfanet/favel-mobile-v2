@@ -1,22 +1,41 @@
-import { Pressable, View } from "react-native";
+import { Pressable, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { Day } from "@/types/types";
 import { Text } from "@/components/Themed";
 import Icon from "@/components/Icon";
 import Colors from "@/constants/Colors";
 import { useEditor } from "@/context/editorContext";
+import { getBoundsOfDay } from "@/lib/utils";
+import { useTrip } from "@/context/tripContext";
 
 export default function DayCard({ day }: { day: Day }) {
   const { setEditor } = useEditor();
+  const { trip } = useTrip();
 
   return (
-    <View
+    <TouchableOpacity
       style={{
         paddingHorizontal: 15,
         paddingVertical: 10,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+      }}
+      onPress={() => {
+        const activities = trip?.find(
+          (tripDay) => tripDay.id === day.id
+        )?.activities;
+        console.log(activities);
+        const bounds = getBoundsOfDay(activities);
+        console.log(bounds);
+        setEditor({
+          type: "day",
+          day: {
+            id: day.id!,
+            center: day.coordinates!,
+            bounds: bounds,
+          },
+        });
       }}
     >
       <Text
@@ -91,6 +110,6 @@ export default function DayCard({ day }: { day: Day }) {
           </View>
         )}
       </Pressable>
-    </View>
+    </TouchableOpacity>
   );
 }
