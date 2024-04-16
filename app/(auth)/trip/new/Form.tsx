@@ -26,16 +26,33 @@ import { newTripPrompts } from "@/data/prompts";
 import { useTrip } from "@/context/tripContext";
 import Colors from "@/constants/Colors";
 import Question from "./Question";
-import { useNewTripForm } from "@/context/newTrip";
+import { Form as FormType, useNewTripForm } from "@/context/newTrip";
 import { favel } from "@/lib/favelApi";
 import { BlurView } from "@/components/Themed";
 import { borderRadius } from "@/constants/values";
+import { destination } from "@turf/turf";
 
 export default function Form() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
 
-  const { setTripMetadata, tripMetadata, setDestinationData } = useTrip();
+  const {
+    setTripMetadata,
+    tripMetadata,
+    setDestinationData,
+    initialDestination,
+  } = useTrip();
+
+  useEffect(() => {
+    if (initialDestination) {
+      setForm((prev) => {
+        return {
+          ...(prev as FormType),
+          destination: initialDestination,
+        };
+      });
+    }
+  }, [initialDestination]);
 
   const { rest } = useLocalSearchParams();
 

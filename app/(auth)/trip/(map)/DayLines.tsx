@@ -30,7 +30,7 @@ import { Category } from "@/types/types";
 import { AnimatePresence, MotiView } from "moti";
 
 export default function DayLines() {
-  const { trip } = useTrip();
+  const { trip, tripMetadata } = useTrip();
 
   const { setEditor, editor } = useEditor();
 
@@ -45,91 +45,56 @@ export default function DayLines() {
       features: [],
     };
 
-    // trip.forEach((day, index) => {
-    // let tempCoordinates: Position[] = [];
+    let day;
 
-    // if (day.type === "day" && day.activities && day.activities.length > 1) {
-    //   let feature: GeoJSON.Feature<LineString> = {
-    //     type: "Feature",
-    //     properties: {
-    //       id: day.id,
-    //       opacity: editor
-    //         ? editor.type === "day" && editor.day.id === day.id
-    //           ? 1
-    //           : 0.3
-    //         : 1,
-    //     },
-    //     geometry: {
-    //       type: "LineString",
-    //       coordinates: tempCoordinates,
-    //     },
-    //   };
-
-    //   day.activities.forEach((activity) => {
-    //     if (
-    //       activity.coordinates &&
-    //       activity.coordinates.latitude &&
-    //       activity.coordinates.longitude
-    //     ) {
-    //       // @ts-ignore
-    //       tempCoordinates.push([
-    //         activity.coordinates.longitude,
-    //         activity.coordinates.latitude,
-    //       ]);
-    //     }
-    //   });
-
-    //   tempFeatureColletion.features.push(feature);
-    // }
-    // });
-
-    // create line only for the day of the editor
     if (editor) {
-      const day = trip.find((day) =>
+      day = trip.find((day) =>
         editor.type === "day"
           ? day.id === editor.day.id
           : editor.type === "activity"
           ? day.id === editor.dayId
           : undefined
       );
+    } else if (tripMetadata?.status.includes("loading")) {
+      day = trip[trip.length - 1];
+    }
 
-      if (day) {
-        let tempCoordinates: Position[] = [];
+    if (day) {
+      let tempCoordinates: Position[] = [];
 
-        if (day.type === "day" && day.activities && day.activities.length > 1) {
-          let feature: GeoJSON.Feature<LineString> = {
-            type: "Feature",
-            properties: {
-              id: day.id,
-              opacity: 1,
-            },
-            geometry: {
-              type: "LineString",
-              coordinates: tempCoordinates,
-            },
-          };
+      if (day.type === "day" && day.activities && day.activities.length > 1) {
+        let feature: GeoJSON.Feature<LineString> = {
+          type: "Feature",
+          properties: {
+            id: day.id,
+            opacity: 1,
+          },
+          geometry: {
+            type: "LineString",
+            coordinates: tempCoordinates,
+          },
+        };
 
-          day.activities.forEach((activity) => {
-            if (
-              activity.coordinates &&
-              activity.coordinates.latitude &&
-              activity.coordinates.longitude
-            ) {
-              // @ts-ignore
-              tempCoordinates.push([
-                activity.coordinates.longitude,
-                activity.coordinates.latitude,
-              ]);
-            }
-          });
+        day.activities.forEach((activity) => {
+          if (
+            activity.coordinates &&
+            activity.coordinates.latitude &&
+            activity.coordinates.longitude
+          ) {
+            // @ts-ignore
+            tempCoordinates.push([
+              activity.coordinates.longitude,
+              activity.coordinates.latitude,
+            ]);
+          }
+        });
 
-          tempFeatureColletion.features.push(feature);
-        }
+        tempFeatureColletion.features.push(feature);
       }
     }
 
     setDayLines(tempFeatureColletion);
-  }, [trip, editor]);
+  }, [trip, editor, tripMetadata?.status]);
 
   const dayLabels = useMemo(() => {
     if (!trip) return;
@@ -220,6 +185,7 @@ export default function DayLines() {
         />
       </MapboxGL.ShapeSource>
       {dayLabels &&
+        !tripMetadata?.status.includes("loading") &&
         dayLabels.map((label, index) => (
           <>
             <MarkerView

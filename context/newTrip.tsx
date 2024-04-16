@@ -44,7 +44,7 @@ export type DestinationData = {
 
 export interface NewTripFormContext {
   form: Form;
-  setForm: (form: NewTripFormContext["form"]) => void;
+  setForm: React.Dispatch<React.SetStateAction<Form>>;
 }
 
 const newTripFormContext = createContext<NewTripFormContext | undefined>(

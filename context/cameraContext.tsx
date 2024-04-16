@@ -27,7 +27,11 @@ export type CameraContext = {
     bounds?: CameraBounds;
   };
   animationDuration?: number;
-  move: (options: { coordinates: Coordinate[]; customZoom?: number }) => void;
+  move: (options: {
+    coordinates: Coordinate[];
+    customZoom?: number;
+    customEasing?: CameraAnimationMode;
+  }) => void;
   updatePadding: (
     padding:
       | {
@@ -40,6 +44,8 @@ export type CameraContext = {
   ) => void;
   viewState: "days" | "hotspots";
   setViewState: (viewState: "days" | "hotspots") => void;
+  setAnimationDuration: (duration: number) => void;
+  setEasing: (easing: CameraAnimationMode) => void;
 };
 
 export type Coordinate = {
@@ -55,6 +61,8 @@ const initialCoordinate: Coordinate = {
 const toPosition = (coordinate: Coordinate): Position => {
   return [coordinate.longitude, coordinate.latitude];
 };
+
+export const defaultAnimationDuration = 1200;
 
 export const CameraProvider = ({
   children,
@@ -74,7 +82,7 @@ export const CameraProvider = ({
   const [maxZoom, setMaxZoom] = useState<number | undefined>(undefined);
   const [animationDuration, setAnimationDuration] = useState<
     number | undefined
-  >(1200);
+  >(defaultAnimationDuration);
 
   const [viewState, setViewState] = useState<"days" | "hotspots">("days");
 
@@ -109,14 +117,24 @@ export const CameraProvider = ({
     ({
       coordinates,
       customZoom,
+      customEasing,
     }: {
       coordinates: Coordinate[];
       customZoom?: number;
+      customEasing?: CameraAnimationMode;
     }) => {
       if (coordinates.length === 1) {
-        setEasing("flyTo");
+        if (customEasing) {
+          setEasing(customEasing);
+        } else {
+          setEasing("flyTo");
+        }
       } else {
-        setEasing("easeTo");
+        if (customEasing) {
+          setEasing(customEasing);
+        } else {
+          setEasing("easeTo");
+        }
       }
       if (customZoom) setZoom(customZoom);
       setCoordinates(coordinates);
@@ -169,6 +187,8 @@ export const CameraProvider = ({
         updatePadding,
         viewState,
         setViewState,
+        setAnimationDuration,
+        setEasing,
       }}
     >
       {children}

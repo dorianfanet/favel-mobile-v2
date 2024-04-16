@@ -11,6 +11,7 @@ import { booleanPointInPolygon, polygon } from "@turf/turf";
 import Loading from "./Loading";
 import { useEditor } from "@/context/editorContext";
 import { bboxToCoordinatesArray } from "@/lib/utils";
+import Suggestions from "./Suggestions";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY!);
 
@@ -164,6 +165,7 @@ export default function Map() {
       <Activities />
       <Route />
       <InitialDestination />
+      {/* <Suggestions /> */}
     </MapboxGL.MapView>
   );
 }

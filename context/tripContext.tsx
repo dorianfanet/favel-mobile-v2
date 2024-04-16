@@ -27,6 +27,8 @@ export interface TripContext {
   setUserActivity: React.Dispatch<
     React.SetStateAction<UserActivityState | null>
   >;
+  initialDestination: string | null;
+  setInitialDestination: (initialDestination: string | null) => void;
 }
 
 const tripContext = createContext<TripContext>({} as any);
@@ -37,6 +39,9 @@ export const TripProvider = ({ children }: { children: React.JSX.Element }) => {
   const [tripMetadata, setTripMetadata] = useState<TripMetadata | null>(null);
   const [tripEdits, setTripEdits] = useState<TripEdit[]>([]);
   const [userActivity, setUserActivity] = useState<UserActivityState | null>(
+    null
+  );
+  const [initialDestination, setInitialDestination] = useState<string | null>(
     null
   );
 
@@ -58,6 +63,8 @@ export const TripProvider = ({ children }: { children: React.JSX.Element }) => {
         setDestinationData,
         userActivity,
         setUserActivity,
+        initialDestination,
+        setInitialDestination,
       }}
     >
       {children}

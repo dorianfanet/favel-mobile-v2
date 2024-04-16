@@ -7,7 +7,7 @@ import { useCamera } from "@/context/cameraContext";
 import { useEditor } from "@/context/editorContext";
 
 export default function Activities() {
-  const { trip } = useTrip();
+  const { trip, tripMetadata } = useTrip();
   const { viewState } = useCamera();
 
   const { editor, setEditor } = useEditor();
@@ -27,7 +27,9 @@ export default function Activities() {
                   editor.day.id === day.id) ||
                   (editor &&
                     editor.type === "activity" &&
-                    editor.dayId === day.id)) && (
+                    editor.dayId === day.id) ||
+                  (tripMetadata?.status.includes("loading") &&
+                    trip.length - 1 === index)) && (
                   <MarkerView
                     key={point.id}
                     id={`pointAnnotation${point.id}`}

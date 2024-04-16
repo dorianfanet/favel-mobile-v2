@@ -19,6 +19,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import MenuModal from "./(menu-modals)/MenuModal";
 import UserActivityCount from "@/components/UserActivityCount";
 import { track } from "@amplitude/analytics-react-native";
+import LoadingStuckButton from "./LoadingStuckButton";
 // import MenuModal from "./MenuModal";
 
 export default function Header() {
@@ -43,80 +44,84 @@ export default function Header() {
         }}
       >
         {tripMetadata && tripMetadata.status?.includes("loading") ? (
-          <View
-            style={{
-              flex: 1,
-              width: "100%",
-              height: "100%",
-              paddingHorizontal: padding,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <BlurView
+          <>
+            <LoadingStuckButton />
+            <View
               style={{
-                paddingHorizontal: 10,
-                margin: 0,
+                flex: 1,
                 width: "100%",
-                height: 60,
+                height: "100%",
+                paddingHorizontal: padding,
                 justifyContent: "center",
                 alignItems: "center",
-                overflow: "hidden",
-                borderRadius: 15,
-                position: "relative",
               }}
             >
-              <ActivityIndicator
-                color={"white"}
+              <BlurView
                 style={{
-                  position: "absolute",
-                  left: 20,
+                  paddingHorizontal: 10,
+                  margin: 0,
+                  width: "100%",
+                  height: 60,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  overflow: "hidden",
+                  borderRadius: 15,
+                  position: "relative",
                 }}
-              />
-              <View style={{}}>
-                <Text
+              >
+                <ActivityIndicator
+                  color={"white"}
                   style={{
-                    color: "white",
-                    fontFamily: "Outfit_600SemiBold",
-                    fontSize: 16,
+                    position: "absolute",
+                    left: 20,
                   }}
-                >
-                  {tripMetadata.status_message
-                    ? tripMetadata.status_message.message
-                    : "Chargement..."}
-                </Text>
-                {tripMetadata.status_message &&
-                  tripMetadata.status_message.details && (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        gap: 3,
-                        opacity: 0.8,
-                      }}
-                    >
-                      <Icon
-                        icon={
-                          tripMetadata.status_message.details.icon as IconByKey
-                        }
-                        size={12}
-                        color="white"
-                      />
-                      <Text
+                />
+                <View style={{}}>
+                  <Text
+                    style={{
+                      color: "white",
+                      fontFamily: "Outfit_600SemiBold",
+                      fontSize: 16,
+                    }}
+                  >
+                    {tripMetadata.status_message
+                      ? tripMetadata.status_message.message
+                      : "Chargement..."}
+                  </Text>
+                  {tripMetadata.status_message &&
+                    tripMetadata.status_message.details && (
+                      <View
                         style={{
-                          color: "white",
-                          fontFamily: "Outfit_500Medium",
-                          fontSize: 12,
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 3,
+                          opacity: 0.8,
                         }}
                       >
-                        {tripMetadata.status_message.details.title}
-                      </Text>
-                    </View>
-                  )}
-              </View>
-            </BlurView>
-          </View>
+                        <Icon
+                          icon={
+                            tripMetadata.status_message.details
+                              .icon as IconByKey
+                          }
+                          size={12}
+                          color="white"
+                        />
+                        <Text
+                          style={{
+                            color: "white",
+                            fontFamily: "Outfit_500Medium",
+                            fontSize: 12,
+                          }}
+                        >
+                          {tripMetadata.status_message.details.title}
+                        </Text>
+                      </View>
+                    )}
+                </View>
+              </BlurView>
+            </View>
+          </>
         ) : (
           <View
             style={{
