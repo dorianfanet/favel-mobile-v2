@@ -16,9 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "12",
-      "associatedDomains": ["applinks:favel.net"],
-      "deploymentTarget": "15.0"
+      "buildNumber": "19"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,20 +35,13 @@
       "expo-router",
       "expo-secure-store",
       [
-        "@intercom/intercom-react-native",
-        {
-          "appId": "d1btun1d",
-          "iosApiKey": "ios_sdk-a105507ee319d78ba1d0157c48ab29b0c4463aa6",
-          "androidApiKey": "android_sdk-084c483b5deef65903c6dff873e244c757a6193c"
-        }
-      ],
-      [
         "@rnmapbox/maps",
         {
           "RNMapboxMapsVersion": "10.16.6",
           "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q"
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true

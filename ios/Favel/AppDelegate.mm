@@ -1,5 +1,4 @@
 #import "AppDelegate.h"
-#import <IntercomModule.h>
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
@@ -14,9 +13,6 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
 
-  [IntercomModule initialize:@"ios_sdk-a105507ee319d78ba1d0157c48ab29b0c4463aa6" withAppId:@"d1btun1d"];
-  [IntercomModule initialize:@"ios_sdk-a105507ee319d78ba1d0157c48ab29b0c4463aa6" withAppId:@"d1btun1d"];
-  [IntercomModule initialize:@"ios_sdk-a105507ee319d78ba1d0157c48ab29b0c4463aa6" withAppId:@"d1btun1d"];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 

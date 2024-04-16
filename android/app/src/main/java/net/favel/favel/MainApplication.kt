@@ -1,5 +1,4 @@
 package net.favel.favel
-import com.intercom.reactnative.IntercomModule;
 
 import android.app.Application
 import android.content.res.Configuration
@@ -57,7 +56,7 @@ class MainApplication : Application(), ReactApplication {
       ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
     }
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
-  IntercomModule.initialize(this, "android_sdk-084c483b5deef65903c6dff873e244c757a6193c", "d1btun1d");IntercomModule.initialize(this, "android_sdk-084c483b5deef65903c6dff873e244c757a6193c", "d1btun1d");IntercomModule.initialize(this, "android_sdk-084c483b5deef65903c6dff873e244c757a6193c", "d1btun1d");}
+  }
 
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
