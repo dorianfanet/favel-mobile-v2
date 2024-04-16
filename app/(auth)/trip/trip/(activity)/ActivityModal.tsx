@@ -27,6 +27,7 @@ import { favel } from "@/lib/favelApi";
 import { MMKV } from "../../_layout";
 import { Image } from "expo-image";
 import ActivityImage from "@/components/ActivityImage";
+import TripChatWrapper from "../(chat)/TripChatWrapper";
 
 export default function ActivityModal() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -176,11 +177,16 @@ export default function ActivityModal() {
                 marginVertical: 20,
               }}
             >
-              <ActivityButton
-                accent
-                icon="messageDotsIcon"
-                title={`Poser une\nquestion`}
-              />
+              <TripChatWrapper
+                type="activity"
+                activityId={activityData.id}
+              >
+                <ActivityButton
+                  accent
+                  icon="messageDotsIcon"
+                  title={`Poser une\nquestion`}
+                />
+              </TripChatWrapper>
               <ActivityButton
                 icon="googleMapsIcon"
                 title={`Voir sur\nGoogle Maps`}

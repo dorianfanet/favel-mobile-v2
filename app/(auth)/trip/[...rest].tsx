@@ -13,6 +13,7 @@ import {
   UserActivityState,
 } from "@/types/types";
 import Toast from "react-native-toast-message";
+import { useUser } from "@clerk/clerk-expo";
 
 enum Action {
   NEW = "new",
@@ -25,6 +26,8 @@ export default function Rest() {
   const action = rest[1] as Action;
 
   const { setTripMetadata, setTrip, setTripEdits } = useTrip();
+
+  const { user } = useUser();
 
   const id = rest[0];
 
@@ -48,9 +51,7 @@ export default function Rest() {
                 const newTrip = await Promise.all(
                   payload.new.trip.map(async (day: Day, index: number) => {
                     if (day.activities) {
-                      console.log(
-                        `✅ Day ${index} has ${day.activities.length} activities \n`
-                      );
+                      if (day.activities.length === 0) return day;
                       const activities = await Promise.all(
                         day.activities.map(async (activity) => {
                           if (activity.route) {
@@ -105,12 +106,14 @@ export default function Rest() {
             });
             if (payload.new.type === "move" || payload.new.type === "delete") {
               console.log("new payload ", payload.new);
-              Toast.show({
-                type: "custom",
-                props: {
-                  tripEdit: payload.new,
-                },
-              });
+              if (payload.new.author_id !== user!.id) {
+                Toast.show({
+                  type: "custom",
+                  props: {
+                    tripEdit: payload.new,
+                  },
+                });
+              }
             }
           }
         }

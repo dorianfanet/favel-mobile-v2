@@ -48,11 +48,16 @@ import { supabase } from "@/lib/supabase";
 import { useTripChat } from "@/context/tripChat";
 import Edits from "./Edits";
 import Markdown from "react-native-markdown-display";
+import ActivityCard from "../../components/ActivityCard";
 
 export default function TripChat({
   bottomSheetModalRef,
+  type,
+  activityId,
 }: {
   bottomSheetModalRef: React.RefObject<BottomSheetModal>;
+  type: "trip" | "activity";
+  activityId?: string;
 }) {
   const snapPoints = useMemo(() => ["100%"], []);
 
@@ -76,14 +81,22 @@ export default function TripChat({
   useEffect(() => {
     if (!tripMetadata?.id) return;
     const channel = supabase
-      .channel(`${tripMetadata?.id}-trip-chat`)
+      .channel(
+        `${tripMetadata?.id}-${type}-chat${activityId ? `-${activityId}` : ""}`
+      )
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
-          table: "trip_chat",
-          filter: `trip_id=eq.${tripMetadata?.id}`,
+          table: type === "trip" ? "trip_chat" : "activity_chat_v2",
+          filter:
+            type === "trip"
+              ? `trip_id=eq.${tripMetadata?.id}`
+              : `chat_id=eq.${tripMetadata?.id}-${activityId}`,
+          // filter: `trip_id=eq.${tripMetadata?.id}${
+          //   activityId ? `&activity_id=eq.${activityId}` : ""
+          // }`,
         },
         (payload) => {
           if (payload.new) {
@@ -117,15 +130,29 @@ export default function TripChat({
   useEffect(() => {
     async function fetchMessages() {
       if (!tripMetadata?.id) return;
-      const { data, error } = await supabase
-        .from("trip_chat")
-        .select("id, role, content, edits, status, function")
-        .eq("trip_id", tripMetadata?.id)
-        .order("created_at", { ascending: true });
-      if (error) {
-        console.log(error);
-      } else {
-        setMessages(data as TripChatMessage[]);
+      if (type === "trip") {
+        const { data, error } = await supabase
+          .from("trip_chat")
+          .select(`id, role, content, status, edits, function`)
+          .eq("trip_id", tripMetadata?.id)
+          .order("created_at", { ascending: true });
+        if (error) {
+          console.log(error);
+        } else {
+          setMessages(data as TripChatMessage[]);
+        }
+      } else if (type === "activity") {
+        const { data, error } = await supabase
+          .from("activity_chat_v2")
+          .select(`id, role, content, status`)
+          .eq("trip_id", tripMetadata?.id)
+          .eq("activity_id", activityId)
+          .order("created_at", { ascending: true });
+        if (error) {
+          console.log(error);
+        } else {
+          setMessages(data as TripChatMessage[]);
+        }
       }
     }
 
@@ -144,6 +171,13 @@ export default function TripChat({
           messages={messages}
           setMessages={setMessages}
           tripId={tripMetadata?.id!}
+          disabled={
+            messages.length > 0 &&
+            (messages[messages.length - 1].status === "loading" ||
+              messages[messages.length - 1].status === "generating")
+          }
+          type={type}
+          activityId={activityId}
         />
       </BottomSheetFooter>
     ),
@@ -200,87 +234,96 @@ export default function TripChat({
             paddingHorizontal: padding,
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              height: 40,
-              position: "relative",
-            }}
-          >
-            <TouchableOpacity
-              onPress={async () => {
-                const { data, error } = await supabase
-                  .from("trip_chat")
-                  .select("id, role, content, edits")
-                  .eq("trip_id", tripMetadata?.id)
-                  .order("created_at", { ascending: true });
-                if (error) {
-                  console.log(error);
-                } else {
-                  setMessages(data as TripChatMessage[]);
-                }
-              }}
+          <View>
+            <View
               style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                height: 40,
+                flexDirection: "row",
                 justifyContent: "center",
+                alignItems: "center",
+                height: 40,
+                position: "relative",
               }}
             >
-              {/* <Icon
-                icon="chevronLeftIcon"
-                size={20}
-                color={Colors.dark.primary}
-              /> */}
-              <Text
+              <TouchableOpacity
+                onPress={async () => {
+                  if (type === "trip") {
+                    const { data, error } = await supabase
+                      .from("trip_chat")
+                      .select("id, role, content, edits")
+                      .eq("trip_id", tripMetadata?.id)
+                      .order("created_at", { ascending: true });
+                    if (error) {
+                      console.log(error);
+                    } else {
+                      setMessages(data as TripChatMessage[]);
+                    }
+                  } else if (type === "activity") {
+                    const { data, error } = await supabase
+                      .from("activity_chat_v2")
+                      .select("id, role, content")
+                      .eq("trip_id", tripMetadata?.id)
+                      .eq("activity_id", activityId)
+                      .order("created_at", { ascending: true });
+                    if (error) {
+                      console.log(error);
+                    } else {
+                      setMessages(data as TripChatMessage[]);
+                    }
+                  }
+                }}
                 style={{
-                  color: Colors.dark.primary,
-                  fontSize: 16,
-                  fontFamily: "Outfit_500Medium",
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  height: 40,
+                  justifyContent: "center",
                 }}
               >
-                Rafraîchir
-              </Text>
-            </TouchableOpacity>
-            <Text
-              style={{
-                fontSize: 18,
-                color: Colors.dark.primary,
-                fontFamily: "Outfit_600SemiBold",
-              }}
-            >
-              Chat IA
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                bottomSheetModalRef.current?.close();
-              }}
-              style={{
-                position: "absolute",
-                right: 0,
-                top: 0,
-                height: 40,
-                justifyContent: "center",
-              }}
-            >
-              {/* <Icon
-                icon="chevronLeftIcon"
-                size={20}
-                color={Colors.dark.primary}
-              /> */}
+                <Icon
+                  icon="refreshIcon"
+                  size={20}
+                  color={Colors.dark.primary}
+                />
+              </TouchableOpacity>
               <Text
                 style={{
+                  fontSize: 18,
                   color: Colors.dark.primary,
-                  fontSize: 16,
-                  fontFamily: "Outfit_500Medium",
+                  fontFamily: "Outfit_600SemiBold",
                 }}
               >
-                Fermer
+                {type === "trip" ? "Modifier le voyage" : "Poser une question"}
               </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  bottomSheetModalRef.current?.close();
+                }}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 0,
+                  height: 40,
+                  justifyContent: "center",
+                }}
+              >
+                <Icon
+                  icon="closeIconFixed"
+                  size={20}
+                  color={Colors.dark.primary}
+                />
+              </TouchableOpacity>
+            </View>
+            {type === "activity" && activityId && (
+              <ActivityCard
+                activity={{
+                  id: activityId,
+                  formattedType: "activity",
+                }}
+                style={{
+                  paddingHorizontal: 0,
+                }}
+              />
+            )}
           </View>
         </BottomSheetView>
         <BottomSheetFlatList

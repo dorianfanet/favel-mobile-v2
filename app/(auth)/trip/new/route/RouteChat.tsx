@@ -90,8 +90,9 @@ export default function RouteChat() {
         },
         (payload) => {
           if (payload.new) {
-            setMessages((currentMessages: ChatMessage[]) => {
-              let updatedMessages = [...currentMessages];
+            // @ts-ignore
+            setMessages((currentMessages: any) => {
+              let updatedMessages = [...currentMessages] as ChatMessage[];
               if (updatedMessages.length > 0 && payload.new.content) {
                 updatedMessages[updatedMessages.length - 1].content =
                   payload.new.content;
@@ -100,7 +101,7 @@ export default function RouteChat() {
                 updatedMessages[updatedMessages.length - 1].status =
                   payload.new.status;
               }
-              return updatedMessages;
+              return updatedMessages as ChatMessage[];
             });
             if (
               payload.new.route &&

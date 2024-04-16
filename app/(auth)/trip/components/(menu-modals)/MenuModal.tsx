@@ -45,7 +45,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Travelers from "./Travelers";
 import Icon from "@/components/Icon";
 import UserActivityCount from "@/components/UserActivityCount";
-// import * as MailComposer from "expo-mail-composer";
+import * as MailComposer from "expo-mail-composer";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function MenuModal({
   bottomSheetModalRef,
@@ -68,6 +69,8 @@ export default function MenuModal({
   }
 
   const { tripMetadata, userActivity } = useTrip();
+
+  const { user } = useUser();
 
   const inset = useSafeAreaInsets();
 
@@ -188,6 +191,20 @@ export default function MenuModal({
               NotificationsComponent={() => (
                 <UserActivityCount userActivity={userActivity} />
               )}
+            />
+            <MenuButton
+              title="Signaler un problème"
+              onPress={() => {
+                MailComposer.composeAsync({
+                  recipients: ["contact@favel.net"],
+                  subject: "Signalement d'un problème",
+                  body: `Votre message ici (décrivez le problème si possible):\n\n\n\n\n\n\nDonnées auto-générées, ne pas modifier :\nID: ${
+                    user?.id
+                  }\nTrip ID: ${
+                    tripMetadata?.id
+                  }\nTimestamp: ${new Date().toISOString()}`,
+                });
+              }}
             />
             {/* <MenuButton
               title="Signaler un problème"

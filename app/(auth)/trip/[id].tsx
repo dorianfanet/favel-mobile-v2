@@ -62,6 +62,7 @@ export default function Index() {
             const newTrip = await Promise.all(
               data!.trip.map(async (day: Day, index: number) => {
                 if (day.activities) {
+                  if (day.activities.length === 0) return day;
                   const activities = await Promise.all(
                     day.activities.map(async (activity) => {
                       if (activity.route) {

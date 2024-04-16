@@ -3,10 +3,10 @@ import React, { createContext } from "react";
 
 export interface NewTripChatContext {
   messages: ChatMessage[];
-  setMessages: (messages: any) => void;
+  setMessages: (messages: ChatMessage[]) => void;
 }
 
-const newTripChatContext = createContext({} as any);
+const newTripChatContext = createContext({} as NewTripChatContext);
 
 export const NewTripChatProvider = ({
   children,

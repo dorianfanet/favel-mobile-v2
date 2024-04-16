@@ -8,6 +8,7 @@ import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
 import ActivityCard from "./ActivityCard";
 import { formatTimestamp, getUserMetadata } from "@/lib/utils";
+import { ActivityCardContent } from "./PlaceCard";
 
 export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
   const [name, setName] = React.useState<string | null>(null);
@@ -72,13 +73,14 @@ export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
       </View>
       <View>
         {tripEdit.activity_id && (
-          <ActivityCard
+          <ActivityCardContent
             activity={{
               id: tripEdit.activity_id,
               formattedType: "activity",
             }}
             theme="dark"
             style={{ paddingHorizontal: 0 }}
+            noClick
           />
         )}
       </View>

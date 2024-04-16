@@ -138,6 +138,27 @@ class ApiClient {
     });
   }
 
+  async sendActivityChatMessage(
+    tripId: string,
+    userMsg: {
+      id: string;
+      content: string;
+    },
+    messageId: string,
+    activityId: string,
+    activityName: string,
+    authorId: string
+  ): Promise<void> {
+    return this.request(`activity-chat`, "POST", {
+      tripId,
+      userMsg,
+      messageId,
+      activityId,
+      activityName,
+      authorId,
+    });
+  }
+
   async updateActivity(
     id: string,
     params: {

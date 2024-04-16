@@ -9,45 +9,39 @@ import { supabase } from "@/lib/supabase";
 import { useTrip } from "@/context/tripContext";
 import { TripChatProvider } from "@/context/tripChat";
 
-export default function TripChatWrapper() {
+export default function TripChatWrapper({
+  children,
+  type,
+  activityId,
+}: {
+  children: React.ReactNode;
+  type: "trip" | "activity";
+  activityId?: string;
+}) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
 
+  const clonedChildren = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, {
+        onPress: handlePresentModalPress,
+      } as typeof child.props);
+    }
+    return child;
+  });
+
   return (
     <>
-      <Pressable
-        onPress={handlePresentModalPress}
-        style={{
-          position: "absolute",
-          bottom: padding * 1.5,
-          right: padding * 1.5,
-          backgroundColor: Colors.light.accent,
-          width: 55,
-          height: 55,
-          borderRadius: 18,
-          shadowColor: Colors.light.accent,
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.5,
-          shadowRadius: 12,
-          elevation: 8,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Icon
-          icon={"penIcon"}
-          color={"#fff"}
-          size={26}
-        />
-      </Pressable>
+      {clonedChildren}
       <TripChatProvider>
-        <TripChat bottomSheetModalRef={bottomSheetModalRef} />
+        <TripChat
+          bottomSheetModalRef={bottomSheetModalRef}
+          type={type}
+          activityId={activityId}
+        />
       </TripChatProvider>
     </>
   );

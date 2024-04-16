@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import React, { useEffect } from "react";
 import { useTrip } from "@/context/tripContext";
 import { favel } from "@/lib/favelApi";
@@ -10,6 +10,9 @@ import { supabase } from "@/lib/supabase";
 import { useUser } from "@clerk/clerk-expo";
 import { UserActivityState } from "@/types/types";
 import ActivityModal from "./(activity)/ActivityModal";
+import { padding } from "@/constants/values";
+import Colors from "@/constants/Colors";
+import Icon from "@/components/Icon";
 
 export default function Trip() {
   const { trip, tripMetadata, setUserActivity } = useTrip();
@@ -90,7 +93,35 @@ export default function Trip() {
       {tripMetadata && tripMetadata.status === "trip.loading" && <Loading />}
       <TripBottomSheet />
       {tripMetadata && !tripMetadata.status.includes("loading") && (
-        <TripChatWrapper />
+        <TripChatWrapper type="trip">
+          <Pressable
+            style={{
+              position: "absolute",
+              bottom: padding * 1.5,
+              right: padding * 1.5,
+              backgroundColor: Colors.light.accent,
+              width: 55,
+              height: 55,
+              borderRadius: 18,
+              shadowColor: Colors.light.accent,
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.5,
+              shadowRadius: 12,
+              elevation: 8,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Icon
+              icon={"penIcon"}
+              color={"#fff"}
+              size={26}
+            />
+          </Pressable>
+        </TripChatWrapper>
       )}
       <ActivityModal />
     </>

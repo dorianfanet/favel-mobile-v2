@@ -34,6 +34,7 @@ import DayCard from "../components/DayCard";
 import ActivityCard from "../components/ActivityCard";
 import { newTripEdit } from "@/lib/tripEdits";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 
 const windowHeight = Dimensions.get("window").height;
 
@@ -91,14 +92,31 @@ export default function TripBottomSheet() {
     });
 
     setFormattedTrip(temp);
+
+    function updateListHeight() {
+      const dayCardHeight = 60;
+      const activityCardHeight = 100;
+
+      let totalHeight = trip?.length || 0 * dayCardHeight;
+
+      trip?.forEach((day) => {
+        totalHeight += (day.activities?.length || 0) * activityCardHeight;
+      });
+
+      flatListHeight.current = totalHeight;
+    }
+    updateListHeight();
   }, [trip]);
 
   function handleScroll(offset: number) {
-    const totalFlatListHeight = flatListHeight.current + windowHeight * 0.45;
-    console.log("offset", offset, totalFlatListHeight);
+    const totalFlatListHeight = flatListHeight.current + windowHeight * 0.35;
+    console.log("offset", offset, flatListHeight.current);
     if (offset < -20) {
       bottomSheetRef.current?.snapToIndex(1);
-    } else if (totalFlatListHeight > 0 && offset > totalFlatListHeight) {
+    } else if (
+      flatListHeight.current > 0 &&
+      offset > flatListHeight.current + 50
+    ) {
       bottomSheetRef.current?.snapToIndex(2);
     }
   }
@@ -157,6 +175,7 @@ export default function TripBottomSheet() {
   }, [editor]);
 
   function updateFormattedTrip(newTrip: FormattedTrip, to: number) {
+    if (to === 0) return;
     if (newTrip[0].formattedType !== "day") {
       // move the second item to the first position
       let temp = newTrip[0];
@@ -247,11 +266,14 @@ export default function TripBottomSheet() {
       {formattedTrip && (
         <DraggableFlatList
           onScrollOffsetChange={handleScroll}
-          onLayout={(e) => {
-            if (e.nativeEvent.layout.height > 0) {
-              flatListHeight.current = e.nativeEvent.layout.height;
-            }
-          }}
+          // onLayout={(e) => {
+          //   if (e.nativeEvent.layout.height > 0) {
+          //     flatListHeight.current = e.nativeEvent.layout.height;
+          //   }
+          // }}
+          // onScroll={(e) => {
+          //   console.log("scroll", e.nativeEvent.contentOffset.y);
+          // }}
           data={formattedTrip}
           ref={flatListRef}
           renderItem={({ item, drag, isActive }) => {
@@ -268,6 +290,13 @@ export default function TripBottomSheet() {
                   onDelete={() => deleteActivity(item as Activity)}
                   draggable
                   swipeable
+                  highlighted={
+                    editor && editor.type === "activity"
+                      ? editor.activity.id === item.id
+                        ? true
+                        : false
+                      : undefined
+                  }
                 />
               </>
             );
@@ -278,9 +307,26 @@ export default function TripBottomSheet() {
               : `${item.id!}-${index}`
           }
           onDragEnd={({ data, from, to }) => updateFormattedTrip(data, to)}
-          contentContainerStyle={{
-            paddingBottom: 80,
-          }}
+          // contentContainerStyle={{
+          //   paddingBottom: ,
+          // }}
+          ListFooterComponent={() => (
+            <View
+              style={{
+                height: 150 + windowHeight * 0.35,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Image
+                source={require("@/assets/images/logo-full.png")}
+                style={{
+                  width: 220,
+                  height: 52,
+                }}
+              />
+            </View>
+          )}
         />
       )}
     </BottomSheet>

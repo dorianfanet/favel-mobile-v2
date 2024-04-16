@@ -31,6 +31,7 @@ export default function PlaceCard({
   draggable,
   noCache,
   onDelete,
+  highlighted,
 }: {
   swipeable?: boolean;
   activity: Activity;
@@ -41,6 +42,7 @@ export default function PlaceCard({
   draggable?: boolean;
   noCache?: boolean;
   onDelete?: () => void;
+  highlighted?: boolean;
 }) {
   const { trip, tripMetadata } = useTrip();
   const { user } = useUser();
@@ -147,6 +149,7 @@ export default function PlaceCard({
               style={style}
               theme={theme}
               draggable={draggable}
+              highlighted={highlighted}
             />
           </Swipeable>
         </Reanimated.View>
@@ -159,13 +162,14 @@ export default function PlaceCard({
           theme={theme}
           draggable={draggable}
           noCache={noCache}
+          highlighted={highlighted}
         />
       )}
     </>
   );
 }
 
-function ActivityCardContent({
+export function ActivityCardContent({
   activity,
   drag,
   isActive,
@@ -173,6 +177,8 @@ function ActivityCardContent({
   theme = "dark",
   draggable,
   noCache,
+  highlighted,
+  noClick,
 }: {
   activity: Activity;
   drag?: any;
@@ -181,13 +187,15 @@ function ActivityCardContent({
   theme?: "light" | "dark";
   draggable?: boolean;
   noCache?: boolean;
+  highlighted?: boolean;
+  noClick?: boolean;
 }) {
   const [activityData, setActivityData] = useState<Activity>(activity);
 
   useEffect(() => {
     if (!noCache) {
       getActivity(activity).then((data) => {
-        console.log("ActivityCardContent", data);
+        // console.log("ActivityCardContent", data);
         return setActivityData(data);
       });
     }
@@ -198,6 +206,7 @@ function ActivityCardContent({
   return (
     <TouchableOpacity
       onPress={() => {
+        if (noClick) return;
         setEditor({
           type: "activity",
           activity: {
@@ -206,6 +215,10 @@ function ActivityCardContent({
           },
         });
       }}
+      style={{
+        opacity: highlighted === false ? 0.5 : 1,
+      }}
+      activeOpacity={noClick ? 1 : 0.2}
     >
       <View
         style={[
@@ -320,7 +333,7 @@ function ActivityCardContent({
             disabled={isActive}
             style={{
               position: "absolute",
-              right: 15,
+              right: 25,
               top: 40,
               zIndex: 1,
             }}

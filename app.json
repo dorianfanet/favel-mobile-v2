@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "11",
+      "buildNumber": "12",
       "associatedDomains": [
         "applinks:favel.net"
       ]

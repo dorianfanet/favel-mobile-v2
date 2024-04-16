@@ -228,6 +228,11 @@ export type TripChatMessage = {
 
 export type TripChatEditDay = {
   day_index: number;
+  day_id?: string;
+  location?: string;
+  day_action?: {
+    action: "add" | "delete";
+  };
   actions: TripChatEdit[];
 };
 

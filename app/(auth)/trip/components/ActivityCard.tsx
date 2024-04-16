@@ -36,6 +36,7 @@ export default function ActivityCard({
   theme = "dark",
   draggable,
   noCache,
+  highlighted,
 }: {
   activity: Activity;
   drag?: any;
@@ -47,6 +48,7 @@ export default function ActivityCard({
   theme?: "light" | "dark";
   draggable?: boolean;
   noCache?: boolean;
+  highlighted?: boolean;
 }) {
   return activity.route ? (
     <RouteCard
@@ -74,6 +76,7 @@ export default function ActivityCard({
       noCache={noCache}
       swipeable={swipeable}
       onDelete={onDelete}
+      highlighted={highlighted}
     />
   );
 }
