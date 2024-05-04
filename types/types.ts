@@ -30,11 +30,13 @@ export type TripEdit = {
   activity_id: string;
   author_id: string;
   trip_id: string;
+  post_id: string;
 };
 
 export type Editor =
   | {
       type: "day";
+      noScroll?: boolean;
       day: {
         center?: Position;
         bounds?: BBox;
@@ -55,6 +57,7 @@ export type SavedTrip = {
   id: string;
   name?: string;
   author_id: string;
+  invited_ids?: string[];
   route?: TripRoute;
   dates?:
     | {
@@ -105,6 +108,7 @@ export type TripMetadata = {
         returnDate: string;
       };
   invited_ids?: string[];
+  post_id?: string;
 };
 
 export type Trip = Day[];
@@ -176,6 +180,7 @@ export type Category =
   | "sport"
   | "nature"
   | "neighbourhood"
+  | "restaurant"
   | "unknown";
 
 export type QuestionType = {
@@ -229,19 +234,23 @@ export type TripChatMessage = {
 };
 
 export type TripChatEditDay = {
-  day_index: number;
+  day_index?: number;
   day_id?: string;
   location?: string;
   day_action?: {
-    action: "add" | "delete";
+    action: "add" | "delete" | "move";
+    move?: {
+      from: number;
+      to: number;
+    };
   };
   actions: TripChatEdit[];
 };
 
 export type TripChatEdit = {
-  name: string;
+  name?: string;
   id?: string;
-  action: "add" | "delete";
+  action: "add" | "delete" | "move";
 };
 
 export interface Form {
@@ -312,6 +321,7 @@ export type UserMetadata = {
   firstName?: string;
   lastName?: string;
   imageUrl?: string;
+  createdAt?: string;
   publicMetadata?: {
     trips: number;
     coTravelers?: string[];
@@ -332,4 +342,41 @@ export type UserActivity = {
 export type UserActivityState = {
   count: number;
   activity: UserActivity[];
+};
+
+export type Notification = {
+  id: string;
+  body?: string;
+  is_read: boolean;
+  type?: "like" | "follow";
+  data?: any;
+  author_id?: string;
+  created_at: string;
+};
+
+export type Post = {
+  id: string;
+  updated_at: string;
+  author_id: string;
+  type: "trip" | "repost" | null;
+  action: "join_trip" | "edit_trip" | null;
+  trip_id: string | null;
+  text: string | null;
+  images: string[] | null;
+  original_post: Post | null;
+  action_data: any | null;
+};
+
+export type PostComment = {
+  id: string;
+  created_at: string;
+  author_id: string;
+  post_id: string;
+  content: string;
+  mentions: string[];
+};
+
+export type TripUserRole = {
+  id: string;
+  role: "author" | "read-only" | "traveler";
 };

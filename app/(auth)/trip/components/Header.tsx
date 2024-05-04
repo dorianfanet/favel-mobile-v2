@@ -20,12 +20,14 @@ import MenuModal from "./(menu-modals)/MenuModal";
 import UserActivityCount from "@/components/UserActivityCount";
 import { track } from "@amplitude/analytics-react-native";
 import LoadingStuckButton from "./LoadingStuckButton";
+import ShareModal from "./ShareModal";
 // import MenuModal from "./MenuModal";
 
 export default function Header() {
   const { tripMetadata, userActivity } = useTrip();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const shareModalRef = useRef<BottomSheetModal>(null);
 
   const handlePresentModalPress = useCallback(() => {
     track("Trip Menu clicked");
@@ -174,28 +176,29 @@ export default function Header() {
                 }}
               >
                 <Pressable
-                  // onPress={() => {
-                  //   router.push(`/(modals)/share/${tripMetadata?.id}`);
-                  // }}
-                  onPress={async () => {
-                    track("Share trip clicked");
-                    try {
-                      const result = await Share.share({
-                        message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
-                      });
+                  // onPress={async () => {
+                  //   track("Share trip clicked");
+                  //   try {
+                  //     const result = await Share.share({
+                  //       message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
+                  //     });
 
-                      if (result.action === Share.sharedAction) {
-                        if (result.activityType) {
-                          // shared with activity type of result.activityType
-                        } else {
-                          // shared
-                        }
-                      } else if (result.action === Share.dismissedAction) {
-                        // dismissed
-                      }
-                    } catch (error) {
-                      alert(error);
-                    }
+                  //     if (result.action === Share.sharedAction) {
+                  //       if (result.activityType) {
+                  //         // shared with activity type of result.activityType
+                  //       } else {
+                  //         // shared
+                  //       }
+                  //     } else if (result.action === Share.dismissedAction) {
+                  //       // dismissed
+                  //     }
+                  //   } catch (error) {
+                  //     alert(error);
+                  //   }
+                  // }}
+                  onPress={() => {
+                    track("Header share button pressed");
+                    shareModalRef.current?.present();
                   }}
                   style={{
                     width: 40,
@@ -205,7 +208,7 @@ export default function Header() {
                   }}
                 >
                   <Icon
-                    icon="shareIcon"
+                    icon={Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"}
                     size={20}
                     color={Colors.dark.primary}
                   />
@@ -256,6 +259,7 @@ export default function Header() {
         )}
       </SafeAreaView>
       <MenuModal bottomSheetModalRef={bottomSheetModalRef} />
+      <ShareModal bottomSheetModalRef={shareModalRef} />
     </>
   );
 }

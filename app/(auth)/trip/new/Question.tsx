@@ -22,6 +22,7 @@ import { borderRadius } from "@/constants/values";
 import { Text } from "@/components/Themed";
 import { months } from "@/constants/data";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { Picker } from "@react-native-picker/picker";
 
 interface IconsMap {
   [key: string]: ImageSourcePropType;
@@ -118,100 +119,44 @@ export default function Question({
       {question.type === "flexDates" && (
         <View
           style={{
-            justifyContent: "center",
+            // justifyContent: "center",
+            // alignItems: "center",
+            flexDirection: "row",
             alignItems: "center",
-            gap: 30,
+            gap: 20,
             height: 300,
-            width: "100%",
+            width: "80%",
           }}
         >
-          <View
+          <Picker
+            selectedValue={4}
+            onValueChange={(itemValue, itemIndex) => {}}
             style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 10,
-              marginVertical: 10,
+              flex: 1,
+            }}
+            itemStyle={{
+              fontSize: 22,
+              fontFamily: "Outfit_600SemiBold",
+              color: "white",
             }}
           >
-            <TextInput
-              style={{
-                fontSize: 24,
-                fontFamily: "Outfit_600SemiBold",
-                color: "white",
-              }}
-              onChangeText={(text) => {
-                const int: string = text.replace(/[^0-9]/g, "");
-
-                setForm({
-                  ...form,
-                  flexDates: {
-                    ...form.flexDates,
-                    duration: parseInt(int) > 21 ? "21" : int,
-                  },
-                });
-              }}
-              value={
-                form.flexDates.duration
-                  ? form.flexDates.duration.toString()
-                  : ""
-              }
-              placeholder="4"
-              keyboardType="numeric"
-            />
-            <Text
-              style={{
-                fontSize: 24,
-                fontFamily: "Outfit_600SemiBold",
-                color: "white",
-              }}
-            >{` jours`}</Text>
-          </View>
-          <View
+            {Array.from({ length: 21 }).map((_, index) => (
+              <Picker.Item
+                key={index + 1}
+                label={(index + 1).toString()}
+                value={index + 1}
+              />
+            ))}
+          </Picker>
+          <Text
             style={{
-              width: "100%",
-              marginVertical: 10,
+              fontSize: 22,
+              fontFamily: "Outfit_600SemiBold",
+              color: "white",
             }}
           >
-            <ScrollView
-              horizontal
-              style={{
-                width: "100%",
-                height: 140,
-              }}
-            >
-              {updatedMonths &&
-                updatedMonths.map((month, index) => (
-                  <RadioButton
-                    key={`month-${index}`}
-                    onPress={() => {
-                      setForm({
-                        ...form,
-                        flexDates: {
-                          ...form.flexDates,
-                          month: months.indexOf(month),
-                        },
-                      });
-                      onNext && onNext();
-                    }}
-                    item={{
-                      value: index.toString(),
-                      name: month,
-                    }}
-                    selected={form.flexDates.month === months.indexOf(month)}
-                    containerStyle={{
-                      width: 120,
-                      height: 120,
-                    }}
-                    contentStyle={{
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      paddingHorizontal: 10,
-                    }}
-                  />
-                ))}
-            </ScrollView>
-          </View>
+            jours
+          </Text>
         </View>
       )}
       {/* {question.type === "dates" && (

@@ -6,9 +6,10 @@ import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
+import { TripMetadata } from "@/types/types";
 
 export default function LoadingStuckButton() {
-  const { tripMetadata, trip } = useTrip();
+  const { tripMetadata, trip, setTripMetadata } = useTrip();
   const lastTripUpdateTimestamp = useRef(new Date());
   const [isStuck, setIsStuck] = useState(false);
 
@@ -51,11 +52,14 @@ export default function LoadingStuckButton() {
           .update({ trip: null, status: "trip.init" })
           .eq("id", tripMetadata?.id);
 
-        try {
-          router.navigate(`/(auth)/trip/${tripMetadata?.id}/new`);
-        } catch (error) {
-          console.error(error);
-        }
+        setTripMetadata((prev) => ({
+          ...(prev as TripMetadata),
+          status: "trip.init",
+        }));
+        router.navigate("/(auth)/(tabs)/home");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        router.replace(`/(auth)/trip/${tripMetadata?.id}/`);
+        // router.replace(`/(auth)/trip/${tripMetadata?.id}/trip`);
       }}
     >
       <Text

@@ -44,8 +44,15 @@ export async function updateTripFromFormatted(
   }
 }
 
-export async function getActivity(activity: Activity): Promise<Activity> {
+export async function getActivity(
+  activity: Activity,
+  forceRefresh = false
+): Promise<Activity> {
   let activityData = activity;
+
+  if (forceRefresh) {
+    MMKV.removeItem(`activity-${activity.id}`);
+  }
 
   async function fetchActivityFromDb() {
     const { data, error } = await supabase
@@ -67,7 +74,7 @@ export async function getActivity(activity: Activity): Promise<Activity> {
         `activity-${activity.id}`,
         JSON.stringify({
           data: activityData,
-          expiresAt: new Date().getTime() + 86400000,
+          expiresAt: new Date().getTime() + 720000,
           // expiresAt: new Date().getTime() + 60000,
         })
       );

@@ -12,11 +12,18 @@
       "resizeMode": "contain",
       "backgroundColor": "#44C0E7"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "19"
+      "buildNumber": "22",
+      "entitlements": {
+        "com.apple.developer.applesignin": [
+          "Default"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +31,7 @@
         "backgroundColor": "#44C0E7"
       },
       "package": "net.favel.favel",
-      "versionCode": 4
+      "versionCode": 10
     },
     "web": {
       "bundler": "metro",

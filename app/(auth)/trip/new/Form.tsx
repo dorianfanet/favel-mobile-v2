@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from "react-native";
 import React, {
   useCallback,
@@ -29,8 +30,18 @@ import Question from "./Question";
 import { Form as FormType, useNewTripForm } from "@/context/newTrip";
 import { favel } from "@/lib/favelApi";
 import { BlurView } from "@/components/Themed";
-import { borderRadius } from "@/constants/values";
+import { borderRadius, padding } from "@/constants/values";
 import { destination } from "@turf/turf";
+import ChatSuggestions from "../components/ChatSuggestions";
+
+const suggestions = [
+  "Balade dans les Alpes",
+  "Séjour à Paris",
+  "Road trip en Californie",
+  "Découverte de l'Asie",
+  "Je ne sais pas encore",
+  "Châteaux de la Loire",
+];
 
 export default function Form() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -64,17 +75,18 @@ export default function Form() {
   };
 
   const handleNext = async () => {
+    console.log("pressed next", currentIndex, data.length - 1);
     if (currentIndex < data.length - 1) {
       setPrevIndex(currentIndex);
       setCurrentIndex((prev) => prev + 1);
-      if (currentIndex === 0 && form.destination) {
-        const data = await favel.fetchDestinationData(
-          form.destination,
-          form.flexDates.duration ? parseInt(form.flexDates.duration) : 4
-        );
-        console.log("Destination data", data);
-        setDestinationData(data);
-      }
+      // if (currentIndex === 0 && form.destination) {
+      //   const data = await favel.fetchDestinationData(
+      //     form.destination,
+      //     form.flexDates.duration ? parseInt(form.flexDates.duration) : 4
+      //   );
+      //   console.log("Destination data", data);
+      //   setDestinationData(data);
+      // }
     } else if (currentIndex === data.length - 1) {
       const diffTime = Math.abs(
         form.dates.departure.getTime() - form.dates.return.getTime()
@@ -140,12 +152,14 @@ export default function Form() {
     }
   }, [tripMetadata!.status]);
 
+  const [inputValue, setInputValue] = useState<string>("");
+
   return (
     <>
       {tripMetadata!.status === "new" && (
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={30}
+          keyboardVerticalOffset={60}
           style={{
             position: "absolute",
             width: "100%",
@@ -167,6 +181,23 @@ export default function Form() {
           >
             Où partez-vous ?
           </Text>
+          <ChatSuggestions
+            data={suggestions}
+            onPress={(destination) => {
+              setForm((prev) => {
+                return {
+                  ...(prev as FormType),
+                  destination,
+                };
+              });
+              setTripMetadata((prev) => {
+                return {
+                  ...(prev as TripMetadata),
+                  status: "new.form",
+                };
+              });
+            }}
+          />
           <View
             style={{
               flexDirection: "row",
@@ -187,13 +218,11 @@ export default function Form() {
                 flex: 1,
               }}
               onChangeText={(text) => {
-                setForm({
-                  ...form,
-                  destination: text,
-                });
+                setInputValue(text);
               }}
-              value={form.destination ? form.destination.toString() : ""}
-              placeholder="Asie"
+              value={inputValue}
+              placeholder="Votre destination..."
+              placeholderTextColor={"#ffffff71"}
             />
             <TouchableOpacity
               onPress={async () => {
@@ -202,6 +231,10 @@ export default function Form() {
                     ...(prev as TripMetadata),
                     status: "new.form",
                   };
+                });
+                setForm({
+                  ...form,
+                  destination: inputValue,
                 });
               }}
               style={{
@@ -224,7 +257,7 @@ export default function Form() {
               </Text>
             </TouchableOpacity>
           </View>
-          <Text
+          {/* <Text
             style={{
               fontSize: 16,
               fontFamily: "Outfit_600SemiBold",
@@ -238,7 +271,7 @@ export default function Form() {
             Vous pouvez indiquer ce que vous voulez, une ou plusieurs villes,
             une région, un pays, un continent... Si vous ne savez-pas dites "Je
             ne sais pas"
-          </Text>
+          </Text> */}
         </KeyboardAvoidingView>
       )}
       <BottomSheet
@@ -366,9 +399,9 @@ const data: QuestionType[] = [
   // },
   {
     id: "flexDates",
-    name: "À quel moment partez-vous ?",
+    name: "Combien de temps partez-vous ?",
     type: "flexDates",
-    skip: false,
+    skip: true,
   },
   {
     id: "budget",

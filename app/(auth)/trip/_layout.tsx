@@ -10,6 +10,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
 import { EditorProvider } from "@/context/editorContext";
 import { track } from "@amplitude/analytics-react-native";
+import { TripUserRoleProvider } from "@/context/tripUserRoleContext";
 
 export const MMKV = new MMKVLoader().initialize();
 
@@ -17,10 +18,6 @@ export default function Layout() {
   useEffect(() => {
     StatusBar.setBarStyle("dark-content");
   });
-
-  useEffect(() => {
-    track("Trip page viewed");
-  }, []);
 
   return (
     <>
@@ -32,11 +29,13 @@ export default function Layout() {
       <TripProvider>
         <BottomSheetModalProvider>
           <EditorProvider>
-            <>
-              <MapWrapper />
-              <Header />
-              <Slot />
-            </>
+            <TripUserRoleProvider>
+              <>
+                <MapWrapper />
+                <Header />
+                <Slot />
+              </>
+            </TripUserRoleProvider>
           </EditorProvider>
         </BottomSheetModalProvider>
       </TripProvider>

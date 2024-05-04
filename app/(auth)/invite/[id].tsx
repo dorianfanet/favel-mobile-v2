@@ -16,15 +16,20 @@ export default function Index() {
 
   useEffect(() => {
     if (!id || !user) return;
-    track("Invitation page viewed", { id: id });
+    const justJoined =
+      user.createdAt &&
+      new Date(user.createdAt).getTime() > Date.now() - 5 * 60 * 1000;
+    track("Invitation page viewed", { id: id, justJoined });
 
-    favel.inviteUser(id as string, user.id).then((res) => {
-      if (res.message === "User invited") {
-        router.navigate(`/trip/${id}`);
-      } else {
-        setError("Erreur lors de l'invitation");
-      }
-    });
+    favel
+      .inviteUser(id as string, user.id, user.firstName || "Inconnu")
+      .then((res) => {
+        if (res.message === "User invited") {
+          router.navigate(`/trip/${id}`);
+        } else {
+          setError("Erreur lors de l'invitation");
+        }
+      });
   }, [id]);
 
   return (

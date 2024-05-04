@@ -7,12 +7,16 @@ import { getActivity, supabase } from "@/lib/supabase";
 import { Day, TripMetadata } from "@/types/types";
 import { useUser } from "@clerk/clerk-expo";
 import { BlurView } from "@/components/Themed";
+import { MMKV } from "./_layout";
+import { track } from "@amplitude/analytics-react-native";
+import { useTripUserRole } from "@/context/tripUserRoleContext";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
   const { user } = useUser();
 
   const { setTripMetadata, setTrip } = useTrip();
+  const { setTripUserRole } = useTripUserRole();
 
   const router = useRouter();
 
@@ -39,7 +43,7 @@ export default function Index() {
       const { data, error } = await supabase
         .from("trips_v2")
         .select(
-          "id, trip, status, preferences, route, status_message, prompt, name, dates, author_id, invited_ids"
+          "id, trip, status, preferences, route, status_message, prompt, name, dates, author_id, invited_ids, post_id"
         )
         .eq("id", id)
         .single();
@@ -50,11 +54,24 @@ export default function Index() {
             data.invited_ids.includes(user?.id)
           ) {
             console.log("🎉 User is invited to the trip");
+            setTripUserRole({
+              id: user!.id,
+              role: "traveler",
+            });
           } else {
-            router.navigate("/home");
-            Alert.alert("Vous n'êtes pas autorisé à voir ce voyage");
-            return;
+            // router.navigate("/home");
+            // Alert.alert("Vous n'êtes pas autorisé à voir ce voyage");
+            // return;
+            setTripUserRole({
+              id: user!.id,
+              role: "read-only",
+            });
           }
+        } else {
+          setTripUserRole({
+            id: user!.id,
+            role: "author",
+          });
         }
         setTripMetadata(data as TripMetadata);
         if (data.trip) {
@@ -68,7 +85,7 @@ export default function Index() {
                       if (activity.route) {
                         return activity;
                       } else {
-                        const newActivity = await getActivity(activity);
+                        const newActivity = await getActivity(activity, true);
                         return newActivity;
                       }
                     })
@@ -90,6 +107,12 @@ export default function Index() {
     }
 
     checkForTrip();
+  }, []);
+
+  useEffect(() => {
+    track("Trip page viewed", {
+      tripId: id,
+    });
   }, []);
 
   return (
@@ -124,17 +147,6 @@ export default function Index() {
           }}
         >
           Chargement de votre voyage...
-        </Text>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 12,
-            fontFamily: "Outfit_500Medium",
-            textAlign: "center",
-            marginTop: 10,
-          }}
-        >
-          ID: {id}
         </Text>
       </BlurView>
     </View>

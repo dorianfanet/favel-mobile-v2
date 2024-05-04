@@ -7,6 +7,7 @@ import { getActivity, supabase } from "@/lib/supabase";
 import { useTrip } from "@/context/tripContext";
 import {
   Day,
+  Trip as TripType,
   TripEdit,
   TripMetadata,
   UserActivity,
@@ -55,28 +56,15 @@ export default function Rest() {
                       const activities = await Promise.all(
                         day.activities.map(async (activity) => {
                           if (activity.route) {
-                            console.log(
-                              ` 🚘 Activity ${activity.id} has a route\n`
-                            );
                             return activity;
                           } else {
-                            console.log(
-                              ` 📍 Activity ${activity.id} is a place`
-                            );
                             const newActivity = await getActivity(activity);
-                            console.log(`   - Id: ${newActivity.id},
-                    - Name: ${newActivity.name},
-                    - Category: ${newActivity.category},
-                    - Coordinates: ${newActivity.coordinates?.latitude}, ${newActivity.coordinates?.longitude},
-                    - Duration: ${newActivity.avg_duration},
-                    - DCategory: ${newActivity.display_category},\n`);
                             return newActivity;
                           }
                         })
                       );
                       return { ...day, activities };
                     } else {
-                      console.log(`❌ Day ${index} has no activities\n`);
                       return day;
                     }
                   })
@@ -115,6 +103,48 @@ export default function Rest() {
                 });
               }
             }
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "queue_day",
+          // filter: `trip_id=eq.${tripMetadata.id}`,
+        },
+        async (payload) => {
+          console.log("New day payload", payload.new);
+          const day = payload.new.data as Day;
+          let newDay: Day | null = null;
+          if (day.activities) {
+            if (day.activities.length === 0) {
+              newDay = day;
+            } else {
+              const activities = await Promise.all(
+                day.activities.map(async (activity) => {
+                  if (activity.route) {
+                    return activity;
+                  } else {
+                    const newActivity = await getActivity(activity);
+                    return newActivity;
+                  }
+                })
+              );
+              newDay = { ...day, activities };
+            }
+          } else {
+            newDay = day;
+          }
+          if (newDay) {
+            setTrip((prev) => {
+              if (prev) {
+                return [...(prev as TripType), newDay];
+              } else {
+                return [newDay];
+              }
+            });
           }
         }
       )

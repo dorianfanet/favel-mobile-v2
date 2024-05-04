@@ -7,12 +7,19 @@ import Icon from "@/components/Icon";
 import { editTypes } from "@/constants/categories";
 import { ActivityCardContent } from "../../components/PlaceCard";
 import Colors from "@/constants/Colors";
+import EditCard from "../../components/EditCard";
 
-export default function Edits({ edits }: { edits: TripChatEditDay[] }) {
+export default function Edits({
+  edits,
+  noMargin,
+}: {
+  edits: TripChatEditDay[];
+  noMargin?: boolean;
+}) {
   return edits ? (
     <View
       style={{
-        marginTop: 20,
+        marginTop: noMargin ? 0 : 20,
       }}
     >
       {edits.map((edit) => (
@@ -48,43 +55,82 @@ export default function Edits({ edits }: { edits: TripChatEditDay[] }) {
               paddingBottom: 0,
             }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontFamily: "Outfit_600SemiBold",
-                  color: "white",
-                }}
-              >
-                {`Jour ${edit.day_index + 1}`}
-              </Text>
+            {edit.day_index !== undefined ? (
               <View
                 style={{
                   flexDirection: "row",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: 5,
                 }}
               >
-                <Icon
-                  icon="mapPinIcon"
-                  size={16}
-                  color={Colors.dark.primary}
-                />
-                <Text
+                {edit.day_action?.action === "move" && edit.day_action.move ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 5,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontFamily: "Outfit_600SemiBold",
+                        color: "white",
+                      }}
+                    >
+                      {`Jour ${edit.day_action.move.from + 1}`}
+                    </Text>
+                    <Icon
+                      icon="moveIcon"
+                      size={16}
+                      color={Colors.dark.primary}
+                      style={{
+                        transform: [{ rotate: "90deg" }],
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontFamily: "Outfit_600SemiBold",
+                        color: "white",
+                      }}
+                    >
+                      {`Jour ${edit.day_action.move.to + 1}`}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontFamily: "Outfit_600SemiBold",
+                      color: "white",
+                    }}
+                  >
+                    {`Jour ${edit.day_index + 1}`}
+                  </Text>
+                )}
+                <View
                   style={{
-                    color: Colors.dark.primary,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
                   }}
                 >
-                  {edit.location}
-                </Text>
+                  <Icon
+                    icon="mapPinIcon"
+                    size={16}
+                    color={Colors.dark.primary}
+                  />
+                  <Text
+                    style={{
+                      color: Colors.dark.primary,
+                    }}
+                  >
+                    {edit.location}
+                  </Text>
+                </View>
               </View>
-            </View>
+            ) : null}
             <View
               style={{
                 marginVertical: 5,
@@ -100,57 +146,6 @@ export default function Edits({ edits }: { edits: TripChatEditDay[] }) {
           </View>
         </View>
       ))}
-    </View>
-  ) : null;
-}
-
-function EditCard({ edit }: { edit: TripChatEdit }) {
-  return edit.id ? (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 10,
-        alignItems: "center",
-        position: "relative",
-        marginVertical: 5,
-      }}
-    >
-      <View
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          backgroundColor: editTypes[edit.action],
-          opacity: 0.3,
-          borderRadius: 10,
-        }}
-      />
-      <Icon
-        icon={`${edit.action}Icon`}
-        size={20}
-        color={editTypes[edit.action]}
-        style={{
-          marginLeft: 10,
-        }}
-      />
-      <View
-        style={{
-          flex: 1,
-        }}
-      >
-        <ActivityCardContent
-          activity={{
-            id: edit.id,
-            name: edit.name,
-            formattedType: "activity",
-          }}
-          style={{
-            paddingHorizontal: 0,
-            flex: 1,
-          }}
-          noClick
-        />
-      </View>
     </View>
   ) : null;
 }

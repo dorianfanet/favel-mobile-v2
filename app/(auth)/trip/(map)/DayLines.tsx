@@ -184,43 +184,41 @@ export default function DayLines() {
           }}
         />
       </MapboxGL.ShapeSource>
-      {dayLabels &&
+      {/* {dayLabels &&
         !tripMetadata?.status.includes("loading") &&
         dayLabels.map((label, index) => (
-          <>
-            <MarkerView
-              key={`day-label-${index}`}
-              id={`label-${index}`}
-              coordinate={label.coordinates}
-              allowOverlap={true}
-            >
-              <>
-                {trip && (
-                  <Pressable
-                    onPress={() => {
-                      setEditor({
-                        type: "day",
-                        day: {
-                          center: label.coordinates,
-                          bounds: label.bounds,
-                          id: label.id,
-                        },
-                      });
-                    }}
-                  >
-                    <DayMarkerMemo
-                      name={`Jour ${label.index + 1}`}
-                      // images should be an array of the ids of the activities of that day
-                      images={dayMarkerData.images[label.index]}
-                      icons={dayMarkerData.icons[label.index]}
-                      editor={editor ? true : false}
-                    />
-                  </Pressable>
-                )}
-              </>
-            </MarkerView>
-          </>
-        ))}
+          <MarkerView
+            key={`day-label-${index}`}
+            id={`label-${index}`}
+            coordinate={label.coordinates}
+            allowOverlap={true}
+          >
+            <>
+              {trip && (
+                <Pressable
+                  onPress={() => {
+                    setEditor({
+                      type: "day",
+                      day: {
+                        center: label.coordinates,
+                        bounds: label.bounds,
+                        id: label.id,
+                      },
+                    });
+                  }}
+                >
+                  <DayMarkerMemo
+                    name={`Jour ${label.index + 1}`}
+                    // images should be an array of the ids of the activities of that day
+                    images={dayMarkerData.images[label.index]}
+                    icons={dayMarkerData.icons[label.index]}
+                    editor={editor ? true : false}
+                  />
+                </Pressable>
+              )}
+            </>
+          </MarkerView>
+        ))} */}
     </>
   ) : null;
 }
@@ -366,7 +364,12 @@ function DayMarker({
         >
           {icons &&
             icons.length > 0 &&
-            icons.map((icon) => <ActivityIcon icon={icon} />)}
+            icons.map((icon, index) => (
+              <ActivityIcon
+                key={`${name}-${icon}-${index}`}
+                icon={icon}
+              />
+            ))}
         </View>
       </MotiView>
     </View>

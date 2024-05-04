@@ -1,11 +1,11 @@
 import {
   View,
-  Text,
   DimensionValue,
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
   Dimensions,
+  Share,
 } from "react-native";
 import React, {
   useCallback,
@@ -26,7 +26,7 @@ import { Activity, FormattedTrip, Route, Trip, TripEdit } from "@/types/types";
 import { useTrip } from "@/context/tripContext";
 import { FlatList } from "react-native-gesture-handler";
 import { ScrollView } from "react-native-gesture-handler";
-import { BlurView } from "@/components/Themed";
+import { BlurView, Text } from "@/components/Themed";
 import { useEditor } from "@/context/editorContext";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import { useUser } from "@clerk/clerk-expo";
@@ -37,6 +37,12 @@ import { newTripEdit } from "@/lib/tripEdits";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
+import ContainedButton from "@/components/ContainedButton";
+import Icon from "@/components/Icon";
+import { padding } from "@/constants/values";
+import { track } from "@amplitude/analytics-react-native";
+import ShareCTA from "../components/ShareCTA";
+import { useTripUserRole } from "@/context/tripUserRoleContext";
 
 const windowHeight = Dimensions.get("window").height;
 
@@ -60,6 +66,7 @@ export default function TripBottomSheet() {
   const flatListRef = useRef<FlatList>(null);
 
   const { trip, tripMetadata } = useTrip();
+  const { tripUserRole } = useTripUserRole();
 
   const [formattedTrip, setFormattedTrip] = useState<FormattedTrip>();
 
@@ -111,15 +118,16 @@ export default function TripBottomSheet() {
     updateListHeight();
   }, [trip]);
 
+  const scrollOffset = useRef<number>(0);
+  const bottomSheetOffset = useRef<number>(10000);
+
   function handleScroll(offset: number) {
     const totalFlatListHeight = flatListHeight.current + windowHeight * 0.35;
-    console.log("offset", offset, flatListHeight.current);
+    // console.log("offset", offset, flatListHeight.current);
+    scrollOffset.current = offset;
     if (offset < -20) {
       bottomSheetRef.current?.snapToIndex(1);
-    } else if (
-      flatListHeight.current > 0 &&
-      offset > flatListHeight.current + 50
-    ) {
+    } else if (offset > bottomSheetOffset.current + 50) {
       bottomSheetRef.current?.snapToIndex(2);
     }
   }
@@ -137,11 +145,11 @@ export default function TripBottomSheet() {
     }
   }, [tripMetadata?.status]);
 
-  const { editor } = useEditor();
+  const { editor, setEditor } = useEditor();
 
   useEffect(() => {
     if (editor) {
-      if (editor.type === "day" && formattedTrip) {
+      if (editor.type === "day" && formattedTrip && !editor.noScroll) {
         const index = formattedTrip.findIndex(
           (item) => item.id === editor.day.id
         );
@@ -217,7 +225,7 @@ export default function TripBottomSheet() {
 
     const toDayIndex = findIndexOfPreviousIndex(daysIndexes, to);
 
-    if (trip && tripMetadata && tripMetadata.id) {
+    if (trip && tripMetadata && tripMetadata.id && tripMetadata.post_id) {
       const data: TripEdit = {
         type: "move",
         day_index: toDayIndex.previousIndexPosition,
@@ -225,6 +233,7 @@ export default function TripBottomSheet() {
         activity_id: newTrip[to].id!,
         author_id: user?.id!,
         trip_id: tripMetadata?.id!,
+        post_id: tripMetadata?.post_id,
       };
 
       newTripEdit(data);
@@ -240,6 +249,78 @@ export default function TripBottomSheet() {
       temp.splice(index, 1);
       setFormattedTrip(temp);
       updateTripFromFormatted(temp, tripMetadata.id);
+    }
+  }
+
+  const curenntlyVisibleIndex = useRef<number>(0);
+
+  // const onViewRef = useRef(
+  //   ({
+  //     viewableItems,
+  //     changed,
+  //   }: {
+  //     viewableItems: Array<{ item: string; index: number }>;
+  //     changed: Array<{ item: string; index: number; isViewable: boolean }>;
+  //   }) => {
+  //     if (viewableItems.length > 0) {
+  //       console.log("Currently visible item: ", viewableItems[0].index);
+  //       console.log("formattedTrip", formattedTrip);
+  //       curenntlyVisibleIndex.current = viewableItems[0].index;
+  //       if (formattedTrip) {
+  //         const currentItem = formattedTrip[viewableItems[0].index];
+  //         if (currentItem.formattedType === "day") {
+  //           if (currentItem.id) {
+  //             setEditor({
+  //               type: "day",
+  //               noScroll: true,
+  //               day: {
+  //                 id: currentItem.id,
+  //               },
+  //             });
+  //           }
+  //         } else {
+  //           if (currentItem.dayId) {
+  //             setEditor({
+  //               type: "day",
+  //               day: {
+  //                 id: currentItem.dayId,
+  //               },
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // );
+
+  function onViewChanged({ viewableItems, changed }: any) {
+    if (viewableItems.length > 0) {
+      console.log("Currently visible item: ", viewableItems[0].index);
+      curenntlyVisibleIndex.current = viewableItems[0].index;
+      if (formattedTrip) {
+        const currentItem = formattedTrip[viewableItems[0].index];
+        if (currentItem.formattedType === "day") {
+          if (currentItem.id) {
+            setEditor({
+              type: "day",
+              noScroll: true,
+              day: {
+                id: currentItem.id,
+              },
+            });
+          }
+        } else {
+          if (currentItem.dayId) {
+            setEditor({
+              type: "day",
+              noScroll: true,
+              day: {
+                id: currentItem.dayId,
+              },
+            });
+          }
+        }
+      }
     }
   }
 
@@ -294,6 +375,11 @@ export default function TripBottomSheet() {
       {formattedTrip && (
         <DraggableFlatList
           onScrollOffsetChange={handleScroll}
+          // @ts-ignore
+          // onViewableItemsChanged={onViewChanged}
+          // viewabilityConfig={{
+          //   viewAreaCoveragePercentThreshold: 50,
+          // }}
           // onLayout={(e) => {
           //   if (e.nativeEvent.layout.height > 0) {
           //     flatListHeight.current = e.nativeEvent.layout.height;
@@ -302,6 +388,9 @@ export default function TripBottomSheet() {
           // onScroll={(e) => {
           //   console.log("scroll", e.nativeEvent.contentOffset.y);
           // }}
+          onEndReached={() => {
+            bottomSheetOffset.current = scrollOffset.current;
+          }}
           data={formattedTrip}
           ref={flatListRef}
           renderItem={({ item, drag, isActive }) => {
@@ -316,8 +405,8 @@ export default function TripBottomSheet() {
                   drag={drag}
                   isActive={isActive}
                   onDelete={() => deleteActivity(item as Activity)}
-                  draggable
-                  swipeable
+                  draggable={tripUserRole.role === "read-only" ? false : true}
+                  swipeable={tripUserRole.role === "read-only" ? false : true}
                   highlighted={
                     editor && editor.type === "activity"
                       ? editor.activity.id === item.id
@@ -342,17 +431,12 @@ export default function TripBottomSheet() {
             <View
               style={{
                 height: 150 + windowHeight * 0.35,
+                paddingHorizontal: padding,
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <Image
-                source={require("@/assets/images/logo-full.png")}
-                style={{
-                  width: 220,
-                  height: 52,
-                }}
-              />
+              <ShareCTA />
             </View>
           )}
         />

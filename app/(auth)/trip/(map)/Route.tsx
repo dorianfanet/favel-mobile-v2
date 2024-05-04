@@ -129,9 +129,10 @@ export default function Route() {
           aboveLayerID="waterway-label"
         />
       </MapboxGL.ShapeSource>
-      {routeLines.features.map((day, index) => (
-        <>
-          {day.properties && day.properties.midpoint && (
+      {routeLines.features.map(
+        (day, index) =>
+          day.properties &&
+          day.properties.midpoint && (
             <MarkerView
               key={`day-${index}`}
               id={`day-${index}`}
@@ -179,35 +180,34 @@ export default function Route() {
                 </View>
               </View>
             </MarkerView>
-          )}
-        </>
-      ))}
+          )
+      )}
       {tripMetadata &&
         tripMetadata.route &&
-        tripMetadata.route.map((route, index) => (
-          <MarkerView
-            key={`${route.location}-${index}`}
-            id={`pointAnnotation${index}`}
-            coordinate={route.coordinates}
-            allowOverlap={true}
-          >
-            {/* <Animated.View style={[animatedStyle]}>
-            </Animated.View>  */}
-            <View
-              style={{
-                opacity: viewState === "days" ? 0 : 1,
-              }}
+        tripMetadata.route.map((route, index) =>
+          route.coordinates ? (
+            <MarkerView
+              key={`${route.location}-${index}`}
+              id={`pointAnnotation${index}`}
+              coordinate={route.coordinates}
+              allowOverlap={true}
             >
-              <Hotspot
-                data={{
-                  id: route.id ? route.id : "",
-                  location: route.location,
-                  duration: route.duration,
+              <View
+                style={{
+                  opacity: viewState === "days" ? 0 : 1,
                 }}
-              />
-            </View>
-          </MarkerView>
-        ))}
+              >
+                <Hotspot
+                  data={{
+                    id: route.id ? route.id : "",
+                    location: route.location,
+                    duration: route.duration,
+                  }}
+                />
+              </View>
+            </MarkerView>
+          ) : null
+        )}
     </>
   );
 }

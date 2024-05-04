@@ -138,6 +138,7 @@ export default function Input({
             value={inputValue}
             onChangeText={setInputValue}
             placeholder="Votre message..."
+            placeholderTextColor={"#ffffffc6"}
             multiline
             onContentSizeChange={(event) => {
               setHeight(

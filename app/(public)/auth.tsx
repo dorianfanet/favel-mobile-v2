@@ -4,6 +4,7 @@ import {
   Pressable,
   Touchable,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import React, { useEffect } from "react";
 import { Image } from "expo-image";
@@ -99,12 +100,14 @@ export default function Auth() {
           gap: 15,
         }}
       >
-        <Button
-          href="/login"
-          title="Continuer avec Apple"
-          imageUri={require("../../assets/icons/apple.png")}
-          onPress={() => onSelectAuth(Strategy.Apple)}
-        />
+        {Platform.OS === "ios" && (
+          <Button
+            href="/login"
+            title="Continuer avec Apple"
+            imageUri={require("../../assets/icons/apple.png")}
+            onPress={() => onSelectAuth(Strategy.Apple)}
+          />
+        )}
         <Button
           href="/login"
           title="Continuer avec Google"
@@ -144,32 +147,39 @@ function Button({
         height: 42,
         width: "100%",
         backgroundColor: "white",
-        borderRadius: 10,
+        borderRadius: 15,
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: 20,
         gap: 10,
-        opacity: secondary ? 0.5 : 1,
+        opacity: secondary ? 1 : 1,
       }}
       onPress={onPress}
     >
-      {imageUri && (
-        <Image
-          source={imageUri}
-          style={{
-            width: 20,
-            height: 20,
-          }}
-          contentFit="contain"
-        />
-      )}
-      {icon && (
-        <Icon
-          icon={icon}
-          size={20}
-          color={Colors.light.primary}
-        />
-      )}
+      <View
+        style={{
+          position: "absolute",
+          left: 12,
+        }}
+      >
+        {imageUri && (
+          <Image
+            source={imageUri}
+            style={{
+              width: 18,
+              height: 18,
+            }}
+            contentFit="contain"
+          />
+        )}
+        {icon && (
+          <Icon
+            icon={icon}
+            size={18}
+            color={Colors.light.primary}
+          />
+        )}
+      </View>
       <View
         style={{
           flex: 1,
@@ -180,7 +190,7 @@ function Button({
         <Text
           style={{
             fontFamily: "Outfit_500Medium",
-            fontSize: 16,
+            fontSize: 14,
           }}
         >
           {title}

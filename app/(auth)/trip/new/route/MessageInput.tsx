@@ -31,8 +31,6 @@ export default function MessageInput() {
     }
   }, [messages]);
 
-  const { setDestinationData, destinationData } = useTrip();
-
   const { form } = useNewTripForm();
 
   const [inputValue, setInputValue] = React.useState("");

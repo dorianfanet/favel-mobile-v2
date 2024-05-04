@@ -7,6 +7,7 @@ export const categories: Category[] = [
   "sport",
   "nature",
   "neighbourhood",
+  "restaurant",
 ];
 
 export const colors: Record<(typeof categories)[number], string> = {
@@ -16,6 +17,7 @@ export const colors: Record<(typeof categories)[number], string> = {
   sport: "#FF8A1E",
   nature: "#52E472",
   neighbourhood: "#5087A6",
+  restaurant: "#FF5E5E",
   unknown: "#617179",
 };
 

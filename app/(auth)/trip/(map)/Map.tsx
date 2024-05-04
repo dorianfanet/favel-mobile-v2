@@ -144,8 +144,10 @@ export default function Map() {
         checkForHotspotsInBounds(camera);
       }}
       onPress={() => {
+        console.log("press");
         setEditor(null);
       }}
+      projection="globe"
     >
       <MapboxGL.Camera
         {...centerOrBounds}
@@ -162,8 +164,8 @@ export default function Map() {
         animationMode={easing}
       />
       <Loading />
-      <Activities />
       <Route />
+      <Activities />
       <InitialDestination />
       {/* <Suggestions /> */}
     </MapboxGL.MapView>

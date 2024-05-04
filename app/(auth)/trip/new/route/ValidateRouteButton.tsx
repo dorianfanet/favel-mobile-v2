@@ -102,7 +102,7 @@ export default function ValidateRouteButton({
           width: "100%",
         }}
       >
-        {`Favel créera votre voyage à partir de cet itinéraire.`}
+        {`Favel créera votre voyage à partir de cet itinéraire`}
       </Text>
     </Animated.View>
   );

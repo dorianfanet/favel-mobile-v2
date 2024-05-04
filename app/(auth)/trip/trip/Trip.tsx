@@ -14,10 +14,13 @@ import { padding } from "@/constants/values";
 import Colors from "@/constants/Colors";
 import Icon from "@/components/Icon";
 import { track } from "@amplitude/analytics-react-native";
+import { MMKV } from "../_layout";
+import { useTripUserRole } from "@/context/tripUserRoleContext";
 
 export default function Trip() {
   const { trip, tripMetadata, setUserActivity } = useTrip();
   const { user } = useUser();
+  const { tripUserRole } = useTripUserRole();
 
   const { rest } = useLocalSearchParams();
 
@@ -30,11 +33,22 @@ export default function Trip() {
       tripMetadata &&
       tripMetadata.prompt &&
       tripMetadata.status === "trip.init" &&
-      tripMetadata.route
+      tripMetadata.route &&
+      user?.id
     ) {
       console.log("creating trip");
-      favel.createTrip(tripMetadata.prompt, id, tripMetadata.route);
+      favel.createTrip(tripMetadata.prompt, id, tripMetadata.route, user.id);
     }
+
+    // if (
+    //   tripMetadata &&
+    //   !tripMetadata.post_id &&
+    //   user &&
+    //   tripMetadata.status === "trip"
+    // ) {
+    //   console.log("creating post");
+    //   favel.createNewTripPost(id, user.id);
+    // }
   }, [tripMetadata]);
 
   useEffect(() => {
@@ -90,14 +104,20 @@ export default function Trip() {
   }, []);
 
   useEffect(() => {
-    track("Trip page viewed");
+    track("Trip page viewed", {
+      tripId: id,
+    });
+    console.log("setting last opened trip", id);
+    MMKV.setString("lastOpenedTrip", id as string);
   }, []);
 
   return (
     <>
       {tripMetadata && tripMetadata.status === "trip.loading" && <Loading />}
       <TripBottomSheet />
-      {tripMetadata && !tripMetadata.status.includes("loading") && (
+      {tripMetadata &&
+      !tripMetadata.status.includes("loading") &&
+      tripUserRole.role !== "read-only" ? (
         <TripChatWrapper type="trip">
           <Pressable
             style={{
@@ -127,7 +147,7 @@ export default function Trip() {
             />
           </Pressable>
         </TripChatWrapper>
-      )}
+      ) : null}
       <ActivityModal />
     </>
   );

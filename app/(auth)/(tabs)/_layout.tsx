@@ -4,7 +4,7 @@ import { Text, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { Tabs, useRouter } from "expo-router";
+import { Stack, Tabs, useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
 import {
   Button,
@@ -45,17 +45,6 @@ export default function Layout() {
     StatusBar.setBarStyle("light-content");
   });
 
-  const renderHeaderBackground = useCallback(() => {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: Colors.light.accent,
-        }}
-      />
-    );
-  }, []);
-
   return (
     <Tabs
       screenOptions={{
@@ -68,21 +57,7 @@ export default function Layout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "",
-          headerLeft: () => (
-            <View style={styles.headerLeft}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontFamily: "Outfit_600SemiBold",
-                  color: "#fff",
-                }}
-              >
-                Voyages
-              </Text>
-            </View>
-          ),
-          headerBackground: renderHeaderBackground,
+          headerShown: false,
           tabBarButton: (props) => {
             return (
               <TabButton
@@ -149,22 +124,7 @@ export default function Layout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "",
-          headerLeft: () => (
-            <View style={styles.headerLeft}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontFamily: "Outfit_600SemiBold",
-                  color: "#fff",
-                }}
-              >
-                Profil
-              </Text>
-            </View>
-          ),
-          headerBackground: renderHeaderBackground,
-          headerRight: () => <LogoutButton />,
+          headerShown: false,
           tabBarButton: (props) => {
             return (
               <TabButton
@@ -189,25 +149,3 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.accent,
   },
 });
-
-export function LogoutButton() {
-  const { isLoaded, signOut } = useAuth();
-  if (!isLoaded) {
-    return null;
-  }
-  return (
-    <Pressable
-      style={{
-        paddingHorizontal: padding,
-        backgroundColor: "transparent",
-      }}
-      onPress={() => signOut()}
-    >
-      <Icon
-        icon={"logoutIcon"}
-        size={24}
-        color={"#fff"}
-      />
-    </Pressable>
-  );
-}

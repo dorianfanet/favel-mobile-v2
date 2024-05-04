@@ -16,6 +16,7 @@ import Colors from "@/constants/Colors";
 import { useUser } from "@clerk/clerk-expo";
 import UserCard from "@/components/UserCard";
 import { track } from "@amplitude/analytics-react-native";
+import ShareCTA from "../ShareCTA";
 
 export default function Travelers() {
   const { tripMetadata, userActivity } = useTrip();
@@ -132,6 +133,17 @@ export default function Travelers() {
           ))}
         </>
       )}
+      <View
+        style={{
+          height: 350,
+          marginTop: 50,
+          paddingHorizontal: padding,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ShareCTA />
+      </View>
     </BottomSheetScrollView>
   );
 }

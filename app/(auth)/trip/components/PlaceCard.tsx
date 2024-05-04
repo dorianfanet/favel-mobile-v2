@@ -115,7 +115,12 @@ export default function PlaceCard({
     setTimeout(() => {
       onDelete && onDelete();
     }, 400);
-    if (trip && activity.index !== undefined) {
+    if (
+      trip &&
+      activity.index !== undefined &&
+      tripMetadata &&
+      tripMetadata.post_id
+    ) {
       newTripEdit({
         type: "delete",
         day_index: activity.index,
@@ -123,6 +128,7 @@ export default function PlaceCard({
         activity_id: activity.id!,
         author_id: user?.id!,
         trip_id: tripMetadata?.id!,
+        post_id: tripMetadata.post_id,
       });
     }
   }

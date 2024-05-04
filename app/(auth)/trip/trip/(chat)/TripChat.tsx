@@ -50,6 +50,9 @@ import Edits from "./Edits";
 import Markdown from "react-native-markdown-display";
 import ActivityCard from "../../components/ActivityCard";
 import { track } from "@amplitude/analytics-react-native";
+import ContainedButton from "@/components/ContainedButton";
+import { favel } from "@/lib/favelApi";
+import { ActivityCardContent } from "../../components/PlaceCard";
 
 export default function TripChat({
   bottomSheetModalRef,
@@ -61,6 +64,7 @@ export default function TripChat({
   activityId?: string;
 }) {
   const snapPoints = useMemo(() => ["100%"], []);
+  const scrollOffset = useRef(0);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
@@ -85,7 +89,7 @@ export default function TripChat({
   const { tripMetadata } = useTrip();
   const { setMessages, messages } = useTripChat();
 
-  const flatListRef = useRef<BottomSheetFlatListMethods>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     if (!tripMetadata?.id) return;
@@ -125,6 +129,28 @@ export default function TripChat({
               updatedMessages[updatedMessages.length - 1].function =
                 payload.new.function;
               return updatedMessages;
+            });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: type === "trip" ? "trip_chat" : "activity_chat_v2",
+          filter:
+            type === "trip"
+              ? `trip_id=eq.${tripMetadata?.id}`
+              : `chat_id=eq.${tripMetadata?.id}-${activityId}`,
+        },
+        (payload) => {
+          console.log("delete payload", payload);
+          if (payload.old) {
+            setMessages((currentMessages: TripChatMessage[]) => {
+              return currentMessages.filter(
+                (message) => message.id !== payload.old.id
+              );
             });
           }
         }
@@ -169,6 +195,25 @@ export default function TripChat({
       fetchMessages();
     }
   }, []);
+
+  const [lastEditMessageIndex, setLastEditMessageIndex] = useState<
+    number | null
+  >(null);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastEditMessageIndex = messages.reduce(
+        (acc: any, message: any, index: number) => {
+          if (message.edits && message.edits.length > 0) {
+            return index;
+          }
+          return acc;
+        },
+        -1
+      );
+      setLastEditMessageIndex(lastEditMessageIndex);
+    }
+  }, [messages]);
 
   const renderFooter = useCallback(
     (props: any) => (
@@ -323,7 +368,7 @@ export default function TripChat({
               </TouchableOpacity>
             </View>
             {type === "activity" && activityId && (
-              <ActivityCard
+              <ActivityCardContent
                 activity={{
                   id: activityId,
                   formattedType: "activity",
@@ -331,16 +376,22 @@ export default function TripChat({
                 style={{
                   paddingHorizontal: 0,
                 }}
+                noClick
               />
             )}
           </View>
         </BottomSheetView>
-        <BottomSheetFlatList
+        <FlatList
           data={messages}
           ref={flatListRef}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: false })
-          }
+          onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            scrollOffset.current = event.nativeEvent.contentOffset.y;
+          }}
+          onContentSizeChange={(h: number) => {
+            // if (scrollOffset.current < h - 500) {
+            flatListRef.current?.scrollToEnd({ animated: false });
+            // }
+          }}
           keyExtractor={(item: TripChatMessage, index) =>
             item.id + index.toString()
           }
@@ -351,16 +402,33 @@ export default function TripChat({
                   padding: 20,
                 }}
               >
-                <Text
+                <View
                   style={{
-                    fontSize: 18,
-                    fontFamily: "Outfit_600SemiBold",
-                    color: "white",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                     marginBottom: 10,
                   }}
                 >
-                  {item.role === "assistant" ? "Favel" : "Vous"}
-                </Text>
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontFamily: "Outfit_600SemiBold",
+                      color: "white",
+                    }}
+                  >
+                    {item.role === "assistant" ? "Favel" : "Vous"}
+                  </Text>
+                  {item.edits &&
+                    item.edits.length > 0 &&
+                    index === lastEditMessageIndex && (
+                      <RevertChangesButton
+                        tripId={tripMetadata?.id!}
+                        messageId={item.id}
+                        userMessageId={messages[index - 1].id}
+                      />
+                    )}
+                </View>
                 <Markdown
                   style={{
                     body: {
@@ -430,5 +498,87 @@ export default function TripChat({
         />
       </BottomSheetModal>
     </>
+  );
+}
+
+function RevertChangesButton({
+  tripId,
+  messageId,
+  userMessageId,
+}: {
+  tripId: string;
+  messageId: string;
+  userMessageId: string;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  async function handlePress() {
+    setLoading(true);
+    const res = await favel.revertModifications(
+      tripId,
+      messageId,
+      userMessageId
+    );
+    setLoading(false);
+  }
+
+  return (
+    <ContainedButton
+      TitleComponent={
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 5,
+          }}
+        >
+          {loading ? (
+            <>
+              <ActivityIndicator
+                color="white"
+                size="small"
+                style={{
+                  transform: [{ scale: 0.8 }],
+                }}
+              />
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 14,
+                  fontFamily: "Outfit_500Medium",
+                }}
+              >
+                Chargement
+              </Text>
+            </>
+          ) : (
+            <>
+              <Icon
+                icon="reverseLeftIcon"
+                size={14}
+                color="white"
+              />
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 14,
+                  fontFamily: "Outfit_500Medium",
+                }}
+              >
+                Annuler ces modifications
+              </Text>
+            </>
+          )}
+        </View>
+      }
+      onPress={handlePress}
+      style={{
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        opacity: loading ? 0.7 : 1,
+      }}
+      type="ghost"
+      disabled={loading}
+    />
   );
 }

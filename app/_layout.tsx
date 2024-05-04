@@ -1,5 +1,5 @@
 import { Button, Text, View } from "@/components/Themed";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, Platform } from "react-native";
 import {
   useFonts,
   Outfit_400Regular,
@@ -18,6 +18,11 @@ import CustomToast from "@/components/CustomToast";
 import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import { init } from "@amplitude/analytics-react-native";
+import { usePushNotifications } from "@/lib/usePushNotifications";
+import { supabase } from "@/lib/supabase";
+import Application from "expo-application";
+import { NotificationsProvider } from "@/context/notificationsContext";
+import Colors from "@/constants/Colors";
 
 const toastConfig = {
   custom: (props: any) => {
@@ -31,6 +36,8 @@ function InitialLayout() {
   const { user } = useUser();
   const segments = useSegments();
   const router = useRouter();
+
+  const { expoPushToken } = usePushNotifications();
 
   useEffect(() => {
     console.log("isSignedIn changed", isSignedIn, segments);
@@ -50,7 +57,56 @@ function InitialLayout() {
     } else if (!isSignedIn) {
       router.replace("/(public)/auth");
     }
-  }, [isSignedIn]);
+
+    async function updatePushToken() {
+      if (!expoPushToken) return;
+      const { data, error } = await supabase
+        .from("push_tokens")
+        .select("id, user_id, expo_push_token")
+        .eq("expo_push_token", expoPushToken.data);
+
+      if (error) {
+        console.error("Error fetching push token", error);
+        return;
+      }
+
+      console.log("Push token data", data, expoPushToken.data, user?.id);
+
+      if (data.length > 0) {
+        if (data[0].user_id === user?.id) {
+          console.log("Push token already exists for user and device");
+          return;
+        }
+
+        const { error } = await supabase
+          .from("push_tokens")
+          .update({
+            user_id: user?.id,
+            expo_push_token: expoPushToken.data,
+            updated_at: new Date(),
+          })
+          .eq("id", data[0].id);
+
+        if (error) {
+          console.error("Error updating push token", error);
+        }
+      } else {
+        const { error } = await supabase.from("push_tokens").insert({
+          user_id: user?.id,
+          expo_push_token: expoPushToken.data,
+        });
+
+        if (error) {
+          console.error("Error inserting push token", error);
+        }
+      }
+    }
+
+    console.log("expoPushToken", expoPushToken);
+    if (expoPushToken) {
+      updatePushToken();
+    }
+  }, [isSignedIn, expoPushToken]);
 
   if (!isLoaded) {
     return (
@@ -109,9 +165,81 @@ function InitialLayout() {
           }}
         />
         <Stack.Screen
+          name="(modals)/travelers/[id]"
+          options={{
+            presentation: "modal",
+            title: "Voyageurs",
+            headerStyle: {
+              backgroundColor: Colors.light.accent,
+            },
+            headerTintColor: "white",
+            headerRight: () => {
+              return (
+                <Button
+                  onPress={() => router.back()}
+                  title="Fermer"
+                  color="white"
+                />
+              );
+            },
+          }}
+        />
+        <Stack.Screen
+          name="(modals)/follows/[...rest]"
+          options={{
+            presentation: "modal",
+            title: "Abonnés",
+            headerStyle: {
+              backgroundColor: Colors.light.accent,
+            },
+            headerTintColor: "white",
+            headerRight: () => {
+              return (
+                <Button
+                  onPress={() => router.back()}
+                  title="Fermer"
+                  color="white"
+                />
+              );
+            },
+          }}
+        />
+        <Stack.Screen
           name="(auth)/(tabs)"
           options={{
             headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(auth)/profile/[id]"
+          options={{
+            headerTitle: "Profile",
+            headerBackground: () => (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.light.accent,
+                }}
+              />
+            ),
+            headerTintColor: "white",
+            headerBackTitle: "Retour",
+          }}
+        />
+        <Stack.Screen
+          name="(auth)/post/[id]"
+          options={{
+            headerTitle: "Publication",
+            headerBackground: () => (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.light.accent,
+                }}
+              />
+            ),
+            headerTintColor: "white",
+            headerBackTitle: "Retour",
           }}
         />
         <Stack.Screen

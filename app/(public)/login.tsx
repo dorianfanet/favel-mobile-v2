@@ -11,6 +11,7 @@ import {
   Alert,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 
 enum Strategy {
@@ -97,19 +98,23 @@ export default function login() {
         </Pressable>
       </Link>
 
-      <Pressable
+      <TouchableOpacity
         onPress={onSignInPress}
         style={logInStyles.button}
       >
-        <Text
-          style={{
-            color: "#fff",
-            fontFamily: "Outfit_600SemiBold",
-          }}
-        >
-          Se connecter
-        </Text>
-      </Pressable>
+        {loading ? (
+          <ActivityIndicator color={"white"} />
+        ) : (
+          <Text
+            style={{
+              color: "#fff",
+              fontFamily: "Outfit_600SemiBold",
+            }}
+          >
+            Se connecter
+          </Text>
+        )}
+      </TouchableOpacity>
 
       <Link
         href="/register"

@@ -11,11 +11,33 @@ import { borderRadius } from "@/constants/values";
 
 type ContainedButtonProps = TouchableOpacityProps & {
   title?: string;
+  TitleComponent?: React.ReactNode;
   onPress: () => void;
+  type?: "primary" | "ghost";
+  fontSize?: number;
+  fontFamily?: string;
+  color?: string;
+  disabled?: boolean;
+};
+
+const backgroundColors = {
+  primary: Colors.light.accent,
+  ghost: "transparent",
 };
 
 export default function ContainedButton(props: ContainedButtonProps) {
-  const { onPress, title = "Save", style, ...otherProps } = props;
+  const {
+    onPress,
+    title = "Sauvegarder",
+    TitleComponent,
+    style,
+    type = "primary",
+    fontSize = 16,
+    fontFamily = "Outfit_600SemiBold",
+    color = "#fff",
+    disabled,
+    ...otherProps
+  } = props;
 
   return (
     <TouchableOpacity
@@ -26,22 +48,41 @@ export default function ContainedButton(props: ContainedButtonProps) {
           paddingVertical: 12,
           paddingHorizontal: 32,
           borderRadius: borderRadius,
-          backgroundColor: Colors.light.accent,
+          backgroundColor: backgroundColors[type],
+          overflow: "hidden",
         },
         style,
       ]}
       onPress={onPress}
+      disabled={disabled}
+      activeOpacity={disabled ? 1 : 0.2}
       {...otherProps}
     >
-      <Text
-        style={{
-          color: "#fff",
-          fontSize: 16,
-          fontFamily: "Outfit_600SemiBold",
-        }}
-      >
-        {title}
-      </Text>
+      {type === "ghost" && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
+          }}
+        />
+      )}
+      {TitleComponent ? (
+        TitleComponent
+      ) : title ? (
+        <Text
+          style={{
+            color,
+            fontSize,
+            fontFamily,
+          }}
+        >
+          {title}
+        </Text>
+      ) : null}
     </TouchableOpacity>
   );
 }

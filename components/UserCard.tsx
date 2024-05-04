@@ -6,18 +6,41 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Themed";
 import Colors from "@/constants/Colors";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { Link, useRouter } from "expo-router";
+import FollowButton from "./FollowButton";
+
+const sizes = {
+  small: {
+    image: 30,
+    gap: 10,
+    text: 14,
+  },
+  default: {
+    image: 50,
+    gap: 10,
+    text: 16,
+  },
+};
 
 export default function UserCard({
   userId,
   theme = "light",
   DetailsComponent,
+  size = "default",
+  youIndicator,
+  followButton,
 }: {
   userId: string | undefined;
   theme?: "light" | "dark";
   DetailsComponent?: React.ComponentType;
+  size?: "small" | "default";
+  youIndicator?: boolean;
+  followButton?: boolean;
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     async function getUser() {
@@ -30,36 +53,63 @@ export default function UserCard({
   }, []);
 
   return userMetadata ? (
-    <View
+    // <Link
+    //   href={`/profile/${userId}`}
+    //   asChild
+    // >
+    <TouchableOpacity
       style={{
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "center",
       }}
+      onPress={() => {
+        try {
+          router.dismiss();
+        } catch (e) {}
+        router.navigate(`/profile/${userId}`);
+      }}
     >
       <Image
         source={{ uri: userMetadata.imageUrl }}
         style={{
-          width: 50,
-          height: 50,
+          width: sizes[size].image,
+          height: sizes[size].image,
           borderRadius: 25,
           // marginLeft: 10,
-          marginRight: 15,
+          marginRight: sizes[size].gap,
         }}
       />
-      <View>
-        <Text
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignContent: "center",
+          flex: 1,
+        }}
+      >
+        <View
           style={{
-            fontSize: 16,
-            fontFamily: "Outfit_600SemiBold",
-            color: Colors[theme].primary,
+            justifyContent: "center",
           }}
         >
-          {userMetadata.firstName} {userMetadata.lastName}{" "}
-          {userMetadata.id === user?.id ? "(vous)" : ""}
-        </Text>
-        {DetailsComponent && <DetailsComponent />}
+          <Text
+            style={{
+              fontSize: sizes[size].text,
+              fontFamily: "Outfit_600SemiBold",
+              color: Colors[theme].primary,
+            }}
+          >
+            {userMetadata.firstName} {userMetadata.lastName}{" "}
+            {youIndicator && userMetadata.id === user?.id ? "(vous)" : ""}
+          </Text>
+          {DetailsComponent && <DetailsComponent />}
+        </View>
+        {followButton && userMetadata.id && userMetadata.id !== user?.id && (
+          <FollowButton profileId={userMetadata.id} />
+        )}
       </View>
-    </View>
-  ) : null;
+    </TouchableOpacity>
+  ) : // </Link>
+  null;
 }

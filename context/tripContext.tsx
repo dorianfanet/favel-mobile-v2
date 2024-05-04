@@ -6,7 +6,7 @@ import {
   UserActivity,
   UserActivityState,
 } from "@/types/types";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
 
 export interface Loading {
   type: "new";
@@ -14,7 +14,7 @@ export interface Loading {
 
 export interface TripContext {
   trip: Trip | null;
-  setTrip: (trip: Trip | null) => void;
+  setTrip: React.Dispatch<React.SetStateAction<Trip | null>>;
   loading: Loading | null;
   setLoading: (loading: Loading | null) => void;
   tripMetadata: TripMetadata | null;

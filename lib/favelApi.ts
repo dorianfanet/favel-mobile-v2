@@ -45,10 +45,11 @@ class ApiClient {
 
   async inviteUser(
     tripId: string,
-    userId: string
+    userId: string,
+    userName: string
   ): Promise<{ status: number; message: string }> {
     return this.request(
-      `invite-user?tripId=${tripId}&userId=${userId}`,
+      `invite-user?tripId=${tripId}&userId=${userId}&userName=${userName}`,
       "GET",
       null
     );
@@ -114,12 +115,14 @@ class ApiClient {
   async createTrip(
     prompt: string,
     tripId: string,
-    route: TripRoute
+    route: TripRoute,
+    authorId: string
   ): Promise<void> {
-    return this.request(`new-trip-back`, "POST", {
+    return this.request(`build-trip-groq`, "POST", {
       prompt,
       tripId,
       route,
+      authorId: authorId,
     });
   }
 
@@ -131,7 +134,7 @@ class ApiClient {
     },
     messageId: string
   ): Promise<void> {
-    return this.request(`trip-chat`, "POST", {
+    return this.request(`trip-chat-groq`, "POST", {
       tripId,
       userMsg,
       messageId,
@@ -187,6 +190,67 @@ class ApiClient {
   }> {
     return this.request(
       `find-activity-image?id=${id}&placeId=${placeId}`,
+      "GET",
+      null
+    );
+  }
+
+  async revertModifications(
+    tripId: string,
+    editId: string,
+    userMessageId: string
+  ): Promise<{ result?: string }> {
+    return this.request(
+      `revert-modifications?tripId=${tripId}&editId=${editId}&userMessageId=${userMessageId}`,
+      "GET",
+      null
+    );
+  }
+
+  async likePost(postId: string, userId: string): Promise<void> {
+    return this.request(
+      `post/like?userId=${userId}&postId=${postId}`,
+      "GET",
+      null
+    );
+  }
+
+  async sendNotification(
+    userId: string,
+    title: string,
+    body: string,
+    data?: any,
+    type?: string,
+    authorId?: string
+  ): Promise<void> {
+    return this.request(`send-notification`, "POST", {
+      userId,
+      title,
+      body,
+      data,
+      type,
+      authorId,
+    });
+  }
+
+  async createNewTripPost(
+    tripId: string,
+    authorId: string
+  ): Promise<{ id: string }> {
+    return this.request(
+      `create-new-trip-post?tripId=${tripId}&authorId=${authorId}`,
+      "GET",
+      null
+    );
+  }
+
+  async tripEdit(
+    tripId: string,
+    authorId: string,
+    postId: string
+  ): Promise<{ id: string }> {
+    return this.request(
+      `trip-edit?tripId=${tripId}&authorId=${authorId}&postId=${postId}`,
       "GET",
       null
     );

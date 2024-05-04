@@ -1,7 +1,7 @@
 import { MMKV } from "@/app/(auth)/trip/_layout";
 import { favel } from "./favelApi";
 import { BBox, Position, bbox, center, lineString, points } from "@turf/turf";
-import { Day } from "@/types/types";
+import { Day, UserMetadata } from "@/types/types";
 
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
@@ -87,33 +87,59 @@ export function formatTimestamp(timestamp: string): string {
   const minute = date.getMinutes().toString().padStart(2, "0");
 
   // Format the date in the desired format
-  return `Le ${day}/${month}/${year} à ${hour}h${minute}`;
+  return `${day}/${month}/${year} à ${hour}h${minute}`;
 }
 
-export async function getUserMetadata(userId: string) {
-  const cachedUser = await MMKV.getStringAsync(`user-${userId}`);
+export function getUserMetadataFromCache(userId: string): UserMetadata | null {
+  const userMetadata = MMKV.getString(`user-${userId}`);
 
-  if (cachedUser) {
-    return JSON.parse(cachedUser).data;
+  if (userMetadata) {
+    return JSON.parse(userMetadata);
+  } else {
+    return null;
+  }
+}
+
+export async function getUserMetadata(userId: string, forceRefresh = false) {
+  if (forceRefresh) {
+    MMKV.removeItem(`user-${userId}`);
+  }
+
+  const cachedUser = await MMKV.getStringAsync(`user-${userId}`);
+  const cachedUserParsed = JSON.parse(cachedUser || "{}");
+
+  if (
+    cachedUserParsed &&
+    cachedUserParsed.data &&
+    cachedUserParsed.expiresAt > new Date().getTime()
+  ) {
+    return cachedUserParsed.data;
   } else {
     const response = await favel.getUser(userId);
-    const data = {
-      id: response.id,
-      firstName: response.firstName,
-      lastName: response.lastName,
-      imageUrl: response.imageUrl,
-      publicMetadata: response.publicMetadata,
-    };
+    console.log(response);
 
-    MMKV.setStringAsync(
-      `user-${userId}`,
-      JSON.stringify({
-        data: data,
-        expiresAt: new Date().getTime() + 7200000,
-      })
-    );
+    if (response) {
+      const data = {
+        id: response.id,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        imageUrl: response.imageUrl,
+        createdAt: response.createdAt,
+        publicMetadata: response.publicMetadata,
+      };
 
-    return data;
+      MMKV.setStringAsync(
+        `user-${userId}`,
+        JSON.stringify({
+          data: data,
+          expiresAt: new Date().getTime() + 720000,
+        })
+      );
+
+      return data;
+    } else {
+      return {};
+    }
   }
 }
 
@@ -153,4 +179,77 @@ export function getBoundsOfDay(activities: Day["activities"]) {
   const bounds = bbox(line);
 
   return bounds;
+}
+
+export function formatDateToRelative(timestamp: string | number): string {
+  try {
+    const now = new Date();
+    console.log(timestamp);
+    const date = new Date(
+      typeof timestamp === "string" ? timestamp : timestamp * 1000
+    );
+    console.log(date);
+    const formatter = new Intl.DateTimeFormat("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const time = formatter.format(date);
+
+    // Resetting hours, minutes, and seconds for comparison
+    now.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+
+    const today = now.getTime();
+    const yesterday = new Date(now.setDate(now.getDate() - 1)).getTime();
+    const dateDay = date.getTime();
+
+    if (dateDay === today) {
+      return `Aujourd'hui à ${time}`;
+    } else if (dateDay === yesterday) {
+      return `Hier à ${time}`;
+    } else {
+      const fullDateFormatter = new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "long",
+      });
+      const fullDate = fullDateFormatter.format(date);
+      return `Le ${fullDate} à ${time}`;
+    }
+  } catch (error) {
+    console.error(error);
+    return "";
+  }
+}
+
+export function formatDateToRelativeShort(timestamp: string | number): string {
+  try {
+    const now = new Date();
+    const date = new Date(
+      typeof timestamp === "string" ? timestamp : timestamp * 1000
+    );
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds}s`; // Seconds
+    } else if (diffInSeconds < 3600) {
+      return `${Math.floor(diffInSeconds / 60)}min`; // Minutes
+    } else if (diffInSeconds < 86400) {
+      return `${Math.floor(diffInSeconds / 3600)}h`; // Hours
+    } else {
+      return `${Math.floor(diffInSeconds / 86400)}j`; // Days
+    }
+  } catch (error) {
+    console.error(error);
+    return "";
+  }
+}
+
+export function getTripMetadataFromCache(id: string) {
+  const tripMetadata = MMKV.getString(`trip-metadata-${id}`);
+
+  if (tripMetadata) {
+    return JSON.parse(tripMetadata);
+  } else {
+    return null;
+  }
 }

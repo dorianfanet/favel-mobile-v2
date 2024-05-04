@@ -56,6 +56,9 @@ import UserActivityCount from "@/components/UserActivityCount";
 import * as MailComposer from "expo-mail-composer";
 import { useUser } from "@clerk/clerk-expo";
 import { track } from "@amplitude/analytics-react-native";
+import Edits from "../../trip/(chat)/Edits";
+import UserCard from "@/components/UserCard";
+import { formatTimestamp } from "@/lib/utils";
 
 export default function MenuModal({
   bottomSheetModalRef,
@@ -443,6 +446,7 @@ function TripEdits() {
           contentContainerStyle={{
             rowGap: 10,
             paddingBottom: 60,
+            paddingHorizontal: padding,
           }}
           style={{
             padding: 0,
@@ -456,10 +460,55 @@ function TripEdits() {
             //   key={item.id}
             //   trip={item}
             // />
-            <TripEditCard
-              key={item.id}
-              tripEdit={item}
-            />
+            // <TripEditCard
+            //   key={item.id}
+            //   tripEdit={item}
+            // />
+            <View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}
+              >
+                {item.author_id ? (
+                  <UserCard
+                    userId={item.author_id}
+                    theme="dark"
+                    size="small"
+                  />
+                ) : null}
+                {item.created_at && (
+                  <Text
+                    style={{
+                      color: Colors.dark.primary,
+                      fontSize: 12,
+                      fontFamily: "Outfit_400Regular",
+                    }}
+                  >
+                    {formatTimestamp(item.created_at)}
+                  </Text>
+                )}
+              </View>
+              <Edits
+                key={item.id}
+                edits={[
+                  {
+                    day_index: item.day_index,
+                    location: item.location,
+                    actions: [
+                      {
+                        action: item.type,
+                        id: item.activity_id,
+                      },
+                    ],
+                  },
+                ]}
+                noMargin
+              />
+            </View>
           )}
         />
       ) : (

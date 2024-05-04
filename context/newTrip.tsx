@@ -3,6 +3,8 @@ import { Preferences } from "@/types/types";
 import { CameraBounds } from "@rnmapbox/maps";
 import { FeatureCollection, Position } from "@turf/turf";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useTrip } from "./tripContext";
+import { favel } from "@/lib/favelApi";
 
 export interface Form {
   id?: string;
@@ -75,6 +77,25 @@ export const NewTripFormProvider = ({
       month: null,
     },
   });
+
+  const { setDestinationData } = useTrip();
+
+  useEffect(() => {
+    async function fetchDestinationData() {
+      console.log(form.destination, form.flexDates.duration);
+      if (form.destination) {
+        const data = await favel.fetchDestinationData(
+          form.destination,
+          form.flexDates.duration ? parseInt(form.flexDates.duration) : 4
+        );
+        console.log("Destination data", data);
+        setDestinationData(data);
+      }
+    }
+
+    console.log("Calling fetchDestinationData");
+    fetchDestinationData();
+  }, [form.destination, form.dates, form.flexDates]);
 
   return (
     <newTripFormContext.Provider value={{ form, setForm }}>
