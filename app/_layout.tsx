@@ -47,23 +47,12 @@ function InitialLayout() {
 
     console.log(isSignedIn);
 
-    if (isSignedIn && !inAuthPage) {
-      try {
-        init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY!, user?.id);
-      } catch (e) {
-        console.log(e);
-      }
-      router.replace("/(auth)/(tabs)/home");
-    } else if (!isSignedIn) {
-      router.replace("/(public)/auth");
-    }
-
     async function updatePushToken() {
-      if (!expoPushToken) return;
+      if (!expoPushToken || !user) return;
       const { data, error } = await supabase
         .from("push_tokens")
         .select("id, user_id, expo_push_token")
-        .eq("expo_push_token", expoPushToken.data);
+        .eq("key", `${user?.id}-${expoPushToken.data}`);
 
       if (error) {
         console.error("Error fetching push token", error);
@@ -73,27 +62,13 @@ function InitialLayout() {
       console.log("Push token data", data, expoPushToken.data, user?.id);
 
       if (data.length > 0) {
-        if (data[0].user_id === user?.id) {
-          console.log("Push token already exists for user and device");
-          return;
-        }
-
-        const { error } = await supabase
-          .from("push_tokens")
-          .update({
-            user_id: user?.id,
-            expo_push_token: expoPushToken.data,
-            updated_at: new Date(),
-          })
-          .eq("id", data[0].id);
-
-        if (error) {
-          console.error("Error updating push token", error);
-        }
+        console.log("Push token already exists for user and device");
+        return;
       } else {
         const { error } = await supabase.from("push_tokens").insert({
           user_id: user?.id,
           expo_push_token: expoPushToken.data,
+          key: `${user?.id}-${expoPushToken.data}`,
         });
 
         if (error) {
@@ -105,6 +80,17 @@ function InitialLayout() {
     console.log("expoPushToken", expoPushToken);
     if (expoPushToken) {
       updatePushToken();
+    }
+
+    if (isSignedIn && !inAuthPage) {
+      try {
+        init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY!, user?.id);
+      } catch (e) {
+        console.log(e);
+      }
+      router.replace("/(auth)/(tabs)/home");
+    } else if (!isSignedIn) {
+      router.replace("/(public)/auth");
     }
   }, [isSignedIn, expoPushToken]);
 
@@ -194,13 +180,13 @@ function InitialLayout() {
             },
             headerTintColor: "white",
             headerRight: () => {
-              return (
+              return Platform.OS === "ios" ? (
                 <Button
                   onPress={() => router.back()}
                   title="Fermer"
                   color="white"
                 />
-              );
+              ) : null;
             },
           }}
         />

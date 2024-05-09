@@ -21,16 +21,28 @@ export default function PostCard({
   style,
   noLink = false,
   noHeader = false,
+  followButton = false,
 }: {
   post: Post;
   style?: any;
   noLink?: boolean;
   noHeader?: boolean;
+  followButton?: boolean;
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
 
   async function getUser() {
     if (!post.author_id) return;
+    try {
+      const cachedUser = await MMKV.getStringAsync(`user-${post.author_id}`);
+      const cachedUserParsed = JSON.parse(cachedUser || "{}");
+      console.log("cachedUserParsed", cachedUserParsed);
+      if (cachedUserParsed && cachedUserParsed.data) {
+        setUserMetadata(cachedUserParsed.data);
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
     const data = await getUserMetadata(post.author_id);
     console.log("userMetadata", data);
 
@@ -60,6 +72,7 @@ export default function PostCard({
         <Header
           userMetadata={userMetadata}
           post={post}
+          followButton={followButton}
         />
       )}
       {post.original_post ? (
@@ -111,22 +124,23 @@ export default function PostCard({
             post={post}
             noLink={noLink}
           />
-          {post.type === "trip" && post.trip_id ? (
-            <ActionButton
-              IconComponent={ShareIcon}
-              title={`Partager`}
-              onPress={async () => {
-                track("Share trip clicked");
-                try {
-                  const result = await Share.share({
-                    message: `Rejoins-moi pour mon voyage sur Favel !\n\n\nhttps://app.favel.net/invite/${post.trip_id}`,
-                  });
-                } catch (error) {
-                  alert(error);
-                }
-              }}
-            />
-          ) : null}
+
+          <ActionButton
+            IconComponent={ShareIcon}
+            title={`Partager`}
+            onPress={async () => {
+              track("Post shared", {
+                postId: post.id,
+              });
+              try {
+                const result = await Share.share({
+                  message: `Regarde cette publication sur Favel !\n\n\nhttps://app.favel.net/link?path=post/${post.id}`,
+                });
+              } catch (error) {
+                alert(error);
+              }
+            }}
+          />
         </View>
       )}
     </View>

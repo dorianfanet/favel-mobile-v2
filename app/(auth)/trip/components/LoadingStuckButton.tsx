@@ -58,7 +58,7 @@ export default function LoadingStuckButton() {
         }));
         router.navigate("/(auth)/(tabs)/home");
         await new Promise((resolve) => setTimeout(resolve, 500));
-        router.replace(`/(auth)/trip/${tripMetadata?.id}/`);
+        router.push(`/(auth)/trip/${tripMetadata?.id}/`);
         // router.replace(`/(auth)/trip/${tripMetadata?.id}/trip`);
       }}
     >

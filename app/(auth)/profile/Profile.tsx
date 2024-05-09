@@ -29,6 +29,7 @@ import { getUserMetadata, getUserMetadataFromCache } from "@/lib/utils";
 import Icon from "@/components/Icon";
 import { MMKV } from "../trip/_layout";
 import PostCard from "@/components/Post/PostCard";
+import ContainedButton from "@/components/ContainedButton";
 
 export default function Profile({ userId }: { userId: string }) {
   useEffect(() => {
@@ -39,10 +40,17 @@ export default function Profile({ userId }: { userId: string }) {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [refreshProfile, setRefreshProfile] = useState<number>(0);
+  const [error, setError] = React.useState<string | null>(null);
+  const [page, setPage] = React.useState(0);
+  const [scrollLoading, setScrollLoading] = React.useState<
+    "loading" | "last" | null
+  >(null);
+  const isPostEndReached = React.useRef(false);
 
   async function fetchFollowedUserPosts() {
     const { data, error } = await supabase.rpc("get_posts_of_user", {
       user_id: userId,
+      page_number: 0,
     });
 
     if (error) {
@@ -61,7 +69,33 @@ export default function Profile({ userId }: { userId: string }) {
     fetchFollowedUserPosts();
   }, []);
 
-  console.log(JSON.stringify(posts));
+  async function handleEndReached() {
+    if (!userId) return;
+    if (isPostEndReached.current) return;
+    setScrollLoading("loading");
+    const { data, error } = await supabase.rpc("get_posts_of_user", {
+      user_id: userId,
+      page_number: page + 1,
+    });
+
+    if (error) {
+      console.error("Error:", error);
+      setScrollLoading(null);
+      setError("Une erreur est survenue.");
+    } else if (data.length === 0) {
+      setScrollLoading("last");
+      setError(null);
+      isPostEndReached.current = true;
+    } else {
+      console.log("Data:", data);
+      setPosts([...posts!, ...data]);
+      setScrollLoading(null);
+      setError(null);
+      setPage(page + 1);
+    }
+
+    return data;
+  }
 
   return loading ? (
     <View
@@ -77,7 +111,7 @@ export default function Profile({ userId }: { userId: string }) {
         size="large"
       />
     </View>
-  ) : (
+  ) : posts && posts.length > 0 ? (
     <FlatList
       data={posts}
       keyExtractor={(item) => item.post_json.id}
@@ -111,7 +145,62 @@ export default function Profile({ userId }: { userId: string }) {
           refreshProfile={refreshProfile}
         />
       }
+      onEndReached={handleEndReached}
+      ListFooterComponent={
+        <View style={{ height: 60, justifyContent: "center" }}>
+          {scrollLoading === "loading" && (
+            <ActivityIndicator
+              animating
+              size="small"
+            />
+          )}
+          {scrollLoading === "last" && (
+            <Text
+              style={{
+                textAlign: "center",
+              }}
+            >
+              Aucune autre publication à afficher
+            </Text>
+          )}
+        </View>
+      }
     />
+  ) : (
+    <>
+      <ProfileComponent profileId={userId} />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: Colors.light.background,
+        }}
+      >
+        {error ? (
+          <>
+            <Text
+              style={{
+                fontSize: 18,
+                color: Colors.light.primary,
+                fontFamily: "Outfit_600SemiBold",
+                marginBottom: 20,
+              }}
+            >
+              Une erreur est survenue.
+            </Text>
+            <ContainedButton
+              title="Rafrachir"
+              onPress={async () => {
+                setRefreshing(true);
+                await fetchFollowedUserPosts();
+                setRefreshing(false);
+              }}
+            />
+          </>
+        ) : null}
+      </View>
+    </>
   );
 
   // const [trips, setTrips] = React.useState<SavedTrip[] | []>([]);
@@ -300,11 +389,6 @@ function ProfileComponent({
 
   const router = useRouter();
 
-  useEffect(() => {
-    const cache = JSON.parse(MMKV.getString(`user-${profileId}`) || "null");
-    if (cache && "data" in cache) setUser(cache.data);
-  }, []);
-
   const getAndSetFollowers = useCallback(async (profileId: string) => {
     const { count, error } = await supabase
       .from("follows")
@@ -341,6 +425,8 @@ function ProfileComponent({
     if (!profileId) return;
 
     const getUser = async () => {
+      const cache = JSON.parse(MMKV.getString(`user-${profileId}`) || "{}");
+      if (cache && "data" in cache) setUser(cache.data);
       const data = await getUserMetadata(profileId);
       setUser(data);
     };
@@ -456,7 +542,9 @@ function ProfileComponent({
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
+          alignItems: "center",
           marginTop: 20,
+          height: 50,
         }}
       >
         <Count
@@ -520,6 +608,7 @@ function Count({
         style={{
           flex: 1,
           alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <Text style={{ fontSize: 18, fontFamily: "Outfit_600SemiBold" }}>

@@ -95,7 +95,7 @@ export default function Map() {
       });
     }
 
-    if (pointsInBounds < 2 && currentZoom > 8) {
+    if (pointsInBounds < 2 || currentZoom > 8) {
       setViewState("days");
     } else {
       setViewState("hotspots");

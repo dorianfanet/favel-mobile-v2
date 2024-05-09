@@ -7,10 +7,13 @@ import { track } from "@amplitude/analytics-react-native";
 import { useTrip } from "@/context/tripContext";
 import { Text } from "@/components/Themed";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
+import InviteButton from "@/components/InviteButton";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function ShareCTA() {
   const { tripMetadata } = useTrip();
   const { tripUserRole } = useTripUserRole();
+  const { user } = useUser();
 
   return (
     <>
@@ -71,44 +74,8 @@ export default function ShareCTA() {
             marginTop: 40,
           }}
         />
-        {tripUserRole && tripUserRole.role !== "read-only" ? (
-          <ContainedButton
-            TitleComponent={
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <Icon
-                  icon={"userPlusIcon"}
-                  size={18}
-                  color={Colors.dark.primary}
-                />
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 16,
-                    fontFamily: "Outfit_600SemiBold",
-                  }}
-                >
-                  Inviter des voyageurs
-                </Text>
-              </View>
-            }
-            onPress={async () => {
-              track("Invite to trip clicked");
-              try {
-                await Share.share({
-                  message: `Regarde ce voyage sur Favel !\n\n${tripMetadata?.name}\n\n\nhttps://app.favel.net/invite/${tripMetadata?.id}`,
-                });
-              } catch (error) {
-                alert(error);
-              }
-            }}
-            type="ghost"
-          />
+        {tripMetadata && user && tripMetadata.author_id === user.id ? (
+          <InviteButton tripId={tripMetadata.id} />
         ) : null}
       </View>
     </>

@@ -9,6 +9,7 @@ import Colors from "@/constants/Colors";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Link, useRouter } from "expo-router";
 import FollowButton from "./FollowButton";
+import { MMKV } from "@/app/(auth)/trip/_layout";
 
 const sizes = {
   small: {
@@ -45,6 +46,15 @@ export default function UserCard({
   useEffect(() => {
     async function getUser() {
       if (!userId) return;
+      try {
+        const cachedUser = await MMKV.getStringAsync(`user-${userId}`);
+        const cachedUserParsed = JSON.parse(cachedUser || "{}");
+        if (cachedUserParsed && cachedUserParsed.data) {
+          setUserMetadata(cachedUserParsed.data);
+        }
+      } catch (error) {
+        console.log("error", error);
+      }
       const data = await getUserMetadata(userId);
 
       setUserMetadata(data);

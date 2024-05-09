@@ -8,8 +8,8 @@
     "scheme": "favel",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
+      "image": "./assets/images/logo-full.png",
+      "resizeMode": "cover",
       "backgroundColor": "#44C0E7"
     },
     "assetBundlePatterns": [
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "22",
+      "buildNumber": "25",
       "entitlements": {
         "com.apple.developer.applesignin": [
           "Default"
@@ -31,7 +31,8 @@
         "backgroundColor": "#44C0E7"
       },
       "package": "net.favel.favel",
-      "versionCode": 10
+      "versionCode": 16,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",

@@ -30,7 +30,7 @@ export default function RouteChat() {
 
   const { messages, setMessages } = useNewTripChat();
 
-  const flatListRef = useRef<BottomSheetFlatListMethods>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     if (messages.length > 1) return;
@@ -62,9 +62,7 @@ export default function RouteChat() {
           favel.sendFirstRouteChatMessage(
             `${form.destination}. ${
               parseInt(form.flexDates.duration!) || 4
-            } jours en ${
-              months[form.flexDates.month || new Date().getMonth()]
-            }`,
+            } jours`,
             id,
             messageId
           );
@@ -83,25 +81,24 @@ export default function RouteChat() {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "INSERT",
           schema: "public",
           table: "new_trip_chat",
           filter: `trip_id=eq.${id}`,
         },
         (payload) => {
           if (payload.new) {
+            console.log("New message: ", payload.new);
             // @ts-ignore
-            setMessages((currentMessages: any) => {
-              let updatedMessages = [...currentMessages] as ChatMessage[];
-              if (updatedMessages.length > 0 && payload.new.content) {
-                updatedMessages[updatedMessages.length - 1].content =
-                  payload.new.content;
-                updatedMessages[updatedMessages.length - 1].route =
-                  payload.new.route;
-                updatedMessages[updatedMessages.length - 1].status =
-                  payload.new.status;
+            setMessages((currentMessages: ChatMessage[]) => {
+              const assistantMessage = currentMessages.findIndex(
+                (message) => message.id === payload.new.id
+              );
+              if (assistantMessage !== -1) {
+                currentMessages[assistantMessage] = payload.new as ChatMessage;
+                return currentMessages;
               }
-              return updatedMessages as ChatMessage[];
+              return currentMessages;
             });
             if (
               payload.new.route &&
@@ -126,11 +123,13 @@ export default function RouteChat() {
     };
   }, []);
 
+  console.log("messages", messages);
+
   return (
-    <BottomSheetFlatList
-      data={messages}
+    <FlatList
+      data={JSON.parse(JSON.stringify(messages)).reverse()}
       ref={flatListRef}
-      onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+      inverted
       keyExtractor={(item: any, index) => item.id + index.toString()}
       renderItem={({ item, index }) => {
         return item.role !== "system" ? (

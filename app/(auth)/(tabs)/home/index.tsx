@@ -12,6 +12,9 @@ import {
 } from "react-native";
 import PostCard from "@/components/Post/PostCard";
 import { padding } from "@/constants/values";
+import ContainedButton from "@/components/ContainedButton";
+import { useRouter } from "expo-router";
+import { v4 as uuidv4 } from "uuid";
 
 export default function home() {
   const { user } = useUser();
@@ -19,20 +22,31 @@ export default function home() {
   const [posts, setPosts] = React.useState<{ post_json: Post }[] | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [page, setPage] = React.useState(0);
+  const [scrollLoading, setScrollLoading] = React.useState<
+    "loading" | "last" | null
+  >(null);
+  const isPostEndReached = React.useRef(false);
+
+  const router = useRouter();
 
   async function fetchFollowedUserPosts() {
     if (!user) return;
     const { data, error } = await supabase.rpc("get_posts", {
       user_id: user.id,
+      page_number: 0,
     });
 
     if (error) {
       console.error("Error:", error);
       setLoading(false);
+      setError("Une erreur est survenue.");
     } else {
       console.log("Data:", data);
       setPosts(data);
       setLoading(false);
+      setError(null);
     }
 
     return data;
@@ -42,7 +56,33 @@ export default function home() {
     fetchFollowedUserPosts();
   }, []);
 
-  console.log(JSON.stringify(posts));
+  async function handleEndReached() {
+    if (!user) return;
+    if (isPostEndReached.current) return;
+    setScrollLoading("loading");
+    const { data, error } = await supabase.rpc("get_posts", {
+      user_id: user.id,
+      page_number: page + 1,
+    });
+
+    if (error) {
+      console.error("Error:", error);
+      setScrollLoading(null);
+      setError("Une erreur est survenue.");
+    } else if (data.length === 0) {
+      setScrollLoading("last");
+      setError(null);
+      isPostEndReached.current = true;
+    } else {
+      console.log("Data:", data);
+      setPosts([...posts!, ...data]);
+      setScrollLoading(null);
+      setError(null);
+      setPage(page + 1);
+    }
+
+    return data;
+  }
 
   return loading ? (
     <View
@@ -58,7 +98,7 @@ export default function home() {
         size="large"
       />
     </View>
-  ) : (
+  ) : posts && posts.length > 0 ? (
     <FlatList
       data={posts}
       keyExtractor={(item) => item.post_json.id}
@@ -82,7 +122,79 @@ export default function home() {
           tintColor={Colors.light.primary}
         />
       }
+      onEndReached={handleEndReached}
+      ListFooterComponent={
+        <View style={{ height: 60, justifyContent: "center" }}>
+          {scrollLoading === "loading" && (
+            <ActivityIndicator
+              animating
+              size="small"
+            />
+          )}
+          {scrollLoading === "last" && (
+            <Text
+              style={{
+                textAlign: "center",
+              }}
+            >
+              Aucune autre publication à afficher
+            </Text>
+          )}
+        </View>
+      }
     />
+  ) : (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: Colors.light.background,
+      }}
+    >
+      {error ? (
+        <>
+          <Text
+            style={{
+              fontSize: 18,
+              color: Colors.light.primary,
+              fontFamily: "Outfit_600SemiBold",
+              marginBottom: 20,
+            }}
+          >
+            Une erreur est survenue
+          </Text>
+          <ContainedButton
+            title="Rafrachir"
+            onPress={async () => {
+              setRefreshing(true);
+              await fetchFollowedUserPosts();
+              setRefreshing(false);
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <Text
+            style={{
+              fontSize: 18,
+              color: Colors.light.primary,
+              fontFamily: "Outfit_600SemiBold",
+              marginBottom: 20,
+            }}
+          >
+            Aucune publication à afficher pour le moment
+          </Text>
+          <ContainedButton
+            title="Créer un voyage"
+            onPress={() => {
+              const id = uuidv4();
+              router.navigate(`/(auth)/trip/${id}`);
+            }}
+          />
+        </>
+      )}
+    </View>
   );
 }
 

@@ -96,7 +96,9 @@ export default function TripCard({
                 fontFamily: "Outfit_400Regular",
               }}
             >
-              {`${trip.dates.duration} jours en ${months[trip.dates.month]}`}
+              {`${trip.dates.duration} jours${
+                trip.dates.month ? ` en ${months[trip.dates.month]}` : ""
+              }`}
             </Text>
           )}
         </TouchableOpacity>

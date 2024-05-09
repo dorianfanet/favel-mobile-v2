@@ -6,6 +6,8 @@ import Colors from "@/constants/Colors";
 import { formatDateToRelative } from "@/lib/utils";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Link } from "expo-router";
+import FollowButton from "../FollowButton";
+import { useUser } from "@clerk/clerk-expo";
 
 function findActionText(
   action: Post["action"],
@@ -28,10 +30,14 @@ function findActionText(
 export default function Header({
   userMetadata,
   post,
+  followButton = false,
 }: {
   userMetadata: UserMetadata | null;
   post: Post;
+  followButton?: boolean;
 }) {
+  const { user } = useUser();
+
   return (
     <View
       style={{
@@ -39,65 +45,78 @@ export default function Header({
       }}
     >
       {userMetadata ? (
-        <Link
-          href={
-            post.original_post
-              ? `/post/${post.original_post.id}`
-              : `/profile/${post.author_id}`
-          }
-          asChild
-        >
-          <TouchableOpacity
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-start",
-              alignItems: "flex-start",
-            }}
+        <View>
+          <Link
+            href={
+              post.original_post
+                ? `/post/${post.original_post.id}`
+                : `/profile/${post.author_id}`
+            }
+            asChild
           >
-            <View>
-              <Image
-                source={{ uri: userMetadata.imageUrl }}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 25,
-                  // marginLeft: 10,
-                  marginRight: 10,
-                }}
-              />
-            </View>
-            <View
+            <TouchableOpacity
               style={{
-                flex: 1,
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                alignItems: "center",
               }}
             >
-              <Text
+              <View>
+                <Image
+                  source={{ uri: userMetadata.imageUrl }}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 25,
+                    // marginLeft: 10,
+                    marginRight: 10,
+                  }}
+                />
+              </View>
+              <View
                 style={{
-                  fontSize: 16,
-                  fontFamily: "Outfit_600SemiBold",
+                  flex: 1,
                 }}
               >
-                {userMetadata.firstName} {userMetadata.lastName}{" "}
-                {post.action ? (
-                  <Text style={{ fontFamily: "Outfit_400Regular" }}>
-                    {findActionText(post.action, post.action_data)}
-                  </Text>
-                ) : null}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: Colors.light.primary,
-                  opacity: 0.8,
-                  fontFamily: "Outfit_400Regular",
-                  marginTop: 2,
-                }}
-              >
-                {formatDateToRelative(post.updated_at)}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </Link>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: "Outfit_600SemiBold",
+                  }}
+                >
+                  {userMetadata.firstName} {userMetadata.lastName}{" "}
+                  {post.action ? (
+                    <Text style={{ fontFamily: "Outfit_400Regular" }}>
+                      {findActionText(post.action, post.action_data)}
+                    </Text>
+                  ) : null}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: Colors.light.primary,
+                    opacity: 0.8,
+                    fontFamily: "Outfit_400Regular",
+                    marginTop: 2,
+                  }}
+                >
+                  {formatDateToRelative(post.updated_at)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </Link>
+          <View
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+            }}
+          >
+            {followButton && userMetadata.id !== user?.id ? (
+              <FollowButton profileId={userMetadata.id} />
+            ) : null}
+          </View>
+        </View>
       ) : (
         <View
           style={{

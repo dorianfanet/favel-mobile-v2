@@ -2,6 +2,9 @@ import { MMKV } from "@/app/(auth)/trip/_layout";
 import { favel } from "./favelApi";
 import { BBox, Position, bbox, center, lineString, points } from "@turf/turf";
 import { Day, UserMetadata } from "@/types/types";
+import { supabase } from "./supabase";
+import { v4 as uuidv4 } from "uuid";
+import { Share } from "react-native";
 
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
@@ -252,4 +255,34 @@ export function getTripMetadataFromCache(id: string) {
   } else {
     return null;
   }
+}
+
+export async function createTripInvite(authorId: string, tripId: string) {
+  const id = uuidv4();
+
+  const { error } = await supabase
+    .from("trip_invites")
+    .insert([
+      {
+        id: id,
+        author_id: authorId,
+        trip_id: tripId,
+      },
+    ])
+    .single();
+
+  if (error) {
+    console.error(error);
+    return {
+      error: error.message,
+    };
+  }
+
+  Share.share({
+    message: `Rejoins mon voyage sur Favel !\n\n\nhttps://app.favel.net/link?path=invite/${id}`,
+  });
+
+  return {
+    id: id,
+  };
 }

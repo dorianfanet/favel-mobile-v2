@@ -99,7 +99,7 @@ export default function Notification({
         {userMetadata ? (
           <TouchableOpacity
             onPress={() => {
-              if (notification.data.link) {
+              if (notification.data && notification.data.link) {
                 router.navigate(notification.data.link);
               }
             }}

@@ -23,23 +23,23 @@ export default function Layout() {
   const { user } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      favel.getUser(user.id).then((res) => {
-        console.log("res", res);
-        if (!res.privateMetadata || !res.privateMetadata.origin) {
-          MMKV.setString(
-            `mandatoryInfos-${user.id}`,
-            JSON.stringify({
-              firstName: user.firstName ? false : true,
-              origin: true,
-            })
-          );
-          router.push("/(modals)/mandatoryInfos");
-        }
-      });
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) {
+  //     favel.getUser(user.id).then((res) => {
+  //       console.log("res", res);
+  //       if (!res.privateMetadata || !res.privateMetadata.origin) {
+  //         MMKV.setString(
+  //           `mandatoryInfos-${user.id}`,
+  //           JSON.stringify({
+  //             firstName: user.firstName ? false : true,
+  //             origin: true,
+  //           })
+  //         );
+  //         router.push("/(modals)/mandatoryInfos");
+  //       }
+  //     });
+  //   }
+  // }, [user]);
 
   useEffect(() => {
     StatusBar.setBarStyle("light-content");
@@ -76,7 +76,7 @@ export default function Layout() {
             e.preventDefault();
             const id = uuidv4();
             console.log("id", id);
-            router.navigate(`/(auth)/trip/${id}`);
+            router.push(`/(auth)/trip/${id}`);
           },
         })}
         options={{

@@ -44,12 +44,12 @@ class ApiClient {
   }
 
   async inviteUser(
-    tripId: string,
+    inviteId: string,
     userId: string,
     userName: string
-  ): Promise<{ status: number; message: string }> {
+  ): Promise<{ status: number; message: string; id: string }> {
     return this.request(
-      `invite-user?tripId=${tripId}&userId=${userId}&userName=${userName}`,
+      `invite-user?inviteId=${inviteId}&userId=${userId}&userName=${userName}`,
       "GET",
       null
     );
@@ -59,7 +59,7 @@ class ApiClient {
     destination: string,
     duration: number
   ): Promise<DestinationData> {
-    return this.request(`destination-funnel`, "POST", {
+    return this.request(`destination-funnel-groq`, "POST", {
       prompt: `${destination} - ${duration} jours.`,
     });
   }
@@ -70,7 +70,7 @@ class ApiClient {
     messageId: string,
     form: any
   ): Promise<DestinationData> {
-    return this.request(`new-trip-chat`, "POST", {
+    return this.request(`new-trip-chat-groq`, "POST", {
       messages,
       tripId,
       messageId,
@@ -83,7 +83,7 @@ class ApiClient {
     tripId: string,
     messageId: string
   ): Promise<DestinationData> {
-    return this.request(`new-trip-chat/new`, "POST", {
+    return this.request(`new-trip-chat-groq/new`, "POST", {
       prompt,
       tripId,
       messageId,

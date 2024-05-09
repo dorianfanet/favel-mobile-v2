@@ -96,6 +96,50 @@ export default function DayLines() {
     setDayLines(tempFeatureColletion);
   }, [trip, editor, tripMetadata?.status]);
 
+  // useEffect(() => {
+  //   if (!trip) return;
+
+  //   let tempFeatureColletion: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
+  //     type: "FeatureCollection",
+  //     features: [],
+  //   };
+
+  //   trip.forEach((day, index) => {
+  //     let tempCoordinates: Position[] = [];
+
+  //     if (day.type === "day" && day.activities && day.activities.length > 1) {
+  //       let feature: GeoJSON.Feature<LineString> = {
+  //         type: "Feature",
+  //         properties: {
+  //           id: day.id,
+  //         },
+  //         geometry: {
+  //           type: "LineString",
+  //           coordinates: tempCoordinates,
+  //         },
+  //       };
+
+  //       day.activities.forEach((activity) => {
+  //         if (
+  //           activity.coordinates &&
+  //           activity.coordinates.latitude &&
+  //           activity.coordinates.longitude
+  //         ) {
+  //           // @ts-ignore
+  //           tempCoordinates.push([
+  //             activity.coordinates.longitude,
+  //             activity.coordinates.latitude,
+  //           ]);
+  //         }
+  //       });
+
+  //       tempFeatureColletion.features.push(feature);
+  //     }
+  //   });
+
+  //   setDayLines(tempFeatureColletion);
+  // }, [trip]);
+
   const dayLabels = useMemo(() => {
     if (!trip) return;
 

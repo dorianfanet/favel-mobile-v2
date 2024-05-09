@@ -7,6 +7,7 @@ import Colors from "@/constants/Colors";
 import { useEditor } from "@/context/editorContext";
 import { getBoundsOfDay } from "@/lib/utils";
 import { useTrip } from "@/context/tripContext";
+import { BBox } from "@turf/turf";
 
 export default function DayCard({ day }: { day: Day }) {
   const { setEditor } = useEditor();
@@ -26,8 +27,11 @@ export default function DayCard({ day }: { day: Day }) {
           (tripDay) => tripDay.id === day.id
         )?.activities;
         console.log(activities);
-        const bounds = getBoundsOfDay(activities);
-        console.log(bounds);
+        let bounds: BBox | undefined = undefined;
+        if (activities && activities?.length > 1) {
+          bounds = getBoundsOfDay(activities);
+          console.log(bounds);
+        }
         setEditor({
           type: "day",
           day: {

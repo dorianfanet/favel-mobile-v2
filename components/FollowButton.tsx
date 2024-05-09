@@ -81,6 +81,7 @@ export default function FollowButton({
         {
           follower_id: user.id,
           following_id: profileId,
+          key: `${user.id}-${profileId}`,
         },
       ]);
       if (error) {

@@ -92,6 +92,7 @@ export default function MessageInput() {
             value={inputValue}
             onChangeText={setInputValue}
             placeholder="Votre message..."
+            placeholderTextColor={"#ffffff71"}
           />
         )}
         <TouchableOpacity

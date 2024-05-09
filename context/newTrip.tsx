@@ -78,24 +78,24 @@ export const NewTripFormProvider = ({
     },
   });
 
-  const { setDestinationData } = useTrip();
+  // const { setDestinationData } = useTrip();
 
-  useEffect(() => {
-    async function fetchDestinationData() {
-      console.log(form.destination, form.flexDates.duration);
-      if (form.destination) {
-        const data = await favel.fetchDestinationData(
-          form.destination,
-          form.flexDates.duration ? parseInt(form.flexDates.duration) : 4
-        );
-        console.log("Destination data", data);
-        setDestinationData(data);
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchDestinationData() {
+  //     console.log(form.destination, form.flexDates.duration);
+  //     if (form.destination) {
+  //       const data = await favel.fetchDestinationData(
+  //         form.destination,
+  //         form.flexDates.duration ? parseInt(form.flexDates.duration) : 4
+  //       );
+  //       console.log("Destination data", data);
+  //       setDestinationData(data);
+  //     }
+  //   }
 
-    console.log("Calling fetchDestinationData");
-    fetchDestinationData();
-  }, [form.destination, form.dates, form.flexDates]);
+  //   console.log("Calling fetchDestinationData");
+  //   fetchDestinationData();
+  // }, [form.destination, form.dates, form.flexDates]);
 
   return (
     <newTripFormContext.Provider value={{ form, setForm }}>

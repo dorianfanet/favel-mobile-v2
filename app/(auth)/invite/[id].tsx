@@ -5,7 +5,8 @@ import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { favel } from "@/lib/favelApi";
 import { useUser } from "@clerk/clerk-expo";
-import { track } from "@amplitude/analytics-react-native";
+import { Identify, identify, track } from "@amplitude/analytics-react-native";
+import ContainedButton from "@/components/ContainedButton";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -15,22 +16,32 @@ export default function Index() {
   const [error, setError] = React.useState<string | null>(null);
 
   useEffect(() => {
+    handleInvite();
+  }, [id]);
+
+  async function handleInvite() {
     if (!id || !user) return;
+    setError(null);
     const justJoined =
       user.createdAt &&
       new Date(user.createdAt).getTime() > Date.now() - 5 * 60 * 1000;
     track("Invitation page viewed", { id: id, justJoined });
 
+    const identifyObj = new Identify();
+    identifyObj.set("joinedFromTripInvite", "true");
+    identify(identifyObj);
+
     favel
       .inviteUser(id as string, user.id, user.firstName || "Inconnu")
       .then((res) => {
-        if (res.message === "User invited") {
-          router.navigate(`/trip/${id}`);
+        console.log(res);
+        if (res.id) {
+          router.push(`/trip/${res.id}`);
         } else {
-          setError("Erreur lors de l'invitation");
+          setError("Erreur lors de l'invitation. Veuillez réessayer.");
         }
       });
-  }, [id]);
+  }
 
   return (
     <View
@@ -48,7 +59,23 @@ export default function Index() {
         }}
       />
       {error ? (
-        <Text>{error}</Text>
+        <>
+          <Text
+            style={{
+              color: "white",
+              fontSize: 16,
+              fontFamily: "Outfit_600SemiBold",
+            }}
+          >
+            {error}
+          </Text>
+          <ContainedButton
+            title="Réessayer"
+            onPress={handleInvite}
+            type="ghost"
+            style={{ marginTop: 20 }}
+          />
+        </>
       ) : (
         <ActivityIndicator
           size="large"

@@ -13,6 +13,15 @@
       "autoIncrement": true,
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qteehkigcapivkertawb.supabase.co",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuZmF2ZWwubmV0JA",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0ZWVoa2lnY2FwaXZrZXJ0YXdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ2MDIxODYsImV4cCI6MjAxMDE3ODE4Nn0.sVsZOwLSUnzqkQUdSvr6NS01aXswty4gZLjlcBG3L6U",
+        "EXPO_PUBLIC_MAPBOX_KEY": "sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q",
+        "EXPO_PUBLIC_FAVEL_API_KEY": "jaUXPQTwwjJr7oTS2ZlaMbEHGs8w7DSixwqRswRo21DhFvo06gVARpbvBbezbxZfc9IvLgUabulmq1NMzMkX9EWVE95EJbnRfoAfwR7FCBxgnUCWt4Qk6XRP0SsNgXwu",
+        "EXPO_PUBLIC_API_URL": "https://favel-v0-2-web.vercel.app",
+        "EXPO_PUBLIC_AMPLITUDE_API_KEY": "8d1df0af2d8458026f91d0b5a7989338"
       }
     },
     "production": {

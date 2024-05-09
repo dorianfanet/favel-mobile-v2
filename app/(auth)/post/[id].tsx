@@ -45,13 +45,6 @@ export default function Index() {
   }, [id]);
 
   return post ? (
-    // <KeyboardAvoidingView
-    //   behavior={Platform.OS === "ios" ? "padding" : "height"}
-    //   keyboardVerticalOffset={Platform.OS === "ios" ? 120 : 0}
-    //   style={{
-    //     flexGrow: 1,
-    //   }}
-    // >
     <KeyboardAwareScrollView
       extraHeight={30}
       extraScrollHeight={30}
@@ -74,11 +67,11 @@ export default function Index() {
         post={post}
         style={{ borderRadius: 0, marginBottom: 10 }}
         noLink
+        followButton
       />
       <Comments post={post} />
     </KeyboardAwareScrollView>
-  ) : // </KeyboardAvoidingView>
-  loading ? (
+  ) : loading ? (
     <View
       style={{
         flex: 1,

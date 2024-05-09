@@ -84,7 +84,7 @@ export default function Comments({ post }: { post: Post }) {
             alignItems: "center",
           }}
         >
-          <Text>Aucun commentaire</Text>
+          <Text>Aucun commentaires</Text>
         </View>
       ) : (
         <View
