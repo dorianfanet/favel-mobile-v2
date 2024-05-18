@@ -1,19 +1,10 @@
-import { ScrollView, View } from "react-native";
-import React, { useEffect, useState } from "react";
-import BottomSheet, {
-  BottomSheetFlatList,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
+import { View } from "react-native";
+import React, { useEffect } from "react";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useTrip } from "@/context/tripContext";
 import { padding } from "@/constants/values";
-import TripEditCard from "../TripEditCard";
-import { supabase } from "@/lib/supabase";
 import { Text } from "@/components/Themed";
-import { UserMetadata } from "@/types/types";
-import { Image } from "expo-image";
-import { getUserMetadata } from "@/lib/utils";
 import Colors from "@/constants/Colors";
-import { useUser } from "@clerk/clerk-expo";
 import UserCard from "@/components/UserCard";
 import { track } from "@amplitude/analytics-react-native";
 import ShareCTA from "../ShareCTA";

@@ -11,10 +11,11 @@ import Header from "./Header";
 import ActionButton from "./actions/ActionButton";
 import ShareIcon from "../ShareIcon";
 import LikeButton from "./actions/LikeButton";
-import { MMKV } from "@/app/(auth)/trip/_layout";
+import { MMKV } from "@/app/_layout";
 import { Text } from "../Themed";
 import CommentButton from "./actions/CommentButton";
 import { track } from "@amplitude/analytics-react-native";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function PostCard({
   post,
@@ -30,6 +31,7 @@ export default function PostCard({
   followButton?: boolean;
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
+  const { getToken } = useAuth();
 
   async function getUser() {
     if (!post.author_id) return;
@@ -43,7 +45,7 @@ export default function PostCard({
     } catch (error) {
       console.log("error", error);
     }
-    const data = await getUserMetadata(post.author_id);
+    const data = await getUserMetadata(post.author_id, undefined, getToken);
     console.log("userMetadata", data);
 
     setUserMetadata(data);

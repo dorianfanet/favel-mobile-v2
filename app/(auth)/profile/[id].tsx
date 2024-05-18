@@ -11,5 +11,10 @@ export default function Index() {
     StatusBar.setBarStyle("light-content");
   });
 
-  return <Profile userId={userId} />;
+  return (
+    <Profile
+      key={userId}
+      userId={userId}
+    />
+  );
 }

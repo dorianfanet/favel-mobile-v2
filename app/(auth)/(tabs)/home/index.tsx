@@ -1,8 +1,7 @@
 import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
-import { supabase } from "@/lib/supabase";
 import React, { useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Post } from "@/types/types";
 import {
   ActivityIndicator,
@@ -15,6 +14,7 @@ import { padding } from "@/constants/values";
 import ContainedButton from "@/components/ContainedButton";
 import { useRouter } from "expo-router";
 import { v4 as uuidv4 } from "uuid";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function home() {
   const { user } = useUser();
@@ -31,25 +31,29 @@ export default function home() {
 
   const router = useRouter();
 
+  const { getToken } = useAuth();
+
   async function fetchFollowedUserPosts() {
     if (!user) return;
-    const { data, error } = await supabase.rpc("get_posts", {
-      user_id: user.id,
-      page_number: 0,
+    return await supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase.rpc("get_posts", {
+        user_id: user.id,
+        page_number: 0,
+      });
+
+      if (error) {
+        console.error("Error:", error);
+        setLoading(false);
+        setError("Une erreur est survenue.");
+      } else {
+        console.log("Data:", data);
+        setPosts(data);
+        setLoading(false);
+        setError(null);
+      }
+
+      return data;
     });
-
-    if (error) {
-      console.error("Error:", error);
-      setLoading(false);
-      setError("Une erreur est survenue.");
-    } else {
-      console.log("Data:", data);
-      setPosts(data);
-      setLoading(false);
-      setError(null);
-    }
-
-    return data;
   }
 
   useEffect(() => {
@@ -60,28 +64,30 @@ export default function home() {
     if (!user) return;
     if (isPostEndReached.current) return;
     setScrollLoading("loading");
-    const { data, error } = await supabase.rpc("get_posts", {
-      user_id: user.id,
-      page_number: page + 1,
+    return await supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase.rpc("get_posts", {
+        user_id: user.id,
+        page_number: page + 1,
+      });
+
+      if (error) {
+        console.error("Error:", error);
+        setScrollLoading(null);
+        setError("Une erreur est survenue.");
+      } else if (data.length === 0) {
+        setScrollLoading("last");
+        setError(null);
+        isPostEndReached.current = true;
+      } else {
+        console.log("Data:", data);
+        setPosts([...posts!, ...data]);
+        setScrollLoading(null);
+        setError(null);
+        setPage(page + 1);
+      }
+
+      return data;
     });
-
-    if (error) {
-      console.error("Error:", error);
-      setScrollLoading(null);
-      setError("Une erreur est survenue.");
-    } else if (data.length === 0) {
-      setScrollLoading("last");
-      setError(null);
-      isPostEndReached.current = true;
-    } else {
-      console.log("Data:", data);
-      setPosts([...posts!, ...data]);
-      setScrollLoading(null);
-      setError(null);
-      setPage(page + 1);
-    }
-
-    return data;
   }
 
   return loading ? (
@@ -160,16 +166,19 @@ export default function home() {
               color: Colors.light.primary,
               fontFamily: "Outfit_600SemiBold",
               marginBottom: 20,
+              textAlign: "center",
             }}
           >
-            Une erreur est survenue
+            Une erreur est survenue, veuillez réessayer. Si le problème
+            persiste, contactez le support.
           </Text>
           <ContainedButton
             title="Rafrachir"
             onPress={async () => {
-              setRefreshing(true);
+              setLoading(true);
+              await new Promise((resolve) => setTimeout(resolve, 200));
               await fetchFollowedUserPosts();
-              setRefreshing(false);
+              setLoading(false);
             }}
           />
         </>

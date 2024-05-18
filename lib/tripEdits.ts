@@ -1,6 +1,7 @@
 import { TripEdit, TripEditType } from "@/types/types";
 import { supabase } from "@/lib/supabase";
-import { favel } from "./favelApi";
+import { useAuth } from "@clerk/clerk-expo";
+import { favelClient } from "./favelApi";
 
 export async function newTripEdit({
   day_index,
@@ -10,6 +11,7 @@ export async function newTripEdit({
   trip_id,
   type,
   post_id,
+  getToken,
 }: {
   type: TripEditType;
   day_index?: number;
@@ -18,6 +20,7 @@ export async function newTripEdit({
   author_id: string;
   trip_id: string;
   post_id: string;
+  getToken: any;
 }) {
   console.log(
     "newTripEdit",
@@ -37,7 +40,9 @@ export async function newTripEdit({
     console.log("error", error);
   }
 
-  favel.tripEdit(trip_id, author_id, post_id);
+  await favelClient(getToken).then((favel) => {
+    favel.tripEdit(trip_id, author_id, post_id);
+  });
 
   return data;
 }

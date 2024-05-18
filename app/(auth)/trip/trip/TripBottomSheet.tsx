@@ -29,7 +29,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { BlurView, Text } from "@/components/Themed";
 import { useEditor } from "@/context/editorContext";
 import DraggableFlatList from "react-native-draggable-flatlist";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { getActivity, updateTripFromFormatted } from "@/lib/supabase";
 import DayCard from "../components/DayCard";
 import ActivityCard from "../components/ActivityCard";
@@ -81,6 +81,7 @@ export default function TripBottomSheet() {
         location: day.location,
         country: day.country,
         day: index,
+        hotspotId: day.hotspotId,
         formattedType: "day",
         type: day.type,
         origin: day.origin,
@@ -146,6 +147,8 @@ export default function TripBottomSheet() {
   }, [tripMetadata?.status]);
 
   const { editor, setEditor } = useEditor();
+
+  const { getToken } = useAuth();
 
   useEffect(() => {
     if (editor) {
@@ -236,7 +239,7 @@ export default function TripBottomSheet() {
         post_id: tripMetadata?.post_id,
       };
 
-      newTripEdit(data);
+      newTripEdit({ ...data, getToken });
       setFormattedTrip(newTrip);
       updateTripFromFormatted(newTrip, tripMetadata.id);
     }

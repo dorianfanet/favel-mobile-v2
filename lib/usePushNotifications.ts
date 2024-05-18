@@ -7,6 +7,7 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "./supabase";
+import { MMKV } from "@/app/_layout";
 
 export interface PushNotificationState {
   expoPushToken?: Notifications.ExpoPushToken;
@@ -14,15 +15,36 @@ export interface PushNotificationState {
 }
 
 export const usePushNotifications = (): PushNotificationState => {
+  const preferences = MMKV.getString("notifications_preferences");
+  console.log("preferences", preferences);
+
+  // if (true) {
+  //   console.log("Notifications disabled");
+  //   Notifications.setNotificationHandler({
+  //     handleNotification: async () => ({
+  //       shouldPlaySound: false,
+  //       shouldShowAlert: false,
+  //       shouldSetBadge: false,
+  //       iosDisplayInForeground: false,
+  //     }),
+  //   });
+
+  //   return {
+  //     expoPushToken: undefined,
+  //     notification: undefined,
+  //   };
+  // } else {
   try {
     const router = useRouter();
 
     Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldPlaySound: true,
-        shouldShowAlert: true,
-        shouldSetBadge: true,
-      }),
+      handleNotification: async () => {
+        return {
+          shouldPlaySound: true,
+          shouldShowAlert: true,
+          shouldSetBadge: true,
+        };
+      },
     });
 
     const [expoPushToken, setExpoPushToken] = useState<
@@ -133,4 +155,5 @@ export const usePushNotifications = (): PushNotificationState => {
       notification: undefined,
     };
   }
+  // }
 };

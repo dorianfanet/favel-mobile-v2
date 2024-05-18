@@ -8,12 +8,11 @@ import "react-native-get-random-values";
 import { borderRadius } from "@/constants/values";
 import { v4 as uuidv4 } from "uuid";
 import { useTripChat } from "@/context/tripChat";
-import { favel } from "@/lib/favelApi";
 import { Text } from "@/components/Themed";
 import { TripChatMessage } from "@/types/types";
-import { MMKV } from "../../_layout";
 import { getActivity } from "@/lib/supabase";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { favelClient } from "@/lib/favelApi";
 
 const paddingVertical = 10; // Padding top and bottom
 const paddingHorizontal = 10;
@@ -38,6 +37,8 @@ export default function Input({
 
   const { user } = useUser();
 
+  const { getToken } = useAuth();
+
   async function handleInputSend() {
     const userMsgId = uuidv4();
     console.log(messages);
@@ -57,31 +58,35 @@ export default function Input({
     });
     setMessages(tempMessages);
     if (type === "trip") {
-      favel.sendTripChatMessage(
-        tripId!,
-        {
-          id: userMsgId,
-          content: inputValue,
-        },
-        messageId
-      );
+      favelClient(getToken).then((favel) => {
+        favel.sendTripChatMessage(
+          tripId!,
+          {
+            id: userMsgId,
+            content: inputValue,
+          },
+          messageId
+        );
+      });
     }
     if (type === "activity" && activityId) {
       const activity = await getActivity({
         id: activityId,
         formattedType: "activity",
       });
-      favel.sendActivityChatMessage(
-        tripId!,
-        {
-          id: userMsgId,
-          content: inputValue,
-        },
-        messageId,
-        activityId,
-        activity?.name!,
-        user!.id
-      );
+      favelClient(getToken).then((favel) => {
+        favel.sendActivityChatMessage(
+          tripId!,
+          {
+            id: userMsgId,
+            content: inputValue,
+          },
+          messageId,
+          activityId,
+          activity?.name!,
+          user!.id
+        );
+      });
     }
     setInputValue("");
   }

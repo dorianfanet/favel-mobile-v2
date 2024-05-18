@@ -8,33 +8,37 @@ import {
 import React, { useEffect, useState } from "react";
 import Colors from "@/constants/Colors";
 import { borderRadius, padding } from "@/constants/values";
-import { supabase } from "@/lib/supabase";
 import { Post, PostComment } from "@/types/types";
 import { Button, Text } from "@/components/Themed";
 import Comment from "@/components/Comment";
 import { Image } from "expo-image";
-import { useUser } from "@clerk/clerk-expo";
-import { favel } from "@/lib/favelApi";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { v4 as uuidv4 } from "uuid";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { favelClient } from "@/lib/favelApi";
 
 export default function Comments({ post }: { post: Post }) {
   const [comments, setComments] = React.useState<PostComment[] | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  async function getComments() {
-    const { data, error } = await supabase
-      .from("comments")
-      .select("*")
-      .eq("post_id", post.id)
-      .order("created_at", { ascending: false });
-    if (error) {
-      setError("Une erreur est survenue");
+  const { getToken } = useAuth();
+
+  function getComments() {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("post_id", post.id)
+        .order("created_at", { ascending: false });
+      if (error) {
+        setError("Une erreur est survenue");
+        setLoading(false);
+        return;
+      }
+      setComments(data);
       setLoading(false);
-      return;
-    }
-    setComments(data);
-    setLoading(false);
+    });
   }
 
   React.useEffect(() => {
@@ -121,45 +125,51 @@ function NewComment({
   const [value, setValue] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
+  const { getToken } = useAuth();
+
   async function sendComment() {
     const id = uuidv4();
 
     if (!user) return;
     if (!value || value === "") return;
-    const { data, error } = await supabase.from("comments").insert({
-      id: id,
-      post_id: post.id,
-      author_id: user.id,
-      content: value,
-      mentions: [post.author_id],
-    });
+    return await supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase!.from("comments").insert({
+        id: id,
+        post_id: post.id,
+        author_id: user.id,
+        content: value,
+        mentions: [post.author_id],
+      });
 
-    if (error) {
-      console.error(error);
-      setError("Une erreur est survenue");
+      if (error) {
+        console.error(error);
+        setError("Une erreur est survenue");
+        Keyboard.dismiss();
+        return;
+      }
+
+      setValue("");
+      setError(null);
       Keyboard.dismiss();
-      return;
-    }
 
-    setValue("");
-    setError(null);
-    Keyboard.dismiss();
+      onSendNewComment?.(id, user.id, value, new Date().toISOString(), [
+        post.author_id,
+      ]);
 
-    onSendNewComment?.(id, user.id, value, new Date().toISOString(), [
-      post.author_id,
-    ]);
-
-    favel.sendNotification(
-      post.author_id,
-      "Favel",
-      `${user?.firstName} a commenté votre publication`,
-      {
-        link: `/post/${post.id}`,
-        tripId: post.trip_id,
-      },
-      "comment",
-      user?.id
-    );
+      favelClient(getToken).then((favel) => {
+        favel.sendNotification(
+          post.author_id,
+          "Favel",
+          `${user?.firstName} a commenté votre publication`,
+          {
+            link: `/post/${post.id}`,
+            tripId: post.trip_id,
+          },
+          "comment",
+          user?.id
+        );
+      });
+    });
   }
 
   return (

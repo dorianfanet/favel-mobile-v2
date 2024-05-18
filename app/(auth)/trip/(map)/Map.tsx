@@ -72,6 +72,11 @@ export default function Map() {
   }, [tripMetadata?.status]);
 
   function checkForHotspotsInBounds(camera: MapboxGL.MapState) {
+    if (tripMetadata && tripMetadata.status === "new.route") {
+      setViewState("hotspots");
+      return;
+    }
+
     const boundsPolygon = polygon([
       [
         [camera.properties.bounds.sw[0], camera.properties.bounds.sw[1]],

@@ -8,7 +8,7 @@
     "scheme": "favel",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/logo-full.png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "cover",
       "backgroundColor": "#44C0E7"
     },
@@ -31,7 +31,7 @@
         "backgroundColor": "#44C0E7"
       },
       "package": "net.favel.favel",
-      "versionCode": 16,
+      "versionCode": 22,
       "googleServicesFile": "./google-services.json"
     },
     "web": {

@@ -4,9 +4,10 @@ import { useTrip } from "@/context/tripContext";
 import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { TripMetadata } from "@/types/types";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function LoadingStuckButton() {
   const { tripMetadata, trip, setTripMetadata } = useTrip();
@@ -18,6 +19,8 @@ export default function LoadingStuckButton() {
   useEffect(() => {
     lastTripUpdateTimestamp.current = new Date();
   }, [trip]);
+
+  const { getToken } = useAuth();
 
   useEffect(() => {
     if (tripMetadata && tripMetadata.status.includes("loading")) {
@@ -46,20 +49,22 @@ export default function LoadingStuckButton() {
         paddingVertical: padding / 2,
         borderRadius: 10,
       }}
-      onPress={async () => {
-        const { error } = await supabase
-          .from("trips_v2")
-          .update({ trip: null, status: "trip.init" })
-          .eq("id", tripMetadata?.id);
+      onPress={() => {
+        supabaseClient(getToken).then(async (supabase) => {
+          const { error } = await supabase
+            .from("trips_v2")
+            .update({ trip: null, status: "trip.init" })
+            .eq("id", tripMetadata?.id);
 
-        setTripMetadata((prev) => ({
-          ...(prev as TripMetadata),
-          status: "trip.init",
-        }));
-        router.navigate("/(auth)/(tabs)/home");
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        router.push(`/(auth)/trip/${tripMetadata?.id}/`);
-        // router.replace(`/(auth)/trip/${tripMetadata?.id}/trip`);
+          setTripMetadata((prev) => ({
+            ...(prev as TripMetadata),
+            status: "trip.init",
+          }));
+          router.navigate("/(auth)/(tabs)/home");
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          router.push(`/(auth)/trip/${tripMetadata?.id}/`);
+          // router.replace(`/(auth)/trip/${tripMetadata?.id}/trip`);
+        });
       }}
     >
       <Text

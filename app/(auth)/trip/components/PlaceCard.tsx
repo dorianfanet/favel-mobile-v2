@@ -1,14 +1,13 @@
 import { View, Animated, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Activity, CachedActivity, Category } from "@/types/types";
+import { Activity, Category } from "@/types/types";
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { Swipeable } from "react-native-gesture-handler";
-import { getActivity, supabase } from "@/lib/supabase";
-import { MMKV } from "../_layout";
+import { getActivity } from "@/lib/supabase";
 import Colors from "@/constants/Colors";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { categories, colors as categoryColor } from "@/constants/categories";
@@ -17,8 +16,7 @@ import Icon from "@/components/Icon";
 import { Text } from "@/components/Themed";
 import { useTrip } from "@/context/tripContext";
 import { newTripEdit } from "@/lib/tripEdits";
-import { useLocalSearchParams } from "expo-router";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useEditor } from "@/context/editorContext";
 
 export default function PlaceCard({
@@ -46,6 +44,7 @@ export default function PlaceCard({
 }) {
   const { trip, tripMetadata } = useTrip();
   const { user } = useUser();
+  const { getToken } = useAuth();
 
   const renderRightActions = (
     _progress: Animated.AnimatedInterpolation<number>,
@@ -129,6 +128,7 @@ export default function PlaceCard({
         author_id: user?.id!,
         trip_id: tripMetadata?.id!,
         post_id: tripMetadata.post_id,
+        getToken: getToken,
       });
     }
   }

@@ -1,13 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Notification as NotificationType,
-  SavedTrip,
-  UserMetadata,
-} from "@/types/types";
+import { Notification as NotificationType, UserMetadata } from "@/types/types";
 import { Text } from "./Themed";
 import { borderRadius } from "@/constants/values";
 import Icon, { IconProps } from "./Icon";
-import UserCard from "./UserCard";
 import {
   formatDateToRelative,
   getTripMetadataFromCache,
@@ -16,9 +11,8 @@ import {
 import { Image } from "expo-image";
 import Colors from "@/constants/Colors";
 import { TouchableOpacity, View } from "react-native";
-import TripCard from "./TripCard";
-import { supabase } from "@/lib/supabase";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
 
 const colors = {
   like: "#f00",
@@ -49,9 +43,15 @@ export default function Notification({
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const router = useRouter();
 
+  const { getToken } = useAuth();
+
   async function getUser() {
     if (!notification.author_id) return;
-    const data = await getUserMetadata(notification.author_id);
+    const data = await getUserMetadata(
+      notification.author_id,
+      undefined,
+      getToken
+    );
 
     setUserMetadata(data);
   }

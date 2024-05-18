@@ -9,11 +9,17 @@ export default function MenuButton({
   onPress,
   destructive = false,
   type = "default",
+  onValueChange,
+  initialValue,
+  externalValue,
 }: {
   title: string;
   onPress?: () => void;
   destructive?: boolean;
   type?: "default" | "switch";
+  onValueChange?: (value: boolean) => void;
+  initialValue?: boolean;
+  externalValue?: boolean;
 }) {
   return (
     <TouchableOpacity
@@ -43,9 +49,9 @@ export default function MenuButton({
       </Text>
       {type === "switch" && (
         <SwitchButton
-          onValueChange={(value) => {
-            console.log(value);
-          }}
+          onValueChange={onValueChange ? onValueChange : () => {}}
+          initialValue={initialValue ? initialValue : false}
+          externalValue={externalValue}
         />
       )}
     </TouchableOpacity>
@@ -54,14 +60,20 @@ export default function MenuButton({
 
 function SwitchButton({
   onValueChange,
+  initialValue,
+  externalValue,
 }: {
   onValueChange: (value: boolean) => void;
+  initialValue: boolean;
+  externalValue?: boolean;
 }) {
-  const [value, setValue] = useState(true);
+  const [value, setValue] = useState<boolean>(
+    initialValue ? initialValue : true
+  );
 
   return (
     <Switch
-      value={value}
+      value={externalValue !== undefined ? externalValue : value}
       onValueChange={(value) => {
         setValue(value);
         onValueChange(value);

@@ -1,13 +1,4 @@
-import {
-  View,
-  DimensionValue,
-  Platform,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  Pressable,
-  StatusBar,
-  TextInput,
-} from "react-native";
+import { View, StatusBar } from "react-native";
 import React, {
   useCallback,
   useEffect,
@@ -15,57 +6,39 @@ import React, {
   useRef,
   useState,
 } from "react";
-import BottomSheet, {
+import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
-  BottomSheetFlatListMethods,
-  BottomSheetFooter,
   BottomSheetModal,
   BottomSheetTextInput,
   BottomSheetView,
   TouchableOpacity,
 } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
-import {
-  Activity,
-  FormattedTrip,
-  Route,
-  Trip,
-  TripMetadata,
-} from "@/types/types";
+import { TripMetadata } from "@/types/types";
 import { useTrip } from "@/context/tripContext";
-import { FlatList } from "react-native-gesture-handler";
-import { ScrollView } from "react-native-gesture-handler";
 import { BlurView, Button, Text } from "@/components/Themed";
 import ImageWithFallback from "@/components/ImageWithFallback";
-import {
-  Stack,
-  router,
-  useLocalSearchParams,
-  usePathname,
-  useSegments,
-} from "expo-router";
 import { borderRadius, padding } from "@/constants/values";
-import TripEditCard from "../TripEditCard";
-import { months } from "@/constants/data";
-import { supabase } from "@/lib/supabase";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Travelers from "./Travelers";
 import Icon from "@/components/Icon";
 import UserActivityCount from "@/components/UserActivityCount";
 import * as MailComposer from "expo-mail-composer";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { track } from "@amplitude/analytics-react-native";
 import Edits from "../../trip/(chat)/Edits";
 import UserCard from "@/components/UserCard";
 import { formatTimestamp } from "@/lib/utils";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { useRouter } from "expo-router";
 
 export default function MenuModal({
   bottomSheetModalRef,
 }: {
   bottomSheetModalRef: React.RefObject<BottomSheetModal>;
 }) {
-  const snapPoints = useMemo(() => [340], []);
+  const snapPoints = useMemo(() => [385], []);
   const historySnapPoints = useMemo(() => ["100%"], []);
 
   const handleSheetChanges = useCallback((index: number) => {
@@ -85,6 +58,8 @@ export default function MenuModal({
   const { user } = useUser();
 
   const inset = useSafeAreaInsets();
+
+  const router = useRouter();
 
   return (
     <>
@@ -165,9 +140,7 @@ export default function MenuModal({
                       opacity: 0.8,
                     }}
                   >
-                    {`${tripMetadata.dates.duration} jours en ${
-                      months[tripMetadata.dates.month]
-                    }`}
+                    {`${tripMetadata.dates.duration} jours`}
                   </Text>
                 )}
             </View>
@@ -193,6 +166,17 @@ export default function MenuModal({
                 track("travelers_modal_opened");
                 handleModalLinkPress();
                 travelersModalRef.current?.present();
+              }}
+              // notifications={userActivity?.count}
+              NotificationsComponent={() => (
+                <UserActivityCount userActivity={userActivity} />
+              )}
+            />
+            <MenuButton
+              title="Comment ça marche ?"
+              onPress={() => {
+                track("how_it_works_modal_opened");
+                router.push("/(modals)/onboarding");
               }}
               // notifications={userActivity?.count}
               NotificationsComponent={() => (
@@ -422,17 +406,21 @@ export default function MenuModal({
 function TripEdits() {
   const { tripEdits, setTripEdits, tripMetadata } = useTrip();
 
-  async function fetchTripEdits() {
-    const { data, error } = await supabase
-      .from("tripv2_edits")
-      .select("*")
-      .eq("trip_id", tripMetadata?.id)
-      .order("created_at", { ascending: false });
+  const { getToken } = useAuth();
 
-    if (data) {
-      console.log(data);
-      setTripEdits(data);
-    }
+  async function fetchTripEdits() {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase
+        .from("tripv2_edits")
+        .select("*")
+        .eq("trip_id", tripMetadata?.id)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        console.log(data);
+        setTripEdits(data);
+      }
+    });
   }
 
   useEffect(() => {
@@ -623,23 +611,27 @@ function TripName({ name }: { name: string | undefined }) {
 
   const { tripMetadata, setTripMetadata } = useTrip();
 
-  async function handleRenameClick() {
-    const { error } = await supabase
-      .from("trips_v2")
-      .update({ name: inputValue })
-      .eq("id", tripMetadata?.id);
+  const { getToken } = useAuth();
 
-    if (error) {
-      console.error(error);
-    } else {
-      setTripMetadata((prev) => {
-        return {
-          ...(prev as TripMetadata),
-          name: inputValue,
-        };
-      });
-    }
-    setState("view");
+  function handleRenameClick() {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { error } = await supabase
+        .from("trips_v2")
+        .update({ name: inputValue })
+        .eq("id", tripMetadata?.id);
+
+      if (error) {
+        console.error(error);
+      } else {
+        setTripMetadata((prev) => {
+          return {
+            ...(prev as TripMetadata),
+            name: inputValue,
+          };
+        });
+      }
+      setState("view");
+    });
   }
 
   return state === "edit" ? (

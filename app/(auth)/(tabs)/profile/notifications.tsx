@@ -13,7 +13,7 @@ export default function notifications() {
         padding: padding,
       }}
     >
-      <MenuTitle title="Notifications" />
+      <MenuTitle title="Social" />
       <MenuWrapper>
         <MenuButton
           title="Likes"

@@ -15,8 +15,6 @@ import {
 } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 import "react-native-get-random-values";
-import { favel } from "@/lib/favelApi";
-import { MMKV } from "../trip/_layout";
 
 export default function Layout() {
   const { isSignedIn } = useAuth();

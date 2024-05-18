@@ -1,11 +1,9 @@
-import { MMKV } from "@/app/(auth)/trip/_layout";
-import { Text, View } from "@/components/Themed";
+import { MMKV } from "@/app/_layout";
+import { View } from "@/components/Themed";
 import UserCard from "@/components/UserCard";
 import { padding } from "@/constants/values";
-import { supabase } from "@/lib/supabase";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 
 export default function followers() {

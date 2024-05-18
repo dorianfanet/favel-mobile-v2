@@ -1,7 +1,8 @@
 import { Text, View } from "@/components/Themed";
 import UserCard from "@/components/UserCard";
 import { padding } from "@/constants/values";
-import { supabase } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { useAuth } from "@clerk/clerk-expo";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
@@ -16,30 +17,34 @@ export default function followers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { getToken } = useAuth();
+
   async function getFollows() {
-    const { data, error } = await supabase
-      .from("follows")
-      .select("*")
-      .eq(type === "followers" ? "following_id" : "follower_id", userId);
-    if (error) {
-      console.error(error);
-      setLoading(false);
-      setError("Une erreur est survenue");
-      return;
-    }
-
-    if (data) {
-      if (type === "followers") {
-        setFollows(data.map((follow) => follow.follower_id));
-      } else {
-        setFollows(data.map((follow) => follow.following_id));
+    await supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase
+        .from("follows")
+        .select("*")
+        .eq(type === "followers" ? "following_id" : "follower_id", userId);
+      if (error) {
+        console.error(error);
+        setLoading(false);
+        setError("Une erreur est survenue");
+        return;
       }
-      setLoading(false);
-      return;
-    }
 
-    setLoading(false);
-    setError("Aucun abonné");
+      if (data) {
+        if (type === "followers") {
+          setFollows(data.map((follow: any) => follow.follower_id));
+        } else {
+          setFollows(data.map((follow: any) => follow.following_id));
+        }
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      setError("Aucun abonné");
+    });
   }
 
   useEffect(() => {

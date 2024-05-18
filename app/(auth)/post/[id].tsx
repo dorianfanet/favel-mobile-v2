@@ -9,12 +9,13 @@ import React, { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import PostCard from "@/components/Post/PostCard";
 import { Post } from "@/types/types";
-import { MMKV } from "../trip/_layout";
+import { MMKV } from "@/app/_layout";
 import Colors from "@/constants/Colors";
 import { RefreshControl } from "react-native-gesture-handler";
-import { supabase } from "@/lib/supabase";
 import Comments from "./Comments";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useAuth } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -25,19 +26,23 @@ export default function Index() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  async function getPost() {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("id", id)
-      .single();
-    if (error) {
-      setError("Une erreur est survenue");
+  const { getToken } = useAuth();
+
+  function getPost() {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) {
+        setError("Une erreur est survenue");
+        setLoading(false);
+        return;
+      }
+      setPost(data);
       setLoading(false);
-      return;
-    }
-    setPost(data);
-    setLoading(false);
+    });
   }
 
   useEffect(() => {

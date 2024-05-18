@@ -11,7 +11,7 @@ import { BBox } from "@turf/turf";
 
 export default function DayCard({ day }: { day: Day }) {
   const { setEditor } = useEditor();
-  const { trip } = useTrip();
+  const { trip, tripMetadata } = useTrip();
 
   return (
     <TouchableOpacity
@@ -65,23 +65,46 @@ export default function DayCard({ day }: { day: Day }) {
         {day.type === "day" && (
           <View
             style={{
-              flexDirection: "row",
               alignItems: "center",
+              flexDirection: "row",
               gap: 5,
             }}
           >
+            <View
+              style={{
+                alignItems: "flex-end",
+              }}
+            >
+              <Text
+                style={{
+                  color: Colors.dark.primary,
+                  fontSize: 16,
+                  fontFamily: "Outfit_600SemiBold",
+                }}
+              >
+                {
+                  tripMetadata?.route?.find(
+                    (route) => route.id === day.hotspotId
+                  )?.location
+                }
+                {/* {day.location} */}
+              </Text>
+              <Text
+                style={{
+                  color: Colors.dark.primary,
+                  fontSize: 12,
+                  opacity: 0.8,
+                  fontFamily: "Outfit_500Medium",
+                }}
+              >
+                {day.location}
+              </Text>
+            </View>
             <Icon
               icon="mapPinIcon"
               size={16}
               color={Colors.dark.primary}
             />
-            <Text
-              style={{
-                color: Colors.dark.primary,
-              }}
-            >
-              {day.location}
-            </Text>
           </View>
         )}
         {day.type === "transfer" && (

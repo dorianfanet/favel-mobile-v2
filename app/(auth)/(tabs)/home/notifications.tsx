@@ -1,13 +1,13 @@
 import { Text, View } from "@/components/Themed";
-import { supabase } from "@/lib/supabase";
 import { Notification as NotificationType } from "@/types/types";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import React, { useEffect, useRef } from "react";
 import { FlatList } from "react-native";
 import { RefreshControl } from "react-native-gesture-handler";
 import Notification from "@/components/Notification";
 import { padding } from "@/constants/values";
 import Colors from "@/constants/Colors";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function notifications() {
   const [notifications, setNotifications] = React.useState<NotificationType[]>(
@@ -15,22 +15,32 @@ export default function notifications() {
   );
   const [refreshing, setRefreshing] = React.useState(false);
   const { user } = useUser();
+  const { getToken } = useAuth();
 
   const page = useRef(0);
 
   async function getNotifications(page: number) {
-    const { data, error } = await supabase
-      .from("notifications")
-      .select("id, is_read, type, body, data, author_id, created_at")
-      .eq("user_id", user?.id)
-      .order("created_at", { ascending: false })
-      .range(page * 10, page * 10 + 9);
-    if (error) {
+    try {
+      return await supabaseClient(getToken).then(async (supabase) => {
+        if (!supabase) throw new Error("Supabase client not found");
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("id, is_read, type, body, data, author_id, created_at")
+          .eq("user_id", user?.id)
+          .order("created_at", { ascending: false })
+          .range(page * 10, page * 10 + 9);
+        if (error) {
+          console.error(error);
+          return [];
+        }
+        console.log("notifications", data);
+
+        return data;
+      });
+    } catch (error) {
       console.error(error);
       return [];
     }
-
-    return data;
   }
 
   useEffect(() => {
@@ -38,15 +48,18 @@ export default function notifications() {
       const newNotifications = await getNotifications(0);
       setNotifications(newNotifications);
 
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true })
-        .eq("user_id", user?.id)
-        .eq("is_read", false);
+      await supabaseClient(getToken).then(async (supabase) => {
+        if (!supabase) throw new Error("Supabase client not found");
+        const { error } = await supabase
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("user_id", user?.id)
+          .eq("is_read", false);
 
-      if (error) {
-        console.error(error);
-      }
+        if (error) {
+          console.error(error);
+        }
+      });
     }
     init();
   }, []);

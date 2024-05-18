@@ -1,13 +1,11 @@
 import { View, Text, Pressable } from "react-native";
 import React, { useCallback, useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
-import { padding } from "@/constants/values";
 import Colors from "@/constants/Colors";
 import Icon from "@/components/Icon";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { supabase } from "@/lib/supabase";
-import { usePushNotifications } from "@/lib/usePushNotifications";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
 
 export default function ProfileLayout() {
   const router = useRouter();
@@ -113,23 +111,51 @@ function NotificationsIcon() {
 
   const { user } = useUser();
 
+  const { getToken } = useAuth();
+  const [token, setToken] = React.useState<string | null>(null);
+
   async function checkNotificationCount() {
     console.log("Checking notifications count");
-    const { count, error } = await supabase
-      .from("notifications")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user?.id)
-      .eq("is_read", false);
+    supabaseClient(getToken).then(async (supabase) => {
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user?.id)
+        .eq("is_read", false);
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+      if (error) {
+        console.error(error);
+        return;
+      }
 
-    setNotificationsCount(count ? count : 0);
+      setNotificationsCount(count ? count : 0);
+    });
   }
 
   useEffect(() => {
+    if (token) return;
+    async function init() {
+      const token = await getToken();
+      setToken(token);
+    }
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const supabase = createClient(
+      process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    );
+
     checkNotificationCount();
 
     const channel = supabase
@@ -152,7 +178,7 @@ function NotificationsIcon() {
     return () => {
       channel.unsubscribe();
     };
-  }, []);
+  }, [token]);
 
   function handlePress() {
     setNotificationsCount(0);

@@ -19,10 +19,13 @@ import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import { init } from "@amplitude/analytics-react-native";
 import { usePushNotifications } from "@/lib/usePushNotifications";
-import { supabase } from "@/lib/supabase";
 import Application from "expo-application";
 import { NotificationsProvider } from "@/context/notificationsContext";
 import Colors from "@/constants/Colors";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { MMKVLoader } from "react-native-mmkv-storage";
+
+export const MMKV = new MMKVLoader().initialize();
 
 const toastConfig = {
   custom: (props: any) => {
@@ -32,7 +35,7 @@ const toastConfig = {
 };
 
 function InitialLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
   const segments = useSegments();
   const router = useRouter();
@@ -49,32 +52,36 @@ function InitialLayout() {
 
     async function updatePushToken() {
       if (!expoPushToken || !user) return;
-      const { data, error } = await supabase
-        .from("push_tokens")
-        .select("id, user_id, expo_push_token")
-        .eq("key", `${user?.id}-${expoPushToken.data}`);
-
-      if (error) {
-        console.error("Error fetching push token", error);
-        return;
-      }
-
-      console.log("Push token data", data, expoPushToken.data, user?.id);
-
-      if (data.length > 0) {
-        console.log("Push token already exists for user and device");
-        return;
-      } else {
-        const { error } = await supabase.from("push_tokens").insert({
-          user_id: user?.id,
-          expo_push_token: expoPushToken.data,
-          key: `${user?.id}-${expoPushToken.data}`,
-        });
+      await supabaseClient(getToken).then(async (supabase) => {
+        const { data, error } = await supabase
+          .from("push_tokens")
+          .select("id, user_id, expo_push_token")
+          .eq("key", `${user?.id}-${expoPushToken.data}`);
 
         if (error) {
-          console.error("Error inserting push token", error);
+          console.error("Error fetching push token", error);
+          return;
         }
-      }
+
+        console.log("Push token data", data, expoPushToken.data, user?.id);
+
+        if (data.length > 0) {
+          console.log("Push token already exists for user and device");
+          return;
+        } else {
+          const { error } = await supabase.from("push_tokens").insert({
+            user_id: user?.id,
+            expo_push_token: expoPushToken.data,
+            key: `${user?.id}-${expoPushToken.data}`,
+          });
+
+          if (error) {
+            console.error("Error inserting push token", error);
+          }
+        }
+      });
+
+      MMKV.setString("expoPushToken", expoPushToken.data);
     }
 
     console.log("expoPushToken", expoPushToken);
@@ -188,6 +195,13 @@ function InitialLayout() {
                 />
               ) : null;
             },
+          }}
+        />
+        <Stack.Screen
+          name="(modals)/onboarding"
+          options={{
+            presentation: "modal",
+            headerShown: false,
           }}
         />
         <Stack.Screen

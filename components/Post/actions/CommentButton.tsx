@@ -1,12 +1,11 @@
-import { supabase } from "@/lib/supabase";
-import { Post, SavedTrip } from "@/types/types";
-import { useUser } from "@clerk/clerk-expo";
+import { Post } from "@/types/types";
 import { useEffect, useState } from "react";
 import ActionButton from "./ActionButton";
 import Icon from "@/components/Icon";
 import Colors from "@/constants/Colors";
-import { favel } from "@/lib/favelApi";
 import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function CommentButton({
   post,
@@ -18,14 +17,18 @@ export default function CommentButton({
   const [comments, setComments] = useState<number | null>(null);
   const router = useRouter();
 
+  const { getToken } = useAuth();
+
   async function fetchLikes() {
     if (!post) return;
-    const { count, error } = await supabase
-      .from("comments")
-      .select("*", { count: "exact", head: true })
-      .eq("post_id", post.id);
+    supabaseClient(getToken).then(async (supabase) => {
+      const { count } = await supabase
+        .from("comments")
+        .select("*", { count: "exact", head: true })
+        .eq("post_id", post.id);
 
-    setComments(count);
+      setComments(count);
+    });
   }
 
   useEffect(() => {

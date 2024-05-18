@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "733925681436",
+    "project_id": "favel-test",
+    "storage_bucket": "favel-test.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733925681436:android:2ff11625ac594ae9c3f2d9",
+        "android_client_info": {
+          "package_name": "net.favel.favel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733925681436-kk5q0c040sg4atlf9d8nqucebbjgdq6c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQiI4v3zoaKOIM-LDSdYcTHsojl3Q3MtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733925681436-kk5q0c040sg4atlf9d8nqucebbjgdq6c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "733925681436-in32dg2d4g4chtu8hbfl7m4m374cnuls.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "net.favel.favel"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -24,8 +24,8 @@ export default function Activities() {
           day.activities.map((point, pointIndex) =>
             point.category && point.coordinates && point.id ? (
               <MarkerView
-                key={point.id}
-                id={`pointAnnotation${point.id}`}
+                key={`pointAnnotation${point.id}-${index}-${pointIndex}`}
+                id={`pointAnnotation${point.id}-${index}-${pointIndex}`}
                 coordinate={[
                   point.coordinates.longitude,
                   point.coordinates.latitude,

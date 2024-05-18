@@ -1,14 +1,13 @@
-import { View, Touchable } from "react-native";
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Colors from "@/constants/Colors";
 import { borderRadius } from "@/constants/values";
 import { Text } from "./Themed";
 import Icon from "./Icon";
-import { MMKV } from "@/app/(auth)/trip/_layout";
-import { useUser } from "@clerk/clerk-expo";
-import { supabase } from "@/lib/supabase";
-import { favel } from "@/lib/favelApi";
+import { MMKV } from "@/app/_layout";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { favelClient } from "@/lib/favelApi";
 
 export default function FollowButton({
   profileId,
@@ -19,6 +18,8 @@ export default function FollowButton({
 }) {
   const { user } = useUser();
   const [isFollowing, setIsFollowing] = useState(false);
+
+  const { getToken } = useAuth();
 
   function setFollowing(state: "1" | "0") {
     if (!user) return;
@@ -38,23 +39,25 @@ export default function FollowButton({
         setIsFollowing(false);
       }
 
-      const { data, error } = await supabase
-        .from("follows")
-        .select("id")
-        .eq("follower_id", user.id)
-        .eq("following_id", profileId);
+      await supabaseClient(getToken).then(async (supabase) => {
+        const { data, error } = await supabase!
+          .from("follows")
+          .select("id")
+          .eq("follower_id", user.id)
+          .eq("following_id", profileId);
 
-      if (error) {
-        console.error(error);
-      }
+        if (error) {
+          console.error(error);
+        }
 
-      console.log(data);
+        console.log(data);
 
-      if (data && data.length > 0) {
-        setFollowing("1");
-      } else {
-        setFollowing("0");
-      }
+        if (data && data.length > 0) {
+          setFollowing("1");
+        } else {
+          setFollowing("0");
+        }
+      });
     }
 
     checkFollowing();
@@ -65,38 +68,45 @@ export default function FollowButton({
 
     if (isFollowing) {
       setFollowing("0");
-      const { error } = await supabase
-        .from("follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("following_id", profileId);
+      supabaseClient(getToken).then(async (supabase) => {
+        const { error } = await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("following_id", profileId);
 
-      if (error) {
-        console.error(error);
-        setFollowing("1");
-      }
+        if (error) {
+          console.error(error);
+          setFollowing("1");
+        }
+      });
     } else {
-      setFollowing("1");
-      const { error } = await supabase.from("follows").upsert([
-        {
-          follower_id: user.id,
-          following_id: profileId,
-          key: `${user.id}-${profileId}`,
-        },
-      ]);
-      if (error) {
-        console.log("Error following");
-        console.error(error);
-        setFollowing("0");
-      }
-      favel.sendNotification(
-        profileId,
-        "Favel",
-        `${user.firstName} vous suit désormais !`,
-        null,
-        "follow",
-        user.id
-      );
+      supabaseClient(getToken).then(async (supabase) => {
+        const { error } = await supabase.from("follows").upsert([
+          {
+            follower_id: user.id,
+            following_id: profileId,
+            key: `${user.id}-${profileId}`,
+          },
+        ]);
+        if (error) {
+          console.log("Error following");
+          console.error(error);
+          setFollowing("0");
+          return;
+        }
+        setFollowing("1");
+        favelClient(getToken).then((favel) => {
+          favel.sendNotification(
+            profileId,
+            "Favel",
+            `${user.firstName} vous suit désormais !`,
+            null,
+            "follow",
+            user.id
+          );
+        });
+      });
     }
 
     if (onPress) {

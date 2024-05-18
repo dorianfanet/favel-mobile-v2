@@ -1,6 +1,6 @@
 import { getUserMetadata } from "@/lib/utils";
 import { UserMetadata } from "@/types/types";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -9,7 +9,7 @@ import Colors from "@/constants/Colors";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Link, useRouter } from "expo-router";
 import FollowButton from "./FollowButton";
-import { MMKV } from "@/app/(auth)/trip/_layout";
+import { MMKV } from "@/app/_layout";
 
 const sizes = {
   small: {
@@ -43,6 +43,8 @@ export default function UserCard({
   const { user } = useUser();
   const router = useRouter();
 
+  const { getToken } = useAuth();
+
   useEffect(() => {
     async function getUser() {
       if (!userId) return;
@@ -55,7 +57,7 @@ export default function UserCard({
       } catch (error) {
         console.log("error", error);
       }
-      const data = await getUserMetadata(userId);
+      const data = await getUserMetadata(userId, undefined, getToken);
 
       setUserMetadata(data);
     }

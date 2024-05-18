@@ -121,6 +121,7 @@ export interface Day {
   location?: string;
   country?: string;
   coordinates?: [number, number];
+  hotspotId: string;
   day?: number;
   activities?: Activity[];
   type: "day" | "transfer";
@@ -220,7 +221,7 @@ export type ChatMessage = {
   role: "user" | "assistant" | "system";
   content: string;
   route?: TripRoute;
-  status?: "running" | "finished" | null;
+  status?: "running" | "finished" | "error" | null;
 };
 
 export type TripChatMessage = {
@@ -379,4 +380,8 @@ export type PostComment = {
 export type TripUserRole = {
   id: string;
   role: "author" | "read-only" | "traveler";
+};
+
+export type NotificationsPreferences = {
+  main: boolean;
 };

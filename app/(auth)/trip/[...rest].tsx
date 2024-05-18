@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useLocalSearchParams } from "expo-router";
 import New from "./new/New";
 import Trip from "./trip/Trip";
-import { getActivity, supabase } from "@/lib/supabase";
+import { getActivity } from "@/lib/supabase";
 import { useTrip } from "@/context/tripContext";
 import {
   Day,
@@ -14,7 +14,8 @@ import {
   UserActivityState,
 } from "@/types/types";
 import Toast from "react-native-toast-message";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { createClient } from "@supabase/supabase-js";
 
 enum Action {
   NEW = "new",
@@ -29,10 +30,36 @@ export default function Rest() {
   const { setTripMetadata, setTrip, setTripEdits } = useTrip();
 
   const { user } = useUser();
+  const { getToken } = useAuth();
+
+  const [token, setToken] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    if (token) return;
+    async function init() {
+      const token = await getToken();
+      setToken(token);
+    }
+    init();
+  }, []);
 
   const id = rest[0];
 
   useEffect(() => {
+    if (!token) return;
+
+    const supabase = createClient(
+      process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    );
+
     const channel = supabase
       .channel(`${id}-trip`)
       .on(
@@ -106,54 +133,12 @@ export default function Rest() {
           }
         }
       )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "queue_day",
-          // filter: `trip_id=eq.${tripMetadata.id}`,
-        },
-        async (payload) => {
-          console.log("New day payload", payload.new);
-          const day = payload.new.data as Day;
-          let newDay: Day | null = null;
-          if (day.activities) {
-            if (day.activities.length === 0) {
-              newDay = day;
-            } else {
-              const activities = await Promise.all(
-                day.activities.map(async (activity) => {
-                  if (activity.route) {
-                    return activity;
-                  } else {
-                    const newActivity = await getActivity(activity);
-                    return newActivity;
-                  }
-                })
-              );
-              newDay = { ...day, activities };
-            }
-          } else {
-            newDay = day;
-          }
-          if (newDay) {
-            setTrip((prev) => {
-              if (prev) {
-                return [...(prev as TripType), newDay];
-              } else {
-                return [newDay];
-              }
-            });
-          }
-        }
-      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, token]);
 
   return (
     <>

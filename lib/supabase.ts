@@ -7,7 +7,7 @@ import {
   FormattedTrip,
   Trip,
 } from "@/types/types";
-import { MMKV } from "@/app/(auth)/trip/_layout";
+import { MMKV } from "@/app/_layout";
 
 console.log("supabaseUrl", process.env.EXPO_PUBLIC_SUPABASE_URL);
 

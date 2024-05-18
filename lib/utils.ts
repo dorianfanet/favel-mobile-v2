@@ -1,10 +1,10 @@
-import { MMKV } from "@/app/(auth)/trip/_layout";
-import { favel } from "./favelApi";
 import { BBox, Position, bbox, center, lineString, points } from "@turf/turf";
 import { Day, UserMetadata } from "@/types/types";
 import { supabase } from "./supabase";
 import { v4 as uuidv4 } from "uuid";
 import { Share } from "react-native";
+import { MMKV } from "@/app/_layout";
+import { favelClient } from "./favelApi";
 
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
@@ -103,7 +103,11 @@ export function getUserMetadataFromCache(userId: string): UserMetadata | null {
   }
 }
 
-export async function getUserMetadata(userId: string, forceRefresh = false) {
+export async function getUserMetadata(
+  userId: string,
+  forceRefresh = false,
+  getToken: any
+) {
   if (forceRefresh) {
     MMKV.removeItem(`user-${userId}`);
   }
@@ -118,7 +122,9 @@ export async function getUserMetadata(userId: string, forceRefresh = false) {
   ) {
     return cachedUserParsed.data;
   } else {
-    const response = await favel.getUser(userId);
+    const response = await favelClient(getToken).then(async (favel) => {
+      return favel.getUser(userId);
+    });
     console.log(response);
 
     if (response) {

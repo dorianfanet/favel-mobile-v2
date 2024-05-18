@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  SafeAreaView,
   Pressable,
   StyleSheet,
   TouchableOpacity,
@@ -10,29 +9,18 @@ import {
   FlatList,
   Keyboard,
 } from "react-native";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { Stack, useLocalSearchParams, useSegments } from "expo-router";
-import Icon from "@/components/Icon";
-import { QuestionType, Trip, TripMetadata } from "@/types/types";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { TripMetadata } from "@/types/types";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { TextInput } from "react-native-gesture-handler";
-import { capitalizeFirstLetter, getDaysDiff } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
+import { capitalizeFirstLetter } from "@/lib/utils";
 import { newTripPrompts } from "@/data/prompts";
 import { useTrip } from "@/context/tripContext";
 import Colors from "@/constants/Colors";
-import Question from "./Question";
 import { Form as FormType, useNewTripForm } from "@/context/newTrip";
-import { favel } from "@/lib/favelApi";
 import { BlurView } from "@/components/Themed";
-import { borderRadius, padding } from "@/constants/values";
-import { destination } from "@turf/turf";
+import { borderRadius } from "@/constants/values";
 import ChatSuggestions from "../components/ChatSuggestions";
 import ContainedButton from "@/components/ContainedButton";
 import Animated, {
@@ -41,22 +29,21 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Picker } from "@react-native-picker/picker";
-import { Image } from "expo-image";
 import { AnimatePresence, View as MotiView } from "moti";
+import { useAuth } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { favelClient } from "@/lib/favelApi";
 
 const suggestions = [
+  "Je ne sais pas",
   "Balade dans les Alpes",
   "Séjour à Paris",
   "Road trip en Californie",
   "Découverte de l'Asie",
-  "Je ne sais pas encore",
   "Châteaux de la Loire",
 ];
 
 export default function Form() {
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [prevIndex, setPrevIndex] = useState<number | null>(null);
-
   const {
     setTripMetadata,
     tripMetadata,
@@ -76,6 +63,8 @@ export default function Form() {
   }, [initialDestination]);
 
   const { rest } = useLocalSearchParams();
+
+  const { getToken } = useAuth();
 
   const handleSubmit = async (
     duration: number,
@@ -101,33 +90,37 @@ export default function Form() {
       Voici mes préférences :
       ${newTripPrompts.dynamism[intensity]}
     `;
-    const { error } = await supabase
-      .from("trips_v2")
-      .update({
-        preferences: {
-          ...form,
-          flexDates: {
-            ...form.flexDates,
+    await supabaseClient(getToken).then(async (supabase) => {
+      const { error } = await supabase
+        .from("trips_v2")
+        .update({
+          preferences: {
+            ...form,
+            flexDates: {
+              ...form.flexDates,
+              duration: duration,
+            },
+          },
+          prompt,
+          dates: {
+            type: "flexDates",
             duration: duration,
           },
-        },
-        prompt,
-        dates: {
-          type: "flexDates",
-          duration: duration,
-        },
-        status: "new.route",
-      })
-      .eq("id", rest[0]);
-    if (error) {
-      console.error("Error updating trip", error);
-    }
+          status: "new.route",
+        })
+        .eq("id", rest[0]);
+      if (error) {
+        console.error("Error updating trip", error);
+      }
+    });
   };
 
   const handleSendDestination = async (duration: number) => {
-    if (!form.destination) return;
-    const data = await favel.fetchDestinationData(form.destination, duration);
-    setDestinationData(data);
+    favelClient(getToken).then(async (favel) => {
+      if (!form.destination) return;
+      const data = await favel.fetchDestinationData(form.destination, duration);
+      setDestinationData(data);
+    });
   };
 
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -408,12 +401,14 @@ function FormBottomSheet({
                     }}
                     style={{
                       flex: 1,
+                      color: "white",
                     }}
                     itemStyle={{
                       fontSize: 22,
                       fontFamily: "Outfit_600SemiBold",
                       color: "white",
                     }}
+                    dropdownIconColor={"white"}
                   >
                     <Picker.Item
                       label="---"

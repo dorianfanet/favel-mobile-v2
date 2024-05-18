@@ -1,10 +1,7 @@
 import {
   View,
-  DimensionValue,
-  Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  Pressable,
   StatusBar,
   ActivityIndicator,
 } from "react-native";
@@ -15,44 +12,32 @@ import React, {
   useRef,
   useState,
 } from "react";
-import BottomSheet, {
+import {
   BottomSheetBackdrop,
-  BottomSheetFlatList,
-  BottomSheetFlatListMethods,
   BottomSheetFooter,
   BottomSheetModal,
   BottomSheetView,
   TouchableOpacity,
 } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
-import {
-  Activity,
-  FormattedTrip,
-  Route,
-  Trip,
-  TripChatMessage,
-} from "@/types/types";
+import { TripChatMessage } from "@/types/types";
 import { useTrip } from "@/context/tripContext";
 import { FlatList } from "react-native-gesture-handler";
-import { ScrollView } from "react-native-gesture-handler";
 import { BlurView, Text } from "@/components/Themed";
-import ImageWithFallback from "@/components/ImageWithFallback";
 import { padding } from "@/constants/values";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "@/components/Icon";
 import Input from "./Input";
-import { supabase } from "@/lib/supabase";
 import { useTripChat } from "@/context/tripChat";
 import Edits from "./Edits";
 import Markdown from "react-native-markdown-display";
-import ActivityCard from "../../components/ActivityCard";
 import { track } from "@amplitude/analytics-react-native";
 import ContainedButton from "@/components/ContainedButton";
-import { favel } from "@/lib/favelApi";
 import { ActivityCardContent } from "../../components/PlaceCard";
+import { useAuth } from "@clerk/clerk-expo";
+import { createClient } from "@supabase/supabase-js";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { favelClient } from "@/lib/favelApi";
 
 export default function TripChat({
   bottomSheetModalRef,
@@ -91,8 +76,34 @@ export default function TripChat({
 
   const flatListRef = useRef<FlatList>(null);
 
+  const [token, setToken] = React.useState<string | null>(null);
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    if (token) return;
+    async function init() {
+      const token = await getToken();
+      setToken(token);
+    }
+    init();
+  }, []);
+
   useEffect(() => {
     if (!tripMetadata?.id) return;
+    if (!token) return;
+
+    const supabase = createClient(
+      process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    );
+
     const channel = supabase
       .channel(
         `${tripMetadata?.id}-${type}-chat${activityId ? `-${activityId}` : ""}`
@@ -160,34 +171,38 @@ export default function TripChat({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [tripMetadata?.id]);
+  }, [tripMetadata?.id, token]);
 
   useEffect(() => {
     async function fetchMessages() {
       if (!tripMetadata?.id) return;
       if (type === "trip") {
-        const { data, error } = await supabase
-          .from("trip_chat")
-          .select(`id, role, content, status, edits, function`)
-          .eq("trip_id", tripMetadata?.id)
-          .order("created_at", { ascending: true });
-        if (error) {
-          console.log(error);
-        } else {
-          setMessages(data as TripChatMessage[]);
-        }
+        await supabaseClient(getToken).then(async (supabase) => {
+          const { data, error } = await supabase
+            .from("trip_chat")
+            .select(`id, role, content, status, edits, function`)
+            .eq("trip_id", tripMetadata?.id)
+            .order("created_at", { ascending: true });
+          if (error) {
+            console.log(error);
+          } else {
+            setMessages(data as TripChatMessage[]);
+          }
+        });
       } else if (type === "activity") {
-        const { data, error } = await supabase
-          .from("activity_chat_v2")
-          .select(`id, role, content, status`)
-          .eq("trip_id", tripMetadata?.id)
-          .eq("activity_id", activityId)
-          .order("created_at", { ascending: true });
-        if (error) {
-          console.log(error);
-        } else {
-          setMessages(data as TripChatMessage[]);
-        }
+        await supabaseClient(getToken).then(async (supabase) => {
+          const { data, error } = await supabase
+            .from("activity_chat_v2")
+            .select(`id, role, content, status`)
+            .eq("trip_id", tripMetadata?.id)
+            .eq("activity_id", activityId)
+            .order("created_at", { ascending: true });
+          if (error) {
+            console.log(error);
+          } else {
+            setMessages(data as TripChatMessage[]);
+          }
+        });
       }
     }
 
@@ -301,28 +316,32 @@ export default function TripChat({
               <TouchableOpacity
                 onPress={async () => {
                   if (type === "trip") {
-                    const { data, error } = await supabase
-                      .from("trip_chat")
-                      .select("id, role, content, edits")
-                      .eq("trip_id", tripMetadata?.id)
-                      .order("created_at", { ascending: true });
-                    if (error) {
-                      console.log(error);
-                    } else {
-                      setMessages(data as TripChatMessage[]);
-                    }
+                    await supabaseClient(getToken).then(async (supabase) => {
+                      const { data, error } = await supabase
+                        .from("trip_chat")
+                        .select("id, role, content, edits")
+                        .eq("trip_id", tripMetadata?.id)
+                        .order("created_at", { ascending: true });
+                      if (error) {
+                        console.log(error);
+                      } else {
+                        setMessages(data as TripChatMessage[]);
+                      }
+                    });
                   } else if (type === "activity") {
-                    const { data, error } = await supabase
-                      .from("activity_chat_v2")
-                      .select("id, role, content")
-                      .eq("trip_id", tripMetadata?.id)
-                      .eq("activity_id", activityId)
-                      .order("created_at", { ascending: true });
-                    if (error) {
-                      console.log(error);
-                    } else {
-                      setMessages(data as TripChatMessage[]);
-                    }
+                    await supabaseClient(getToken).then(async (supabase) => {
+                      const { data, error } = await supabase
+                        .from("activity_chat_v2")
+                        .select("id, role, content")
+                        .eq("trip_id", tripMetadata?.id)
+                        .eq("activity_id", activityId)
+                        .order("created_at", { ascending: true });
+                      if (error) {
+                        console.log(error);
+                      } else {
+                        setMessages(data as TripChatMessage[]);
+                      }
+                    });
                   }
                 }}
                 style={{
@@ -512,13 +531,13 @@ function RevertChangesButton({
 }) {
   const [loading, setLoading] = useState(false);
 
+  const { getToken } = useAuth();
+
   async function handlePress() {
     setLoading(true);
-    const res = await favel.revertModifications(
-      tripId,
-      messageId,
-      userMessageId
-    );
+    await favelClient(getToken).then(async (favel) => {
+      return await favel.revertModifications(tripId, messageId, userMessageId);
+    });
     setLoading(false);
   }
 

@@ -12,7 +12,7 @@ import {
   pointOnFeature,
 } from "@turf/turf";
 import { Route as RouteType } from "@/types/types";
-import MapboxGL, { MarkerView } from "@rnmapbox/maps";
+import MapboxGL, { LineLayer, MarkerView, ShapeSource } from "@rnmapbox/maps";
 import Colors from "@/constants/Colors";
 import Hotspot from "./Hotspot";
 import { useCamera } from "@/context/cameraContext";
@@ -93,14 +93,16 @@ export default function Route() {
     }
   }, [tripMetadata?.route]);
 
+  console.log("routeLines", routeLines);
+
   return (
     <>
-      <MapboxGL.ShapeSource
+      <ShapeSource
         id={"route"}
         key={"route"}
         shape={routeLines}
       >
-        <MapboxGL.LineLayer
+        <LineLayer
           id={"route-layer"}
           style={{
             lineColor: [
@@ -119,7 +121,7 @@ export default function Route() {
           }}
           aboveLayerID="waterway-label"
         />
-        <MapboxGL.LineLayer
+        <LineLayer
           id={"route-layer-base"}
           style={{
             lineColor: "#fff",
@@ -128,7 +130,7 @@ export default function Route() {
           }}
           aboveLayerID="waterway-label"
         />
-      </MapboxGL.ShapeSource>
+      </ShapeSource>
       {routeLines.features.map(
         (day, index) =>
           day.properties &&

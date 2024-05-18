@@ -1,11 +1,22 @@
-import { DestinationData, Route, TripRoute, UserMetadata } from "@/types/types";
+import {
+  ChatMessage,
+  DestinationData,
+  NotificationsPreferences,
+  Route,
+  TripRoute,
+  UserMetadata,
+} from "@/types/types";
 import { getDaysDiff } from "./utils";
+import { Alert } from "react-native";
+import { MMKV } from "@/app/_layout";
 
 class ApiClient {
   private baseUrl: string;
+  private token: string;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, token: string) {
     this.baseUrl = baseUrl;
+    this.token = token;
   }
 
   private async request(
@@ -18,6 +29,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
         "X-Favel-Api-Key": process.env.EXPO_PUBLIC_FAVEL_API_KEY!,
+        Authorization: `Bearer ${this.token}`,
       },
       body: data ? JSON.stringify(data) : null,
     });
@@ -25,6 +37,7 @@ class ApiClient {
     if (!response.ok) {
       const error = await response.json();
       console.error(`Favel Error ${response.status}: ${error.message}`);
+      return error;
     }
 
     return response.json();
@@ -69,7 +82,7 @@ class ApiClient {
     tripId: string,
     messageId: string,
     form: any
-  ): Promise<DestinationData> {
+  ): Promise<ChatMessage | { error: string }> {
     return this.request(`new-trip-chat-groq`, "POST", {
       messages,
       tripId,
@@ -82,7 +95,7 @@ class ApiClient {
     prompt: string,
     tripId: string,
     messageId: string
-  ): Promise<DestinationData> {
+  ): Promise<ChatMessage | { error: string }> {
     return this.request(`new-trip-chat-groq/new`, "POST", {
       prompt,
       tripId,
@@ -257,4 +270,13 @@ class ApiClient {
   }
 }
 
-export const favel = new ApiClient(`${process.env.EXPO_PUBLIC_API_URL}/api`);
+export async function favelClient(getToken: any) {
+  const token = await getToken({ template: "supabase" });
+
+  if (token) {
+    return new ApiClient(`${process.env.EXPO_PUBLIC_API_URL}/api`, token);
+  } else {
+    Alert.alert("Error", "Une erreur s'est produite. Veuillez réessayer.");
+    throw new Error("No token found");
+  }
+}

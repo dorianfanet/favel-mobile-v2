@@ -1,33 +1,17 @@
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Touchable,
-  TouchableOpacity,
-  Share,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
-import { SavedTrip, TripMetadata, UserMetadata } from "@/types/types";
-import { supabase } from "@/lib/supabase";
+import { SavedTrip, UserMetadata } from "@/types/types";
 import { Link } from "expo-router";
 import { Image } from "expo-image";
 import { BlurView, Text } from "./Themed";
-import {
-  formatDateToRelative,
-  formatTimestamp,
-  getUserMetadata,
-} from "@/lib/utils";
+import { getUserMetadata } from "@/lib/utils";
 import { borderRadius } from "@/constants/values";
-import ImageWithFallback from "./ImageWithFallback";
 import { months } from "@/constants/data";
 import Colors from "@/constants/Colors";
-import { useUser } from "@clerk/clerk-expo";
-import UserCard from "./UserCard";
-import Icon, { IconProps } from "./Icon";
-import ShareIcon from "./ShareIcon";
-import { track } from "@amplitude/analytics-react-native";
-import { favel } from "@/lib/favelApi";
-import { MMKV } from "@/app/(auth)/trip/_layout";
+import Icon from "./Icon";
+import { MMKV } from "@/app/_layout";
+import { useAuth } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function TripCard({
   tripId,
@@ -42,23 +26,27 @@ export default function TripCard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function updateTrip() {
-    const { data, error } = await supabase
-      .from("trips_v2")
-      .select("id, name, author_id, dates, route, invited_ids")
-      .eq("id", tripId);
+  const { getToken } = useAuth();
 
-    if (error) {
-      console.error("Error:", error);
-      setError(error.message);
-      setLoading(false);
-    } else {
-      console.log("Data:", data);
-      setTrip(data[0]);
-      onTripChange && onTripChange(data[0]);
-      setLoading(false);
-      MMKV.setString(`trip-metadata-${tripId}`, JSON.stringify(data[0]));
-    }
+  async function updateTrip() {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase
+        .from("trips_v2")
+        .select("id, name, author_id, dates, route, invited_ids")
+        .eq("id", tripId);
+
+      if (error) {
+        console.error("Error:", error);
+        setError(error.message);
+        setLoading(false);
+      } else {
+        console.log("Data:", data);
+        setTrip(data[0]);
+        onTripChange && onTripChange(data[0]);
+        setLoading(false);
+        MMKV.setString(`trip-metadata-${tripId}`, JSON.stringify(data[0]));
+      }
+    });
   }
 
   useEffect(() => {
@@ -230,13 +218,14 @@ function WithList({
   tripId: string;
 }) {
   const [travelers, setTravelers] = React.useState<UserMetadata[] | null>(null);
+  const { getToken } = useAuth();
 
   useEffect(() => {
     async function fetchTravelers() {
       const travelers = [...invitedIds, authorId];
       const users = await Promise.all(
         travelers.map(async (id) => {
-          const user = await getUserMetadata(id);
+          const user = await getUserMetadata(id, undefined, getToken);
           return {
             id: user?.id,
             firstName: user?.firstName || "Anonyme",

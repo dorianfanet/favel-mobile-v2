@@ -1,28 +1,6 @@
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  PanResponder,
-  Animated,
-} from "react-native";
-import React, { useEffect, useState } from "react";
-import { Activity, CachedActivity, Category } from "@/types/types";
-import Icon from "@/components/Icon";
-import Colors from "@/constants/Colors";
-import { Text } from "@/components/Themed";
-import { categories, colors as categoryColor } from "@/constants/categories";
-import { formatHoursToHoursAndMinutes } from "@/lib/utils";
+import React from "react";
+import { Activity } from "@/types/types";
 import RouteCard from "./RouteCard";
-import { RectButton, Swipeable } from "react-native-gesture-handler";
-import Reanimated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
-import { useTrip } from "@/context/tripContext";
-import { supabase } from "@/lib/supabase";
-import { useUser } from "@clerk/clerk-expo";
 import PlaceCard from "./PlaceCard";
 
 export default function ActivityCard({

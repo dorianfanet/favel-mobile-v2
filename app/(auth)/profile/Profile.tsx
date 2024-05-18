@@ -17,19 +17,16 @@ import { Text, View as ThemedView, Button } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { Image } from "expo-image";
 import { borderRadius, padding } from "@/constants/values";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { favel } from "@/lib/favelApi";
+import { Link, useRouter } from "expo-router";
 import { months } from "@/constants/data";
-import { track } from "@amplitude/analytics-react-native";
 import { Post, SavedTrip, UserMetadata } from "@/types/types";
-import { supabase } from "@/lib/supabase";
-import TripCard from "@/components/TripCard";
 import FollowButton from "@/components/FollowButton";
 import { getUserMetadata, getUserMetadataFromCache } from "@/lib/utils";
 import Icon from "@/components/Icon";
-import { MMKV } from "../trip/_layout";
+import { MMKV } from "@/app/_layout";
 import PostCard from "@/components/Post/PostCard";
 import ContainedButton from "@/components/ContainedButton";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function Profile({ userId }: { userId: string }) {
   useEffect(() => {
@@ -47,22 +44,26 @@ export default function Profile({ userId }: { userId: string }) {
   >(null);
   const isPostEndReached = React.useRef(false);
 
+  const { getToken } = useAuth();
+
   async function fetchFollowedUserPosts() {
-    const { data, error } = await supabase.rpc("get_posts_of_user", {
-      user_id: userId,
-      page_number: 0,
+    return await supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase.rpc("get_posts_of_user", {
+        user_id: userId,
+        page_number: 0,
+      });
+
+      if (error) {
+        console.error("Error:", error);
+        setLoading(false);
+      } else {
+        console.log("Data:", data);
+        setPosts(data);
+        setLoading(false);
+      }
+
+      return data;
     });
-
-    if (error) {
-      console.error("Error:", error);
-      setLoading(false);
-    } else {
-      console.log("Data:", data);
-      setPosts(data);
-      setLoading(false);
-    }
-
-    return data;
   }
 
   useEffect(() => {
@@ -73,44 +74,52 @@ export default function Profile({ userId }: { userId: string }) {
     if (!userId) return;
     if (isPostEndReached.current) return;
     setScrollLoading("loading");
-    const { data, error } = await supabase.rpc("get_posts_of_user", {
-      user_id: userId,
-      page_number: page + 1,
+    return await supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase.rpc("get_posts_of_user", {
+        user_id: userId,
+        page_number: page + 1,
+      });
+
+      if (error) {
+        console.error("Error:", error);
+        setScrollLoading(null);
+        setError("Une erreur est survenue.");
+      } else if (data.length === 0) {
+        setScrollLoading("last");
+        setError(null);
+        isPostEndReached.current = true;
+      } else {
+        console.log("Data:", data);
+        setPosts([...posts!, ...data]);
+        setScrollLoading(null);
+        setError(null);
+        setPage(page + 1);
+      }
+
+      return data;
     });
-
-    if (error) {
-      console.error("Error:", error);
-      setScrollLoading(null);
-      setError("Une erreur est survenue.");
-    } else if (data.length === 0) {
-      setScrollLoading("last");
-      setError(null);
-      isPostEndReached.current = true;
-    } else {
-      console.log("Data:", data);
-      setPosts([...posts!, ...data]);
-      setScrollLoading(null);
-      setError(null);
-      setPage(page + 1);
-    }
-
-    return data;
   }
 
   return loading ? (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: Colors.light.background,
-      }}
-    >
-      <ActivityIndicator
-        animating
-        size="large"
+    <>
+      <ProfileComponent
+        profileId={userId}
+        refreshProfile={refreshProfile}
       />
-    </View>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: Colors.light.background,
+        }}
+      >
+        <ActivityIndicator
+          animating
+          size="large"
+        />
+      </View>
+    </>
   ) : posts && posts.length > 0 ? (
     <FlatList
       data={posts}
@@ -202,177 +211,6 @@ export default function Profile({ userId }: { userId: string }) {
       </View>
     </>
   );
-
-  // const [trips, setTrips] = React.useState<SavedTrip[] | []>([]);
-
-  // const [refreshing, setRefreshing] = React.useState(false);
-  // const page = useRef(0);
-  // const [scrollLoading, setScrollLoading] = React.useState<
-  //   "loading" | "last" | null
-  // >(null);
-
-  // const [refreshProfile, setRefreshProfile] = useState<number>(0);
-
-  // useEffect(() => {
-  //   track("Profile page viewed");
-  //   onRefresh();
-  // }, []);
-
-  // const onRefresh = React.useCallback(async () => {
-  //   // const newTrips = await getTrips(0);
-  //   // page.current = 0;
-  //   // if (newTrips) {
-  //   //   setTrips(newTrips);
-  //   // }
-  //   // await updateProfileMetadata();
-  //   setRefreshing(false);
-  // }, []);
-
-  // // async function getTrips(currentPage: number) {
-  // //   if (!user) return;
-  // //   console.log("page", page.current);
-  // //   const { data: trips, error } = await supabase
-  // //     .from("trips_v2")
-  // //     .select("id, name, route, dates, author_id, updated_at, invited_ids")
-  // //     // .or(`author_id.eq.${user?.id}`)
-  // //     .or(`author_id.eq.${user?.id},invited_ids.cs.{${user!.id}}`)
-  // //     .like("status", "trip%")
-  // //     .order("updated_at", { ascending: false })
-  // //     .range(currentPage * 5, currentPage * 5 + 4);
-
-  // //   if (error) {
-  // //     Alert.alert("Error", error.message);
-  // //     console.log(error);
-  // //   } else return trips;
-  // // }
-
-  // async function addTrips() {
-  //   // const newTrips = await getTrips(page.current + 1);
-  //   // if (newTrips) {
-  //   //   setTrips([...trips, ...newTrips]);
-  //   //   page.current += 1;
-  //   // }
-  // }
-
-  // // async function updateProfileMetadata() {
-  // //   const { data, error } = await supabase
-  // //     .from("trips_v2")
-  // //     .select("author_id, invited_ids")
-  // //     .or(`author_id.eq.${userId},invited_ids.cs.{${userId}}`)
-  // //     .like("status", "trip%");
-
-  // //   if (error) {
-  // //     console.error(error);
-  // //     setRefreshing(false);
-  // //     return;
-  // //   }
-
-  // //   if (data) {
-  // //     let travelers = data.map((trip: any) => {
-  // //       let temp = [];
-  // //       if (trip.author_id) temp.push(trip.author_id);
-  // //       if (trip.invited_ids) temp.push(...trip.invited_ids);
-  // //       return temp;
-  // //     });
-
-  // //     const userMetadata = await favel.getUser(userId);
-
-  // //     if (
-  // //       userMetadata &&
-  // //       userMetadata.publicMetadata &&
-  // //       userMetadata.publicMetadata.coTravelers
-  // //     ) {
-  // //       travelers.push(userMetadata.publicMetadata.coTravelers);
-  // //     }
-
-  // //     const coTravelers = Array.from(
-  // //       new Set(travelers.flat().filter((id: string) => id !== userId))
-  // //     );
-
-  // //     console.log("trips", data.length);
-  // //     console.log("coTravelersCountr", coTravelers.length);
-  // //     console.log("coTravelers", coTravelers);
-
-  // //     await favel.updateUser(userId, {
-  // //       publicMetadata: {
-  // //         trips: data.length,
-  // //         coTravelers: coTravelers,
-  // //       },
-  // //     });
-  // //   }
-  // // }
-
-  // return (
-  //   <>
-  //     <FlatList
-  //       refreshControl={
-  //         <RefreshControl
-  //           refreshing={refreshing}
-  //           onRefresh={() => {
-  //             setRefreshing(true);
-  //             setRefreshProfile(refreshProfile + 1);
-  //             onRefresh();
-  //           }}
-  //           colors={[Colors.light.primary]}
-  //           tintColor={Colors.light.primary}
-  //         />
-  //       }
-  //       contentContainerStyle={{
-  //         rowGap: 10,
-  //         paddingBottom: 60,
-  //       }}
-  //       style={{
-  //         padding: 0,
-  //         backgroundColor: Colors.light.background,
-  //       }}
-  //       data={trips}
-  //       keyExtractor={(item) => item.id}
-  //       renderItem={({ item }) => (
-  //         <View
-  //           style={{
-  //             paddingHorizontal: padding,
-  //           }}
-  //         >
-  //           {/* <TripCard
-  //             key={item.id}
-  //             trip={item}
-  //           /> */}
-  //         </View>
-  //       )}
-  //       onEndReached={() => {
-  //         setScrollLoading("loading");
-  //         addTrips();
-  //         setScrollLoading(null);
-  //       }}
-  //       ListFooterComponent={
-  //         <View style={{ marginTop: 10 }}>
-  //           {scrollLoading === "loading" && (
-  //             <ActivityIndicator
-  //               animating
-  //               size="large"
-  //             />
-  //           )}
-  //           <Text
-  //             style={{
-  //               textAlign: "center",
-  //             }}
-  //           >
-  //             {/* {!scrollLoading &&
-  //                 "Descendez encore pour charger d'autres voyages"} */}
-  //             {scrollLoading === "last" &&
-  //               "Il n'y a plus de voyages à afficher"}
-  //           </Text>
-  //         </View>
-  //       }
-  // ListHeaderComponent={
-  //   <ProfileComponent
-  //     profileId={userId}
-  //     refreshProfile={refreshProfile}
-  //   />
-  // }
-  //     />
-  //   </>
-  // );
 }
 
 function ProfileComponent({
@@ -382,52 +220,62 @@ function ProfileComponent({
   profileId: string | null;
   refreshProfile?: number;
 }) {
-  const [user, setUser] = useState<UserMetadata | null>(null);
+  const [user, setUser] = useState<UserMetadata | null>(
+    JSON.parse(MMKV.getString(`profile-${profileId}`) || "{}").user || null
+  );
   const { user: authUser } = useUser();
-  const [followers, setFollowers] = useState<number | null>(null);
-  const [following, setFollowing] = useState<number | null>(null);
+  const [followers, setFollowers] = useState<number | null>(
+    JSON.parse(MMKV.getString(`profile-${profileId}`) || "{}").followers || null
+  );
+  const [following, setFollowing] = useState<number | null>(
+    JSON.parse(MMKV.getString(`profile-${profileId}`) || "{}").following || null
+  );
 
   const router = useRouter();
 
-  const getAndSetFollowers = useCallback(async (profileId: string) => {
-    const { count, error } = await supabase
-      .from("follows")
-      .select("*", { count: "exact", head: true })
-      .eq("following_id", profileId);
+  const { getToken } = useAuth();
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+  const getAndSetFollowers = useCallback((profileId: string) => {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { count, error } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", profileId);
 
-    const followersCount = count || 0;
-    setFollowers(followersCount);
-    MMKV.setString(`followers_count-${profileId}`, followersCount.toString());
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const followersCount = count || 0;
+      setFollowers(followersCount);
+      MMKV.setString(`followers_count-${profileId}`, followersCount.toString());
+    });
   }, []);
 
-  const getAndSetFollowing = useCallback(async (profileId: string) => {
-    const { count, error } = await supabase
-      .from("follows")
-      .select("*", { count: "exact", head: true })
-      .eq("follower_id", profileId);
+  const getAndSetFollowing = useCallback((profileId: string) => {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { count, error } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", profileId);
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+      if (error) {
+        console.error(error);
+        return;
+      }
 
-    const followingCount = count || 0;
-    setFollowing(followingCount);
-    MMKV.setString(`following_count-${profileId}`, followingCount.toString());
+      const followingCount = count || 0;
+      setFollowing(followingCount);
+      MMKV.setString(`following_count-${profileId}`, followingCount.toString());
+    });
   }, []);
 
   useEffect(() => {
     if (!profileId) return;
 
     const getUser = async () => {
-      const cache = JSON.parse(MMKV.getString(`user-${profileId}`) || "{}");
-      if (cache && "data" in cache) setUser(cache.data);
-      const data = await getUserMetadata(profileId);
+      const data = await getUserMetadata(profileId, undefined, getToken);
       setUser(data);
     };
 
@@ -443,6 +291,18 @@ function ProfileComponent({
   }, [profileId, refreshProfile, getAndSetFollowers, getAndSetFollowing]);
 
   console.log(user);
+
+  useEffect(() => {
+    if (!profileId) return;
+    MMKV.setString(
+      `profile-${profileId}`,
+      JSON.stringify({
+        user: user,
+        followers: followers,
+        following: following,
+      })
+    );
+  }, [user, followers, following]);
 
   return user ? (
     <View
@@ -547,7 +407,7 @@ function ProfileComponent({
           height: 50,
         }}
       >
-        <Count
+        {/* <Count
           count={
             user?.publicMetadata && user.publicMetadata.trips
               ? (user.publicMetadata.trips as number)
@@ -555,7 +415,7 @@ function ProfileComponent({
           }
           title={"Voyages"}
           onPress={() => router.navigate("/(auth)/(tabs)/home")}
-        />
+        /> */}
         <Count
           count={followers || 0}
           title={"Abonnés"}

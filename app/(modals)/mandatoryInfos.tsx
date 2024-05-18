@@ -2,13 +2,13 @@ import { View } from "react-native";
 import { View as ThemedView } from "@/components/Themed";
 import React, { useEffect, useState } from "react";
 import { Text, TextInput } from "@/components/Themed";
-import { MMKV } from "../(auth)/trip/_layout";
-import { useUser } from "@clerk/clerk-expo";
+import { MMKV } from "@/app/_layout";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { padding } from "@/constants/values";
 import { Picker } from "@react-native-picker/picker";
 import ContainedButton from "@/components/ContainedButton";
-import { favel } from "@/lib/favelApi";
 import { useRouter } from "expo-router";
+import { favelClient } from "@/lib/favelApi";
 
 export default function mandatoryInfos() {
   const [infos, setInfos] = useState<{
@@ -37,15 +37,19 @@ export default function mandatoryInfos() {
     }
   }
 
+  const { getToken } = useAuth();
+
   function handleSave() {
     user?.update({
       firstName: firstName,
       lastName: lastName,
     });
-    favel.updateUser(user!.id, {
-      privateMetadata: {
-        origin: origin,
-      },
+    favelClient(getToken).then((favel) => {
+      favel.updateUser(user!.id, {
+        privateMetadata: {
+          origin: origin,
+        },
+      });
     });
 
     user?.reload();

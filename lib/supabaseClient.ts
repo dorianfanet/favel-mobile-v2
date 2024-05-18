@@ -1,0 +1,23 @@
+import { createClient } from "@supabase/supabase-js";
+import { useAuth } from "@clerk/clerk-expo";
+import { Alert } from "react-native";
+
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+export async function supabaseClient(getToken: any) {
+  const token = await getToken({ template: "supabase" });
+
+  if (token) {
+    return createClient(supabaseUrl!, supabaseAnonKey!, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+  } else {
+    Alert.alert("Error", "Une erreur s'est produite. Veuillez réessayer.");
+    throw new Error("No token found");
+  }
+}

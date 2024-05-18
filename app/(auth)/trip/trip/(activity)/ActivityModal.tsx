@@ -23,12 +23,13 @@ import Colors from "@/constants/Colors";
 import { formatHoursToHoursAndMinutes } from "@/lib/utils";
 import * as Linking from "expo-linking";
 import * as MailComposer from "expo-mail-composer";
-import { favel } from "@/lib/favelApi";
-import { MMKV } from "../../_layout";
+import { MMKV } from "@/app/_layout";
 import { Image } from "expo-image";
 import ActivityImage from "@/components/ActivityImage";
 import TripChatWrapper from "../(chat)/TripChatWrapper";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
+import { favelClient } from "@/lib/favelApi";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function ActivityModal() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -44,6 +45,8 @@ export default function ActivityModal() {
 
   const { editor, setEditor } = useEditor();
   const { tripUserRole } = useTripUserRole();
+
+  const { getToken } = useAuth();
 
   async function fetchActivity() {
     if (editor && editor.type === "activity") {
@@ -62,15 +65,19 @@ export default function ActivityModal() {
         !activity.display_category ||
         !activity.category
       ) {
-        const updatedActivity = await favel.updateActivity(editor.activity.id, {
-          metadata:
-            !activity.avg_duration ||
-            !activity.display_category ||
-            !activity.category
-              ? true
-              : false,
-          description: !description ? true : false,
-        });
+        const updatedActivity = await favelClient(getToken).then(
+          async (favel) => {
+            return await favel.updateActivity(editor.activity.id, {
+              metadata:
+                !activity.avg_duration ||
+                !activity.display_category ||
+                !activity.category
+                  ? true
+                  : false,
+              description: !description ? true : false,
+            });
+          }
+        );
 
         if (
           (updatedActivity && !activity.avg_duration) ||
