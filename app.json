@@ -2,7 +2,7 @@
   "expo": {
     "name": "Favel",
     "slug": "favel-mobile",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "favel",
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "25",
+      "buildNumber": "29",
       "entitlements": {
         "com.apple.developer.applesignin": [
           "Default"
@@ -45,7 +45,7 @@
       [
         "@rnmapbox/maps",
         {
-          "RNMapboxMapsVersion": "10.16.6",
+          "RNMapboxMapsVersion": "10.17.0",
           "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q"
         }
       ],
