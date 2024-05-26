@@ -13,8 +13,6 @@ export default function Activities() {
 
   const { editor, setEditor } = useEditor();
 
-  console.log(editor);
-
   return trip && viewState === "days" ? (
     <>
       <DayLines />
@@ -59,7 +57,7 @@ export default function Activities() {
                         editor.dayId === day.id) ||
                       (tripMetadata?.status.includes("loading") &&
                         trip.length - 1 === index)
-                        ? "active"
+                        ? "inactive"
                         : "inactive"
                     }
                     onPress={() => {

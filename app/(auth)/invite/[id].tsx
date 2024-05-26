@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
-import { favel } from "@/lib/favelApi";
-import { useUser } from "@clerk/clerk-expo";
+import { favelClient } from "@/lib/favelApi";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Identify, identify, track } from "@amplitude/analytics-react-native";
 import ContainedButton from "@/components/ContainedButton";
 
@@ -14,6 +14,8 @@ export default function Index() {
   const router = useRouter();
 
   const [error, setError] = React.useState<string | null>(null);
+
+  const { getToken } = useAuth();
 
   useEffect(() => {
     handleInvite();
@@ -31,16 +33,18 @@ export default function Index() {
     identifyObj.set("joinedFromTripInvite", "true");
     identify(identifyObj);
 
-    favel
-      .inviteUser(id as string, user.id, user.firstName || "Inconnu")
-      .then((res) => {
-        console.log(res);
-        if (res.id) {
-          router.push(`/trip/${res.id}`);
-        } else {
-          setError("Erreur lors de l'invitation. Veuillez réessayer.");
-        }
-      });
+    favelClient(getToken).then((favel) =>
+      favel
+        .inviteUser(id as string, user.id, user.firstName || "Inconnu")
+        .then((res) => {
+          console.log(res);
+          if (res.id) {
+            router.push(`/trip/${res.id}`);
+          } else {
+            setError("Erreur lors de l'invitation. Veuillez réessayer.");
+          }
+        })
+    );
   }
 
   return (

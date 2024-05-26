@@ -16,6 +16,8 @@ import { Text } from "../Themed";
 import CommentButton from "./actions/CommentButton";
 import { track } from "@amplitude/analytics-react-native";
 import { useAuth } from "@clerk/clerk-expo";
+import ContainedButton from "../ContainedButton";
+import { useRouter } from "expo-router";
 
 export default function PostCard({
   post,
@@ -58,6 +60,8 @@ export default function PostCard({
   useEffect(() => {
     MMKV.setString(`post-${post.id}`, JSON.stringify(post));
   }, [post]);
+
+  const router = useRouter();
 
   return (
     <View
@@ -102,10 +106,27 @@ export default function PostCard({
         </View>
       ) : null}
       {post.type === "trip" && post.trip_id ? (
-        <TripCard
-          tripId={post.trip_id}
-          postId={post.id}
-        />
+        <>
+          <TripCard
+            tripId={post.trip_id}
+            postId={post.id}
+          />
+          {noLink ? (
+            <ContainedButton
+              title="Voir le voyage"
+              onPress={() => {
+                track("Voir le voyage clicked", {
+                  tripId: post.trip_id,
+                });
+                router.push(`/trip/${post.trip_id}`);
+              }}
+              style={{
+                marginTop: 10,
+                paddingVertical: 10,
+              }}
+            />
+          ) : null}
+        </>
       ) : null}
       {post.original_post ? (
         <PostCard

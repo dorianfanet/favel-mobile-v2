@@ -1,5 +1,5 @@
 import { Text, TouchableOpacity } from "react-native";
-import React, { RefObject, useEffect, useRef } from "react";
+import React, { RefObject, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import "react-native-get-random-values";
 import Colors from "@/constants/Colors";
@@ -11,10 +11,12 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTrip } from "@/context/tripContext";
 import { BottomSheetFlatListMethods } from "@gorhom/bottom-sheet";
-import { borderRadius, padding } from "@/constants/values";
-import { useAuth } from "@clerk/clerk-expo";
+import { borderRadius } from "@/constants/values";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { favelClient } from "@/lib/favelApi";
+import { TripMetadata } from "@/types/types";
+import { useNewTripForm } from "@/context/newTrip";
 
 export default function ValidateRouteButton({
   listRef,
@@ -23,6 +25,8 @@ export default function ValidateRouteButton({
 }) {
   const opacity = useSharedValue(0);
   const height = useSharedValue(0);
+
+  const { user } = useUser();
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -36,13 +40,11 @@ export default function ValidateRouteButton({
     height.value = 63;
   }, []);
 
-  const { setDestinationData, tripMetadata } = useTrip();
+  const { setDestinationData, tripMetadata, setTripMetadata } = useTrip();
 
-  const { rest } = useLocalSearchParams();
+  const { form } = useNewTripForm();
 
-  const id = rest[0];
-
-  const router = useRouter();
+  const { id } = useLocalSearchParams();
 
   const { getToken } = useAuth();
 
@@ -70,23 +72,40 @@ export default function ValidateRouteButton({
           width: "100%",
         }}
         onPress={async () => {
+          if (!tripMetadata) return;
           setDestinationData(null);
           if (tripMetadata && tripMetadata.route) {
             favelClient(getToken).then((favel) => {
               if (!tripMetadata.route) return;
-              favel.createTripName(tripMetadata.route, id);
+              favel.createTripName(tripMetadata.route, id as string);
             });
           }
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          router.navigate(`/(auth)/trip/${id}/trip`);
-          await supabaseClient(getToken).then(async (supabase) => {
+          favelClient(getToken).then((favel) => {
+            console.log(tripMetadata, tripMetadata.route);
+            if (tripMetadata.route) {
+              console.log("Creating trip");
+              favel.createTrip(id as string, tripMetadata.route, user!.id);
+            }
+          });
+          supabaseClient(getToken).then(async (supabase) => {
             const { error } = await supabase
               .from("trips_v2")
-              .update({ status: "trip.init" })
+              .update({
+                status: "trip.loading",
+                dates: {
+                  type: "flexDates",
+                  duration: form.flexDates.duration,
+                },
+              })
               .eq("id", id);
             if (error) {
               console.log(error);
             }
+          });
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          setTripMetadata({
+            ...(tripMetadata as TripMetadata),
+            status: "trip.loading",
           });
         }}
       >

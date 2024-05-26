@@ -92,17 +92,28 @@ export default function UserCard({
           marginRight: sizes[size].gap,
         }}
       />
-      <View
+      <Text
+        style={{
+          fontSize: sizes[size].text,
+          fontFamily: "Outfit_600SemiBold",
+          color: Colors[theme].primary,
+        }}
+      >
+        {userMetadata.firstName} {userMetadata.lastName}{" "}
+        {/* {youIndicator && userMetadata.id === user?.id ? "(vous)" : ""} */}
+      </Text>
+      {/* <View
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
           alignContent: "center",
-          flex: 1,
         }}
       >
         <View
           style={{
             justifyContent: "center",
+            backgroundColor: "green",
+            flex: 1,
           }}
         >
           <Text
@@ -113,14 +124,13 @@ export default function UserCard({
             }}
           >
             {userMetadata.firstName} {userMetadata.lastName}{" "}
-            {youIndicator && userMetadata.id === user?.id ? "(vous)" : ""}
           </Text>
           {DetailsComponent && <DetailsComponent />}
         </View>
         {followButton && userMetadata.id && userMetadata.id !== user?.id && (
           <FollowButton profileId={userMetadata.id} />
         )}
-      </View>
+      </View> */}
     </TouchableOpacity>
   ) : // </Link>
   null;

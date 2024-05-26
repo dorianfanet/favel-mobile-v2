@@ -48,7 +48,6 @@ const windowHeight = Dimensions.get("window").height;
 
 export default function TripBottomSheet() {
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const [sheetIndex, setSheetIndex] = useState(1);
 
   const flatListHeight = useRef<number>(0);
 
@@ -58,7 +57,6 @@ export default function TripBottomSheet() {
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
-    setSheetIndex(index);
   }, []);
 
   const inset = useSafeAreaInsets();
@@ -123,8 +121,6 @@ export default function TripBottomSheet() {
   const bottomSheetOffset = useRef<number>(10000);
 
   function handleScroll(offset: number) {
-    const totalFlatListHeight = flatListHeight.current + windowHeight * 0.35;
-    // console.log("offset", offset, flatListHeight.current);
     scrollOffset.current = offset;
     if (offset < -20) {
       bottomSheetRef.current?.snapToIndex(1);
@@ -146,7 +142,7 @@ export default function TripBottomSheet() {
     }
   }, [tripMetadata?.status]);
 
-  const { editor, setEditor } = useEditor();
+  const { editor } = useEditor();
 
   const { getToken } = useAuth();
 
@@ -191,7 +187,6 @@ export default function TripBottomSheet() {
   function updateFormattedTrip(newTrip: FormattedTrip, to: number) {
     if (to === 0) return;
     if (newTrip[0].formattedType !== "day") {
-      // move the second item to the first position
       let temp = newTrip[0];
       newTrip[0] = newTrip[1];
       newTrip[1] = temp;
@@ -219,7 +214,6 @@ export default function TripBottomSheet() {
         previousIndexPosition = i;
       }
 
-      // Return the last index and its position if the given number is greater than all indexes
       return {
         previousIndexValue: previousIndexValue,
         previousIndexPosition: previousIndexPosition,
@@ -255,78 +249,6 @@ export default function TripBottomSheet() {
     }
   }
 
-  const curenntlyVisibleIndex = useRef<number>(0);
-
-  // const onViewRef = useRef(
-  //   ({
-  //     viewableItems,
-  //     changed,
-  //   }: {
-  //     viewableItems: Array<{ item: string; index: number }>;
-  //     changed: Array<{ item: string; index: number; isViewable: boolean }>;
-  //   }) => {
-  //     if (viewableItems.length > 0) {
-  //       console.log("Currently visible item: ", viewableItems[0].index);
-  //       console.log("formattedTrip", formattedTrip);
-  //       curenntlyVisibleIndex.current = viewableItems[0].index;
-  //       if (formattedTrip) {
-  //         const currentItem = formattedTrip[viewableItems[0].index];
-  //         if (currentItem.formattedType === "day") {
-  //           if (currentItem.id) {
-  //             setEditor({
-  //               type: "day",
-  //               noScroll: true,
-  //               day: {
-  //                 id: currentItem.id,
-  //               },
-  //             });
-  //           }
-  //         } else {
-  //           if (currentItem.dayId) {
-  //             setEditor({
-  //               type: "day",
-  //               day: {
-  //                 id: currentItem.dayId,
-  //               },
-  //             });
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // );
-
-  function onViewChanged({ viewableItems, changed }: any) {
-    if (viewableItems.length > 0) {
-      console.log("Currently visible item: ", viewableItems[0].index);
-      curenntlyVisibleIndex.current = viewableItems[0].index;
-      if (formattedTrip) {
-        const currentItem = formattedTrip[viewableItems[0].index];
-        if (currentItem.formattedType === "day") {
-          if (currentItem.id) {
-            setEditor({
-              type: "day",
-              noScroll: true,
-              day: {
-                id: currentItem.id,
-              },
-            });
-          }
-        } else {
-          if (currentItem.dayId) {
-            setEditor({
-              type: "day",
-              noScroll: true,
-              day: {
-                id: currentItem.dayId,
-              },
-            });
-          }
-        }
-      }
-    }
-  }
-
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -349,7 +271,7 @@ export default function TripBottomSheet() {
         backgroundColor: "white",
       }}
       topInset={inset.top}
-      handleComponent={(props) => (
+      handleComponent={() => (
         <Animated.View
           style={{
             height: 30,
@@ -378,19 +300,6 @@ export default function TripBottomSheet() {
       {formattedTrip && (
         <DraggableFlatList
           onScrollOffsetChange={handleScroll}
-          // @ts-ignore
-          // onViewableItemsChanged={onViewChanged}
-          // viewabilityConfig={{
-          //   viewAreaCoveragePercentThreshold: 50,
-          // }}
-          // onLayout={(e) => {
-          //   if (e.nativeEvent.layout.height > 0) {
-          //     flatListHeight.current = e.nativeEvent.layout.height;
-          //   }
-          // }}
-          // onScroll={(e) => {
-          //   console.log("scroll", e.nativeEvent.contentOffset.y);
-          // }}
           onEndReached={() => {
             bottomSheetOffset.current = scrollOffset.current;
           }}
@@ -427,9 +336,6 @@ export default function TripBottomSheet() {
               : `${item.id!}-${index}`
           }
           onDragEnd={({ data, from, to }) => updateFormattedTrip(data, to)}
-          // contentContainerStyle={{
-          //   paddingBottom: ,
-          // }}
           ListFooterComponent={() => (
             <View
               style={{

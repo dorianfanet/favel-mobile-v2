@@ -1,50 +1,28 @@
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import React, { useEffect } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTrip } from "@/context/tripContext";
-import { getActivity } from "@/lib/supabase";
-import { Day, TripMetadata } from "@/types/types";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { track } from "@amplitude/analytics-react-native";
+import { createClient } from "@supabase/supabase-js";
+import { Day, TripEdit, TripMetadata } from "@/types/types";
+import { getActivity } from "@/lib/supabase";
+import Toast from "react-native-toast-message";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
 import { supabaseClient } from "@/lib/supabaseClient";
+import New from "./new/New";
+import Trip from "./trip/Trip";
+import Loading from "./trip/loading/Loading";
 
 export default function Index() {
-  const { id } = useLocalSearchParams();
   const { user } = useUser();
-
-  const { setTripMetadata, setTrip } = useTrip();
+  const { tripMetadata, setTripMetadata, setTrip } = useTrip();
+  const { id } = useLocalSearchParams();
   const { setTripUserRole } = useTripUserRole();
-
-  const router = useRouter();
-
   const { getToken } = useAuth();
 
-  async function createTrip() {
-    await supabaseClient(getToken).then(async (supabase) => {
-      const { data, error } = await supabase
-        .from("trips_v2")
-        .insert([
-          { id, author_id: user?.id, status: "new", name: "Nouveau voyage" },
-        ]);
-      if (error) {
-        console.error(error);
-      } else {
-        setTripMetadata({
-          id: id as string,
-          status: "new",
-          name: "Nouveau voyage",
-        });
-        setTripUserRole({
-          id: user!.id,
-          role: "author",
-        });
-        router.navigate(`/(auth)/trip/${id}/new`);
-      }
-    });
-  }
-
   useEffect(() => {
+    if (tripMetadata) return;
+
     async function checkForTrip() {
       await supabaseClient(getToken).then(async (supabase) => {
         const { data, error } = await supabase
@@ -54,6 +32,11 @@ export default function Index() {
           )
           .eq("id", id)
           .single();
+
+        if (error) {
+          console.error(error);
+        }
+
         if (data) {
           if (data.author_id !== user?.id) {
             if (
@@ -66,9 +49,6 @@ export default function Index() {
                 role: "traveler",
               });
             } else {
-              // router.navigate("/home");
-              // Alert.alert("Vous n'êtes pas autorisé à voir ce voyage");
-              // return;
               setTripUserRole({
                 id: user!.id,
                 role: "read-only",
@@ -107,9 +87,29 @@ export default function Index() {
             }
             getTrip();
           }
-          router.navigate(`/(auth)/trip/${id}/trip`);
         } else {
-          await createTrip();
+          await supabaseClient(getToken).then(async (supabase) => {
+            setTripMetadata({
+              id: id as string,
+              status: "new",
+              name: "Nouveau voyage",
+            });
+            setTripUserRole({
+              id: user!.id,
+              role: "author",
+            });
+            const { data, error } = await supabase.from("trips_v2").insert([
+              {
+                id,
+                author_id: user?.id,
+                status: "new",
+                name: "Nouveau voyage",
+              },
+            ]);
+            if (error) {
+              console.error(error);
+            }
+          });
         }
       });
     }
@@ -117,46 +117,14 @@ export default function Index() {
     checkForTrip();
   }, []);
 
-  useEffect(() => {
-    track("Trip page viewed", {
-      tripId: id,
-    });
-  }, []);
-
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        position: "absolute",
-        width: "100%",
-        height: "100%",
-      }}
-    >
-      {/* <BlurView
-        style={{
-          padding: 20,
-          paddingVertical: 40,
-          flex: 0,
-        }}
-      >
-        <ActivityIndicator
-          color={"white"}
-          size={"large"}
-        />
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontFamily: "Outfit_600SemiBold",
-            textAlign: "center",
-            marginTop: 20,
-          }}
-        >
-          Chargement...
-        </Text>
-      </BlurView> */}
-    </View>
+    <>
+      {tripMetadata ? (
+        <>
+          {tripMetadata.status.startsWith("new") && <New />}
+          {tripMetadata.status.startsWith("trip") && <Trip id={id as string} />}
+        </>
+      ) : null}
+    </>
   );
 }

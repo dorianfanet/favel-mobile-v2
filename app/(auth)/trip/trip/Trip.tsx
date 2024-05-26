@@ -1,147 +1,138 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
 import React, { useEffect } from "react";
-import { useTrip } from "@/context/tripContext";
-import { useLocalSearchParams } from "expo-router";
-import TripBottomSheet from "./TripBottomSheet";
-import Loading from "./(loading)/Loading";
-import TripChatWrapper from "./(chat)/TripChatWrapper";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import ActivityModal from "./(activity)/ActivityModal";
-import { padding } from "@/constants/values";
-import Colors from "@/constants/Colors";
-import Icon from "@/components/Icon";
-import { track } from "@amplitude/analytics-react-native";
-import { MMKV } from "@/app/_layout";
-import { useTripUserRole } from "@/context/tripUserRoleContext";
-import { supabaseClient } from "@/lib/supabaseClient";
-import { favelClient } from "@/lib/favelApi";
+import { createClient } from "@supabase/supabase-js";
+import { Day, TripEdit, TripMetadata } from "@/types/types";
+import { getActivity } from "@/lib/supabase";
+import Toast from "react-native-toast-message";
+import { useTrip } from "@/context/tripContext";
+import TripBottomSheet from "./TripBottomSheet";
+import ActivityModal from "./ActivityModal";
+import Loading from "./loading/Loading";
 
-export default function Trip() {
-  const { trip, tripMetadata, setUserActivity } = useTrip();
+export default function Trip({ id }: { id: string }) {
+  const { setTripMetadata, setTrip, setTripEdits, tripMetadata } = useTrip();
   const { user } = useUser();
-  const { tripUserRole } = useTripUserRole();
-
-  const { rest } = useLocalSearchParams();
-
   const { getToken } = useAuth();
-
-  const id = rest[0];
+  const [token, setToken] = React.useState<string | null>(null);
 
   useEffect(() => {
-    if (trip) return;
-
-    if (
-      tripMetadata &&
-      tripMetadata.prompt &&
-      tripMetadata.status === "trip.init" &&
-      tripMetadata.route &&
-      user?.id
-    ) {
-      console.log("creating trip");
-      favelClient(getToken).then((favel) => {
-        if (tripMetadata.prompt && tripMetadata.route) {
-          favel.createTrip(
-            tripMetadata.prompt,
-            id,
-            tripMetadata.route,
-            user.id
-          );
-        }
-      });
+    if (token) return;
+    async function init() {
+      const token = await getToken();
+      setToken(token);
     }
-
-    // if (
-    //   tripMetadata &&
-    //   !tripMetadata.post_id &&
-    //   user &&
-    //   tripMetadata.status === "trip"
-    // ) {
-    //   console.log("creating post");
-    //   favel.createNewTripPost(id, user.id);
-    // }
-  }, [tripMetadata]);
+    init();
+  }, []);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      await supabaseClient(getToken).then(async (supabase) => {
-        const { error } = await supabase.from("user_activity").upsert([
-          {
-            id: `${id}-${user?.id}`,
-            last_activity: new Date(),
-            trip_id: id,
-            user_id: user?.id,
+    if (!token) return;
+
+    const supabase = createClient(
+      process.env.EXPO_PUBLIC_SUPABASE_URL!,
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        ]);
-        if (error) {
-          console.log(error);
+        },
+      }
+    );
+
+    const channel = supabase
+      .channel(`${id}-trip`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "trips_v2",
+          filter: `id=eq.${id}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            console.log(payload.new);
+            setTripMetadata(payload.new as TripMetadata);
+            if (payload.new.trip) {
+              async function getTrip() {
+                const newTrip = await Promise.all(
+                  payload.new.trip.map(async (day: Day, index: number) => {
+                    if (day.activities) {
+                      if (day.activities.length === 0) return day;
+                      const activities = await Promise.all(
+                        day.activities.map(async (activity) => {
+                          if (activity.route) {
+                            return activity;
+                          } else {
+                            const newActivity = await getActivity(activity);
+                            return newActivity;
+                          }
+                        })
+                      );
+                      return { ...day, activities };
+                    } else {
+                      return day;
+                    }
+                  })
+                );
+                console.log(newTrip);
+                setTrip(newTrip as Day[]);
+              }
+              getTrip();
+            }
+          }
         }
-
-        const date12SecondsAgo = new Date(new Date().getTime() - 12000);
-        const { data } = await supabase
-          .from("user_activity")
-          .select("*")
-          .eq("trip_id", id)
-          .gt("last_activity", date12SecondsAgo.toISOString())
-          .not("user_id", "eq", user?.id);
-
-        if (data) {
-          setUserActivity({
-            count: data.length,
-            activity: data,
-          });
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "tripv2_edits",
+          filter: `trip_id=eq.${id}`,
+        },
+        (payload) => {
+          if (payload.new as TripEdit) {
+            console.log(payload.new);
+            // @ts-ignore
+            setTripEdits((prev: TripEdit[]): TripEdit[] => {
+              return [...(prev as TripEdit[]), payload.new as TripEdit];
+            });
+            if (payload.new.type === "move" || payload.new.type === "delete") {
+              console.log("new payload ", payload.new);
+              if (payload.new.author_id !== user!.id) {
+                Toast.show({
+                  type: "custom",
+                  props: {
+                    tripEdit: payload.new,
+                  },
+                });
+              }
+            }
+          }
         }
-      });
-    }, 10000);
+      )
+      .subscribe();
 
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    track("Trip page viewed", {
-      tripId: id,
-    });
-    console.log("setting last opened trip", id);
-    MMKV.setString("lastOpenedTrip", id as string);
-  }, []);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, token]);
 
   return (
     <>
-      {tripMetadata && tripMetadata.status === "trip.loading" && <Loading />}
-      <TripBottomSheet />
-      {tripMetadata &&
-      !tripMetadata.status.includes("loading") &&
-      tripUserRole.role !== "read-only" ? (
-        <TripChatWrapper type="trip">
-          <Pressable
-            style={{
-              position: "absolute",
-              bottom: padding * 1.5,
-              right: padding * 1.5,
-              backgroundColor: Colors.light.accent,
-              width: 55,
-              height: 55,
-              borderRadius: 18,
-              shadowColor: Colors.light.accent,
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.5,
-              shadowRadius: 12,
-              elevation: 8,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Icon
-              icon={"penIcon"}
-              color={"#fff"}
-              size={26}
-            />
-          </Pressable>
-        </TripChatWrapper>
+      {tripMetadata ? (
+        <>
+          {tripMetadata.status === "trip.loading" && <Loading />}
+          {tripMetadata.status === "trip" && (
+            <>
+              <TripBottomSheet />
+              <ActivityModal />
+            </>
+          )}
+        </>
       ) : null}
-      <ActivityModal />
     </>
   );
 }

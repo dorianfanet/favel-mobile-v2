@@ -3,9 +3,7 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
-  Share,
   StatusBar,
-  StyleSheet,
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -31,6 +29,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { MMKV } from "@/app/_layout";
+import { AnimatePresence, MotiView } from "moti";
 
 export default function Header() {
   const { tripMetadata, userActivity } = useTrip();
@@ -54,12 +53,12 @@ export default function Header() {
           top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
         }}
       >
-        {tripMetadata && tripMetadata.status === "trip" ? (
+        {/* {tripMetadata && tripMetadata.status === "trip" ? (
           <OnboardingButton />
-        ) : null}
-        {tripMetadata && tripMetadata.status?.includes("loading") ? (
+        ) : null} */}
+        {tripMetadata && tripMetadata.status.includes("loading") ? (
           <>
-            <LoadingStuckButton />
+            {/* <LoadingStuckButton /> */}
             <View
               style={{
                 flex: 1,
@@ -73,9 +72,10 @@ export default function Header() {
               <BlurView
                 style={{
                   paddingHorizontal: 10,
+                  paddingLeft: 30,
                   margin: 0,
                   width: "100%",
-                  height: 60,
+                  height: 90,
                   justifyContent: "center",
                   alignItems: "center",
                   overflow: "hidden",
@@ -90,49 +90,80 @@ export default function Header() {
                     left: 20,
                   }}
                 />
-                <View style={{}}>
-                  <Text
+                <AnimatePresence exitBeforeEnter>
+                  <MotiView
+                    key={
+                      tripMetadata.status_message
+                        ? tripMetadata.status_message.message
+                        : "loading"
+                    }
                     style={{
-                      color: "white",
-                      fontFamily: "Outfit_600SemiBold",
-                      fontSize: 16,
+                      marginLeft: 20,
+                    }}
+                    from={{
+                      opacity: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                    }}
+                    transition={{
+                      type: "timing",
+                      duration: 300,
+                      delay: 0,
+                    }}
+                    exitTransition={{
+                      type: "timing",
+                      duration: 300,
+                      delay: 800,
                     }}
                   >
-                    {tripMetadata.status_message
-                      ? tripMetadata.status_message.message
-                      : "Chargement..."}
-                  </Text>
-                  {tripMetadata.status_message &&
-                    tripMetadata.status_message.details && (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          gap: 3,
-                          opacity: 0.8,
-                        }}
-                      >
-                        <Icon
-                          icon={
-                            tripMetadata.status_message.details
-                              .icon as IconByKey
-                          }
-                          size={12}
-                          color="white"
-                        />
-                        <Text
+                    <Text
+                      style={{
+                        color: "white",
+                        fontFamily: "Outfit_600SemiBold",
+                        fontSize: 16,
+                        textAlign: "center",
+                      }}
+                    >
+                      {tripMetadata.status_message
+                        ? tripMetadata.status_message.message
+                        : "Chargement..."}
+                    </Text>
+                    {tripMetadata.status_message &&
+                      tripMetadata.status_message.details && (
+                        <View
                           style={{
-                            color: "white",
-                            fontFamily: "Outfit_500Medium",
-                            fontSize: 12,
+                            flexDirection: "row",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: 3,
+                            opacity: 0.8,
                           }}
                         >
-                          {tripMetadata.status_message.details.title}
-                        </Text>
-                      </View>
-                    )}
-                </View>
+                          <Icon
+                            icon={
+                              tripMetadata.status_message.details
+                                .icon as IconByKey
+                            }
+                            size={12}
+                            color="white"
+                          />
+                          <Text
+                            style={{
+                              color: "white",
+                              fontFamily: "Outfit_500Medium",
+                              fontSize: 12,
+                            }}
+                          >
+                            {tripMetadata.status_message.details.title}
+                          </Text>
+                        </View>
+                      )}
+                  </MotiView>
+                </AnimatePresence>
               </BlurView>
             </View>
           </>
@@ -141,76 +172,30 @@ export default function Header() {
             style={{
               flex: 1,
               width: "100%",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              flexDirection: "row",
               paddingHorizontal: padding,
-              borderRadius: 15,
             }}
           >
             <BlurView
               style={{
-                flex: 0,
-                width: 40,
-                height: 40,
-              }}
-            >
-              <Pressable
-                onPress={() => {
-                  track("Back to home from trip");
-                  router.navigate("/(auth)/(tabs)/home");
-                }}
-                style={{
-                  width: 40,
-                  height: 40,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Icon
-                  icon="chevronLeftIcon"
-                  size={20}
-                  color={Colors.dark.primary}
-                />
-              </Pressable>
-            </BlurView>
-            <View
-              style={{
+                width: "100%",
+                borderRadius: 25,
+                justifyContent: "space-between",
+                alignItems: "center",
                 flexDirection: "row",
-                gap: 10,
+                padding: 2.5,
               }}
             >
-              <BlurView
+              <View
                 style={{
                   flex: 0,
                   width: 40,
                   height: 40,
                 }}
               >
-                <Pressable
-                  // onPress={async () => {
-                  //   track("Share trip clicked");
-                  //   try {
-                  //     const result = await Share.share({
-                  //       message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
-                  //     });
-
-                  //     if (result.action === Share.sharedAction) {
-                  //       if (result.activityType) {
-                  //         // shared with activity type of result.activityType
-                  //       } else {
-                  //         // shared
-                  //       }
-                  //     } else if (result.action === Share.dismissedAction) {
-                  //       // dismissed
-                  //     }
-                  //   } catch (error) {
-                  //     alert(error);
-                  //   }
-                  // }}
+                <TouchableOpacity
                   onPress={() => {
-                    track("Header share button pressed");
-                    shareModalRef.current?.present();
+                    track("Back to home from trip");
+                    router.back();
                   }}
                   style={{
                     width: 40,
@@ -220,53 +205,154 @@ export default function Header() {
                   }}
                 >
                   <Icon
-                    icon={Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"}
+                    icon="chevronLeftIcon"
                     size={20}
                     color={Colors.dark.primary}
                   />
-                </Pressable>
-              </BlurView>
-              {tripMetadata && tripMetadata.status?.startsWith("trip") && (
-                <View
+                </TouchableOpacity>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                }}
+              >
+                <TouchableOpacity
                   style={{
-                    position: "relative",
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "flex-start",
                   }}
                 >
-                  <BlurView
+                  <Text
                     style={{
-                      flex: 0,
+                      color: Colors.dark.primary,
+                      fontFamily: "Outfit_400Regular",
+                      fontSize: 16,
+                      opacity: 0.8,
+                    }}
+                  >
+                    Modifier le voyage...
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 0,
+                }}
+              >
+                <View
+                  style={{
+                    flex: 0,
+                    width: 40,
+                    height: 40,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
                       width: 40,
                       height: 40,
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
-                    <Pressable
-                      onPress={handlePresentModalPress}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Icon
-                        icon="menuIcon"
-                        size={20}
-                        color={Colors.dark.primary}
-                      />
-                    </Pressable>
-                  </BlurView>
+                    <Icon
+                      icon="messageDotsIcon"
+                      size={20}
+                      color={Colors.dark.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
+                    flex: 0,
+                    width: 40,
+                    height: 40,
+                  }}
+                >
+                  <TouchableOpacity
+                    // onPress={async () => {
+                    //   track("Share trip clicked");
+                    //   try {
+                    //     const result = await Share.share({
+                    //       message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
+                    //     });
+
+                    //     if (result.action === Share.sharedAction) {
+                    //       if (result.activityType) {
+                    //         // shared with activity type of result.activityType
+                    //       } else {
+                    //         // shared
+                    //       }
+                    //     } else if (result.action === Share.dismissedAction) {
+                    //       // dismissed
+                    //     }
+                    //   } catch (error) {
+                    //     alert(error);
+                    //   }
+                    // }}
+                    onPress={() => {
+                      track("Header share button pressed");
+                      shareModalRef.current?.present();
+                    }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Icon
+                      icon={
+                        Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"
+                      }
+                      size={20}
+                      color={Colors.dark.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {tripMetadata && tripMetadata.status?.startsWith("trip") && (
                   <View
                     style={{
-                      position: "absolute",
-                      bottom: -5,
-                      right: -5,
+                      position: "relative",
                     }}
                   >
-                    <UserActivityCount userActivity={userActivity} />
+                    <View
+                      style={{
+                        flex: 0,
+                        width: 40,
+                        height: 40,
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={handlePresentModalPress}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Icon
+                          icon="menuIcon"
+                          size={20}
+                          color={Colors.dark.primary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: -5,
+                        right: -5,
+                      }}
+                    >
+                      <UserActivityCount userActivity={userActivity} />
+                    </View>
                   </View>
-                </View>
-              )}
-            </View>
+                )}
+              </View>
+            </BlurView>
           </View>
         )}
       </SafeAreaView>
@@ -295,6 +381,7 @@ function OnboardingButton() {
 
   useEffect(() => {
     const alreadySeen = MMKV.getString("onboardingSeen");
+    // const alreadySeen = false;
     if (alreadySeen) {
       setAlreadySeen(true);
     } else {

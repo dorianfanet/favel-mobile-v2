@@ -6,20 +6,20 @@ export default function TypewriterMardown({
   text,
   typingDelay = 10,
   batchSize = 5,
+  shouldAnimate = true,
 }: {
   text: string;
   typingDelay?: number;
   batchSize?: number;
+  shouldAnimate: boolean;
 }) {
   const [displayedText, setDisplayedText] = useState("");
-  const alreadyTyped = useRef(false);
 
   useEffect(() => {
-    console.log(alreadyTyped.current);
-    if (alreadyTyped.current) {
+    if (!shouldAnimate) {
+      setDisplayedText(text);
       return;
     }
-    alreadyTyped.current = true;
     setDisplayedText("");
     let index = 0;
     const timer = setInterval(() => {
@@ -31,7 +31,7 @@ export default function TypewriterMardown({
     }, typingDelay);
 
     return () => clearInterval(timer);
-  }, [text, typingDelay]);
+  }, []);
 
   return (
     <View>

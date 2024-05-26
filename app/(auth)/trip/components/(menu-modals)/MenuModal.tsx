@@ -27,7 +27,7 @@ import UserActivityCount from "@/components/UserActivityCount";
 import * as MailComposer from "expo-mail-composer";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { track } from "@amplitude/analytics-react-native";
-import Edits from "../../trip/(chat)/Edits";
+import Edits from "../../../trip-old/trip/(chat)/Edits";
 import UserCard from "@/components/UserCard";
 import { formatTimestamp } from "@/lib/utils";
 import { supabaseClient } from "@/lib/supabaseClient";
@@ -172,7 +172,7 @@ export default function MenuModal({
                 <UserActivityCount userActivity={userActivity} />
               )}
             />
-            <MenuButton
+            {/* <MenuButton
               title="Comment ça marche ?"
               onPress={() => {
                 track("how_it_works_modal_opened");
@@ -182,7 +182,7 @@ export default function MenuModal({
               NotificationsComponent={() => (
                 <UserActivityCount userActivity={userActivity} />
               )}
-            />
+            /> */}
             <MenuButton
               title="Signaler un problème"
               onPress={() => {

@@ -1,15 +1,14 @@
-import { View, Text, StatusBar } from "react-native";
+import { StatusBar } from "react-native";
 import React, { useEffect } from "react";
 import { Slot, Stack } from "expo-router";
 import { TripProvider } from "@/context/tripContext";
 import Header from "./components/Header";
-import Map from "./(map)/Map";
 import { CameraProvider } from "@/context/cameraContext";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import Colors from "@/constants/Colors";
 import { EditorProvider } from "@/context/editorContext";
-import { track } from "@amplitude/analytics-react-native";
 import { TripUserRoleProvider } from "@/context/tripUserRoleContext";
+import Map from "./(map)/Map";
+import Chat from "./(chat)/Chat";
 
 export default function Layout() {
   useEffect(() => {
@@ -31,6 +30,7 @@ export default function Layout() {
                 <MapWrapper />
                 <Header />
                 <Slot />
+                <Chat />
               </>
             </TripUserRoleProvider>
           </EditorProvider>

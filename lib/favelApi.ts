@@ -126,13 +126,11 @@ class ApiClient {
   }
 
   async createTrip(
-    prompt: string,
     tripId: string,
     route: TripRoute,
     authorId: string
   ): Promise<void> {
     return this.request(`build-trip-groq`, "POST", {
-      prompt,
       tripId,
       route,
       authorId: authorId,

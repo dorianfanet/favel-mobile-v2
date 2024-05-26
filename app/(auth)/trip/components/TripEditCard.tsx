@@ -9,15 +9,22 @@ import { padding } from "@/constants/values";
 import ActivityCard from "./ActivityCard";
 import { formatTimestamp, getUserMetadata } from "@/lib/utils";
 import { ActivityCardContent } from "./PlaceCard";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function TripEditCard({ tripEdit }: { tripEdit: TripEdit }) {
   const [name, setName] = React.useState<string | null>(null);
+
+  const { getToken } = useAuth();
 
   console.log("TripEditCard", tripEdit);
 
   useEffect(() => {
     async function checkUser() {
-      const user = await getUserMetadata(tripEdit.author_id);
+      const user = await getUserMetadata(
+        tripEdit.author_id,
+        undefined,
+        getToken
+      );
 
       setName(user?.firstName || "Anonyme");
     }

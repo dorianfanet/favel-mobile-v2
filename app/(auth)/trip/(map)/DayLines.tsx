@@ -55,8 +55,6 @@ export default function DayLines() {
           ? day.id === editor.dayId
           : undefined
       );
-    } else if (tripMetadata?.status.includes("loading")) {
-      day = trip[trip.length - 1];
     }
 
     if (day) {
@@ -216,6 +214,7 @@ export default function DayLines() {
       <MapboxGL.ShapeSource
         id="dayLines"
         shape={dayLines}
+        hitbox={{ width: 0, height: 0 }}
       >
         <MapboxGL.LineLayer
           id="dayLinesLayer"
@@ -282,8 +281,6 @@ function DayMarker({
   icons?: Category[];
   editor: boolean;
 }) {
-  console.log("DayMarker render");
-
   return (
     // <Pressable onPress={onPress}>
     <View
@@ -462,8 +459,6 @@ function DayMarkerImage({
   useEffect(() => {
     if (!editor) {
       const random = Math.floor(Math.random() * (images.length - 1));
-      console.log("editor updated", random);
-      console.log("image", images[random]);
       setCurrentImageIndex(random);
     }
   }, [editor, images]);

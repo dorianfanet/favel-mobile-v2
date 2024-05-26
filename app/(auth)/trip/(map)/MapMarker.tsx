@@ -81,12 +81,15 @@ export default function MapMarker({
   }, [state]);
 
   return (
-    <View
+    <Pressable
       style={{
-        width: 180,
-        height: 140,
+        width: 40,
+        height: 60,
         justifyContent: "center",
         alignItems: "center",
+      }}
+      onPress={() => {
+        onPress && onPress();
       }}
     >
       <Animated.View
@@ -97,7 +100,7 @@ export default function MapMarker({
             alignItems: "center",
             gap: 10,
             width: 40,
-            height: 40,
+            height: 60,
             overflow: "visible",
           },
           markerOpacityStyle,
@@ -106,55 +109,65 @@ export default function MapMarker({
         <View
           style={{
             position: "absolute",
-            top: -20,
+            top: 0,
             overflow: "visible",
           }}
         >
-          <Pressable onPress={onPress}>
-            <Animated.View
-              style={[
-                {
-                  width: 40,
-                  height: 40,
-                  overflow: "visible",
-                },
-                markerStyle,
-              ]}
+          <Animated.View
+            style={[
+              {
+                width: 40,
+                height: 40,
+                // overflow: "visible",
+              },
+              markerStyle,
+            ]}
+          >
+            <Icon
+              icon="activitiesMapPin"
+              size={40}
+              color={
+                categoryColor[activity.category as Category] ||
+                categoryColor.unknown
+              }
+            />
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                padding: 11,
+                paddingTop: 8,
+              }}
             >
               <Icon
-                icon="activitiesMapPin"
-                size={40}
-                color={
-                  categoryColor[activity.category as Category] ||
-                  categoryColor.unknown
-                }
+                icon={`${
+                  categories.includes(activity.category as Category)
+                    ? (activity.category as Category)
+                    : "unknown"
+                }Icon`}
+                size={18}
+                color={"white"}
               />
-              <View
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  padding: 11,
-                  paddingTop: 8,
-                }}
-              >
-                <Icon
-                  icon={`${
-                    categories.includes(activity.category as Category)
-                      ? (activity.category as Category)
-                      : "unknown"
-                  }Icon`}
-                  size={18}
-                  color={"white"}
-                />
-              </View>
-            </Animated.View>
-          </Pressable>
+            </View>
+            {/* <Pressable
+              onPress={() => {
+                console.log("Pressable");
+                onPress && onPress();
+              }}
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                backgroundColor: "red",
+              }}
+            /> */}
+          </Animated.View>
         </View>
         <View
           style={{
             position: "absolute",
-            top: 25,
+            top: 45,
             width: 150,
           }}
         >
@@ -188,6 +201,6 @@ export default function MapMarker({
           </Animated.View>
         </View>
       </Animated.View>
-    </View>
+    </Pressable>
   );
 }

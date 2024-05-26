@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { BlurView, Text } from "./Themed";
 import { TripEdit } from "@/types/types";
 import { padding } from "@/constants/values";
-import TripEditCard from "@/app/(auth)/trip/components/TripEditCard";
+import TripEditCard from "@/app/(auth)/trip-old/components/TripEditCard";
 
 type Props = {
   tripEdit: TripEdit;

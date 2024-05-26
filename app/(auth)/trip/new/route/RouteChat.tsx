@@ -16,9 +16,7 @@ import { useAuth } from "@clerk/clerk-expo";
 export default function RouteChat() {
   const { form } = useNewTripForm();
 
-  const { rest } = useLocalSearchParams();
-
-  const id = rest[0];
+  const { id } = useLocalSearchParams();
 
   const { messages, setMessages, retryMessage } = useNewTripChat();
 
@@ -39,7 +37,7 @@ export default function RouteChat() {
     const firstMessage = await favelClient(getToken).then(async (favel) => {
       return await favel.sendFirstRouteChatMessage(
         `${form.destination}. ${parseInt(form.flexDates.duration!) || 4} jours`,
-        id,
+        id as string,
         messageId
       );
     });
@@ -78,59 +76,6 @@ export default function RouteChat() {
     fetchMessages();
   }, []);
 
-  // useEffect(() => {
-  //   const channel = supabase
-  //     .channel(`${id}-chat`)
-  //     .on(
-  //       "postgres_changes",
-  //       {
-  //         event: "INSERT",
-  //         schema: "public",
-  //         table: "new_trip_chat",
-  //         filter: `trip_id=eq.${id}`,
-  //       },
-  //       (payload) => {
-  //         if (payload.new) {
-  //           console.log("New message: ", payload.new);
-  //           // @ts-ignore
-  //           setMessages((currentMessages: ChatMessage[]) => {
-  //             const assistantMessage = currentMessages.findIndex(
-  //               (message) => message.id === payload.new.id
-  //             );
-  //             console.log("Assistant message: ", assistantMessage);
-  //             if (assistantMessage !== -1) {
-  //               console.log("Assistant message found: ", assistantMessage);
-  //               currentMessages[assistantMessage] = payload.new as ChatMessage;
-  //               console.log("Assistant message updated: ", currentMessages);
-  //               return currentMessages as ChatMessage[];
-  //             }
-  //             return currentMessages as ChatMessage[];
-  //           });
-  //           if (
-  //             payload.new.route &&
-  //             JSON.stringify(payload.new.route) !== routeBufferRef.current
-  //           ) {
-  //             console.log("Route changed: ", payload.new.route);
-  //             routeBufferRef.current = JSON.stringify(payload.new.route);
-  //             setTripMetadata((currentMetadata) => {
-  //               return {
-  //                 ...(currentMetadata as TripMetadata),
-  //                 route: payload.new.route,
-  //               };
-  //             });
-  //           }
-  //         }
-  //       }
-  //     )
-  //     .subscribe();
-
-  //   return () => {
-  //     supabase.removeChannel(channel);
-  //   };
-  // }, []);
-
-  console.log("messages", messages);
-
   return (
     <FlatList
       data={JSON.parse(JSON.stringify(messages)).reverse()}
@@ -147,7 +92,7 @@ export default function RouteChat() {
             onRetry={async () => {
               console.log(index);
               if (messages.length > 1) {
-                retryMessage(item.id, id, form, messages);
+                retryMessage(item.id, id as string, form, messages);
               } else {
                 const tempMessage: ChatMessage = {
                   id: item.id,
@@ -159,6 +104,7 @@ export default function RouteChat() {
                 sendFirstMessage(item.id);
               }
             }}
+            isLast={index === 0}
           />
         ) : null;
       }}
@@ -177,9 +123,11 @@ export default function RouteChat() {
           {/* <View> */}
           {messages.length > 0 &&
           messages[messages.length - 1].status === "finished" &&
-          messages[messages.length - 1].route ? (
-            <ValidateRouteButton />
-          ) : null}
+          messages[messages.length - 1].route
+            ? messages[messages.length - 1].route!.length > 0 && (
+                <ValidateRouteButton />
+              )
+            : null}
           {/* </View> */}
         </>
       )}

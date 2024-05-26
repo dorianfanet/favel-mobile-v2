@@ -9,9 +9,10 @@ export interface IconProps {
   icon: IconByKey;
   size?: number;
   style?: any;
+  pointerEvents?: "auto" | "none";
 }
 
-const Icon = ({ icon, size = 32, color, style }: IconProps) => {
+const Icon = ({ icon, size = 32, color, style, pointerEvents }: IconProps) => {
   return (
     <SvgXml
       xml={icons[icon]}
@@ -19,6 +20,7 @@ const Icon = ({ icon, size = 32, color, style }: IconProps) => {
       height={size}
       color={color}
       style={style}
+      pointerEvents={pointerEvents}
     />
   );
 };

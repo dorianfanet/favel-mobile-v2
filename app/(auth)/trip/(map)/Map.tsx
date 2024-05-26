@@ -11,7 +11,6 @@ import { booleanPointInPolygon, polygon } from "@turf/turf";
 import Loading from "./Loading";
 import { useEditor } from "@/context/editorContext";
 import { bboxToCoordinatesArray } from "@/lib/utils";
-import Suggestions from "./Suggestions";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY!);
 
@@ -33,7 +32,7 @@ export default function Map() {
     setViewState,
   } = useCamera();
 
-  const { tripMetadata, destinationData } = useTrip();
+  const { tripMetadata } = useTrip();
 
   const screenHeight = Dimensions.get("window").height;
 
@@ -55,10 +54,10 @@ export default function Map() {
     } else if (tripMetadata?.status.startsWith("trip")) {
       if (tripMetadata?.status === "trip.loading") {
         updatePadding({
-          paddingTop: 100,
-          paddingBottom: 150,
-          paddingLeft: 50,
-          paddingRight: 50,
+          paddingTop: 120,
+          paddingBottom: 120,
+          paddingLeft: 80,
+          paddingRight: 80,
         });
       } else {
         updatePadding({
@@ -149,7 +148,7 @@ export default function Map() {
         checkForHotspotsInBounds(camera);
       }}
       onPress={() => {
-        console.log("press");
+        console.log("map press");
         setEditor(null);
       }}
       projection="globe"

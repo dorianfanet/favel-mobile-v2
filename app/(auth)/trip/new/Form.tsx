@@ -263,21 +263,6 @@ export default function Form() {
                 </Text>
               </TouchableOpacity>
             </View>
-            {/* <Text
-            style={{
-              fontSize: 16,
-              fontFamily: "Outfit_600SemiBold",
-              color: "white",
-              textAlign: "center",
-              margin: 10,
-              opacity: 0.8,
-              width: "70%",
-            }}
-          >
-            Vous pouvez indiquer ce que vous voulez, une ou plusieurs villes,
-            une région, un pays, un continent... Si vous ne savez-pas dites "Je
-            ne sais pas"
-          </Text> */}
           </View>
         </KeyboardAvoidingView>
       )}
@@ -414,7 +399,7 @@ function FormBottomSheet({
                       label="---"
                       value={-1}
                     />
-                    {Array.from({ length: 21 }).map((_, index) => (
+                    {Array.from({ length: 14 }).map((_, index) => (
                       <Picker.Item
                         key={index + 1}
                         label={(index + 1).toString()}
@@ -666,43 +651,6 @@ function RadioButton({
             {item.subTitle}
           </Text>
         </View>
-        {/* {item.icon && (
-          <View
-            style={{
-              position: "absolute",
-              right: 20,
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Image
-              source={icons[item.icon]}
-              style={{
-                width: 50,
-                height: 20,
-              }}
-              contentFit="contain"
-            />
-          </View>
-        )} */}
-        {/* {item.emoji && (
-          <View
-            style={{
-              position: "absolute",
-              left: 20,
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 30,
-              }}
-            >{item.emoji}</Text>
-          </View>
-        )} */}
       </Pressable>
     </Animated.View>
   );

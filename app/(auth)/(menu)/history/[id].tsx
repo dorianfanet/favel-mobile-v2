@@ -10,7 +10,7 @@ import Colors from "@/constants/Colors";
 import { View } from "@/components/Themed";
 import { useTrip } from "@/context/tripContext";
 import { FlatList } from "react-native-gesture-handler";
-import TripEditCard from "../../trip/components/TripEditCard";
+import TripEditCard from "../../trip-old/components/TripEditCard";
 
 export default function index() {
   useEffect(() => {

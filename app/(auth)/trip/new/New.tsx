@@ -8,10 +8,6 @@ import { NewTripChatProvider } from "@/context/newTripChatContext";
 import { track } from "@amplitude/analytics-react-native";
 
 export default function New() {
-  const { tripMetadata } = useTrip();
-
-  console.log(tripMetadata);
-
   useEffect(() => {
     track("New trip page viewed");
   }, []);

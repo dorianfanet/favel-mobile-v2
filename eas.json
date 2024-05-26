@@ -21,7 +21,8 @@
         "EXPO_PUBLIC_MAPBOX_KEY": "sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q",
         "EXPO_PUBLIC_FAVEL_API_KEY": "jaUXPQTwwjJr7oTS2ZlaMbEHGs8w7DSixwqRswRo21DhFvo06gVARpbvBbezbxZfc9IvLgUabulmq1NMzMkX9EWVE95EJbnRfoAfwR7FCBxgnUCWt4Qk6XRP0SsNgXwu",
         "EXPO_PUBLIC_API_URL": "https://favel-v0-2-web.vercel.app",
-        "EXPO_PUBLIC_AMPLITUDE_API_KEY": "8d1df0af2d8458026f91d0b5a7989338"
+        "EXPO_PUBLIC_AMPLITUDE_API_KEY": "8d1df0af2d8458026f91d0b5a7989338",
+        "EXPO_PUBLIC_ENV": "preview"
       }
     },
     "production": {
@@ -33,7 +34,8 @@
         "EXPO_PUBLIC_MAPBOX_KEY": "sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q",
         "EXPO_PUBLIC_FAVEL_API_KEY": "jaUXPQTwwjJr7oTS2ZlaMbEHGs8w7DSixwqRswRo21DhFvo06gVARpbvBbezbxZfc9IvLgUabulmq1NMzMkX9EWVE95EJbnRfoAfwR7FCBxgnUCWt4Qk6XRP0SsNgXwu",
         "EXPO_PUBLIC_API_URL": "https://favel-v0-2-web.vercel.app",
-        "EXPO_PUBLIC_AMPLITUDE_API_KEY": "8d1df0af2d8458026f91d0b5a7989338"
+        "EXPO_PUBLIC_AMPLITUDE_API_KEY": "8d1df0af2d8458026f91d0b5a7989338",
+        "EXPO_PUBLIC_ENV": "production"
       }
     }
   },

@@ -93,8 +93,6 @@ export default function Route() {
     }
   }, [tripMetadata?.route]);
 
-  console.log("routeLines", routeLines);
-
   return (
     <>
       <ShapeSource

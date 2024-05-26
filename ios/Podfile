@@ -37,9 +37,9 @@ elsif podfile_properties.key?('ios.flipper') then
   end
 end
 
-# @generated begin @rnmapbox/maps-rnmapboxmapsimpl - expo prebuild (DO NOT MODIFY) sync-8341b1f1994a545fb2abe1af382963d7f4ac4de7
+# @generated begin @rnmapbox/maps-rnmapboxmapsimpl - expo prebuild (DO NOT MODIFY) sync-d1f29bffd6095c1a3f6950522e495a876417895e
 $RNMapboxMapsDownloadToken = 'sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q'
-$RNMapboxMapsVersion = '10.16.6'
+$RNMapboxMapsVersion = '10.17.0'
 # @generated end @rnmapbox/maps-rnmapboxmapsimpl
 target 'Favel' do
   use_expo_modules!

@@ -6,7 +6,7 @@ import { useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/Colors";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Icon from "@/components/Icon";
-import ShareCTA from "@/app/(auth)/trip/components/ShareCTA";
+import ShareCTA from "@/app/(auth)/trip-old/components/ShareCTA";
 
 export default function Share() {
   const { id } = useLocalSearchParams();

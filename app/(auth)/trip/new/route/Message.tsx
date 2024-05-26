@@ -1,5 +1,5 @@
 import { ActivityIndicator, View } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BlurView, Text } from "@/components/Themed";
 import { ChatMessage, Hotspot } from "@/types/types";
 import Markdown from "react-native-markdown-display";
@@ -15,11 +15,16 @@ export default function Message({
   message,
   index,
   onRetry,
+  isLast,
 }: {
   message: ChatMessage;
   index: number;
   onRetry: () => void;
+  isLast: boolean;
 }) {
+  // log first two words of message
+  console.log(message.content.split(" ").slice(0, 2).join(" "), isLast);
+
   return (
     <View
       style={{
@@ -53,6 +58,7 @@ export default function Message({
           <TypewriterMardown
             key={message.id}
             text={message.content}
+            shouldAnimate={isLast}
           />
         ) : (
           <Text
@@ -160,7 +166,7 @@ function HotspotCard({ hotspot }: { hotspot: Hotspot }) {
   );
 }
 
-function ImageCard({ text, style }: { text: string; style?: any }) {
+export function ImageCard({ text, style }: { text: string; style?: any }) {
   return (
     <BlurView
       style={[

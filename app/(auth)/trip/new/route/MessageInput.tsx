@@ -13,11 +13,16 @@ import { Text } from "@/components/Themed";
 import { useAuth } from "@clerk/clerk-expo";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { favelClient } from "@/lib/favelApi";
+import { useTrip } from "@/context/tripContext";
+import { TripMetadata } from "@/types/types";
 
 export default function MessageInput() {
   const { messages, setMessages } = useNewTripChat();
+  const { setTripMetadata } = useTrip();
 
   const [disabled, setDisabled] = React.useState(false);
+
+  const { id } = useLocalSearchParams();
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -32,10 +37,6 @@ export default function MessageInput() {
   const { form } = useNewTripForm();
 
   const [inputValue, setInputValue] = React.useState("");
-
-  const { rest } = useLocalSearchParams();
-
-  const id = rest[0];
 
   const { getToken } = useAuth();
 
@@ -119,7 +120,7 @@ export default function MessageInput() {
               async (favel) => {
                 return await favel.sendNewRouteChatMessage(
                   tempMessages,
-                  id,
+                  id as string,
                   messageId,
                   form
                 );
@@ -127,8 +128,12 @@ export default function MessageInput() {
             );
 
             console.log("Temp messages: ", tempMessages);
+            console.log("New message: ", newMessage);
 
-            if ("error" in newMessage) {
+            if (
+              "error" in newMessage ||
+              (newMessage.route && newMessage.route.length === 0)
+            ) {
               setMessages([
                 ...tempMessages.slice(0, tempMessages.length - 1),
                 {
@@ -150,6 +155,14 @@ export default function MessageInput() {
                   route: newMessage.route,
                 },
               ]);
+              if (newMessage.route) {
+                setTripMetadata((tripMetadata) => {
+                  return {
+                    ...(tripMetadata as TripMetadata),
+                    route: newMessage.route,
+                  };
+                });
+              }
             }
 
             setInputValue("");
