@@ -84,7 +84,12 @@ export default function ValidateRouteButton({
             console.log(tripMetadata, tripMetadata.route);
             if (tripMetadata.route) {
               console.log("Creating trip");
-              favel.createTrip(id as string, tripMetadata.route, user!.id);
+              favel.createTrip(
+                id as string,
+                tripMetadata.route,
+                user!.id,
+                form
+              );
             }
           });
           supabaseClient(getToken).then(async (supabase) => {

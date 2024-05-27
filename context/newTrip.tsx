@@ -4,7 +4,6 @@ import { CameraBounds } from "@rnmapbox/maps";
 import { FeatureCollection, Position } from "@turf/turf";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useTrip } from "./tripContext";
-import { favel } from "@/lib/favelApi";
 
 export interface Form {
   id?: string;

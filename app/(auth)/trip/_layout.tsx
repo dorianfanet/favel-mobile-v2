@@ -30,7 +30,7 @@ export default function Layout() {
                 <MapWrapper />
                 <Header />
                 <Slot />
-                <Chat />
+                {/* <Chat /> */}
               </>
             </TripUserRoleProvider>
           </EditorProvider>

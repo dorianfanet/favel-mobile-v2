@@ -12,6 +12,11 @@ import FollowButton from "./FollowButton";
 import { MMKV } from "@/app/_layout";
 
 const sizes = {
+  extraSmall: {
+    image: 20,
+    gap: 10,
+    text: 12,
+  },
   small: {
     image: 30,
     gap: 10,
@@ -29,15 +34,19 @@ export default function UserCard({
   theme = "light",
   DetailsComponent,
   size = "default",
+  avatarOnly = false,
   youIndicator,
   followButton,
+  style,
 }: {
   userId: string | undefined;
   theme?: "light" | "dark";
   DetailsComponent?: React.ComponentType;
-  size?: "small" | "default";
+  size?: "extraSmall" | "small" | "default";
+  avatarOnly?: boolean;
   youIndicator?: boolean;
   followButton?: boolean;
+  style?: any;
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const { user } = useUser();
@@ -70,11 +79,14 @@ export default function UserCard({
     //   asChild
     // >
     <TouchableOpacity
-      style={{
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
-      }}
+      style={[
+        {
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          alignItems: "center",
+        },
+        style,
+      ]}
       onPress={() => {
         try {
           router.dismiss();
@@ -92,16 +104,18 @@ export default function UserCard({
           marginRight: sizes[size].gap,
         }}
       />
-      <Text
-        style={{
-          fontSize: sizes[size].text,
-          fontFamily: "Outfit_600SemiBold",
-          color: Colors[theme].primary,
-        }}
-      >
-        {userMetadata.firstName} {userMetadata.lastName}{" "}
-        {/* {youIndicator && userMetadata.id === user?.id ? "(vous)" : ""} */}
-      </Text>
+      {!avatarOnly && (
+        <Text
+          style={{
+            fontSize: sizes[size].text,
+            fontFamily: "Outfit_600SemiBold",
+            color: Colors[theme].primary,
+          }}
+        >
+          {userMetadata.firstName} {userMetadata.lastName}{" "}
+          {/* {youIndicator && userMetadata.id === user?.id ? "(vous)" : ""} */}
+        </Text>
+      )}
       {/* <View
         style={{
           flexDirection: "row",

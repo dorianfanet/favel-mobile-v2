@@ -9,6 +9,7 @@ import {
 import { getDaysDiff } from "./utils";
 import { Alert } from "react-native";
 import { MMKV } from "@/app/_layout";
+import { Form } from "@/context/newTrip";
 
 class ApiClient {
   private baseUrl: string;
@@ -128,12 +129,14 @@ class ApiClient {
   async createTrip(
     tripId: string,
     route: TripRoute,
-    authorId: string
+    authorId: string,
+    form: Form
   ): Promise<void> {
     return this.request(`build-trip-groq`, "POST", {
       tripId,
       route,
       authorId: authorId,
+      form: form,
     });
   }
 

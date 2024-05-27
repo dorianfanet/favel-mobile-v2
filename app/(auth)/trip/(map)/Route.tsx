@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, Platform } from "react-native";
 import React, { useEffect, useMemo } from "react";
 import { useTrip } from "@/context/tripContext";
 import {
@@ -95,40 +95,42 @@ export default function Route() {
 
   return (
     <>
-      <ShapeSource
-        id={"route"}
-        key={"route"}
-        shape={routeLines}
-      >
-        <LineLayer
-          id={"route-layer"}
-          style={{
-            lineColor: [
-              "match",
-              ["get", "type"],
-              "driving",
-              Colors.map.driving,
-              "transit",
-              Colors.map.transit,
-              "default",
-              Colors.light.primary,
-              Colors.light.primary,
-            ],
-            lineWidth: 4,
-            lineOpacity: viewState === "days" ? 0.3 : 1,
-          }}
-          aboveLayerID="waterway-label"
-        />
-        <LineLayer
-          id={"route-layer-base"}
-          style={{
-            lineColor: "#fff",
-            lineWidth: 6,
-            lineOpacity: viewState === "days" ? 0 : 1,
-          }}
-          aboveLayerID="waterway-label"
-        />
-      </ShapeSource>
+      {Platform.OS === "ios" ? (
+        <ShapeSource
+          id={"route"}
+          key={"route"}
+          shape={routeLines}
+        >
+          <LineLayer
+            id={"route-layer"}
+            style={{
+              lineColor: [
+                "match",
+                ["get", "type"],
+                "driving",
+                Colors.map.driving,
+                "transit",
+                Colors.map.transit,
+                "default",
+                Colors.light.primary,
+                Colors.light.primary,
+              ],
+              lineWidth: 4,
+              lineOpacity: viewState === "days" ? 0.3 : 1,
+            }}
+            aboveLayerID="waterway-label"
+          />
+          <LineLayer
+            id={"route-layer-base"}
+            style={{
+              lineColor: "#fff",
+              lineWidth: 6,
+              lineOpacity: viewState === "days" ? 0 : 1,
+            }}
+            aboveLayerID="waterway-label"
+          />
+        </ShapeSource>
+      ) : null}
       {routeLines.features.map(
         (day, index) =>
           day.properties &&

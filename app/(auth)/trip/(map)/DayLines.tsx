@@ -20,7 +20,14 @@ import {
   points,
 } from "@turf/turf";
 import { useTrip } from "@/context/tripContext";
-import { Image, Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Platform,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { BlurView } from "@/components/Themed";
 import { useEditor } from "@/context/editorContext";
 import ImageWithFallback from "@/components/ImageWithFallback";
@@ -211,6 +218,7 @@ export default function DayLines() {
 
   return dayLines ? (
     <>
+      {/* {Platform.OS === "ios" ? ( */}
       <MapboxGL.ShapeSource
         id="dayLines"
         shape={dayLines}
@@ -227,6 +235,7 @@ export default function DayLines() {
           }}
         />
       </MapboxGL.ShapeSource>
+      {/* ) : null} */}
       {/* {dayLabels &&
         !tripMetadata?.status.includes("loading") &&
         dayLabels.map((label, index) => (

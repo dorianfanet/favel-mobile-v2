@@ -62,7 +62,7 @@ export default function Form() {
     }
   }, [initialDestination]);
 
-  const { rest } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
 
   const { getToken } = useAuth();
 
@@ -100,6 +100,7 @@ export default function Form() {
               ...form.flexDates,
               duration: duration,
             },
+            dynamism: intensity,
           },
           prompt,
           dates: {
@@ -108,7 +109,7 @@ export default function Form() {
           },
           status: "new.route",
         })
-        .eq("id", rest[0]);
+        .eq("id", id);
       if (error) {
         console.error("Error updating trip", error);
       }
@@ -388,6 +389,7 @@ function FormBottomSheet({
                       flex: 1,
                       color: "white",
                     }}
+                    mode={"dropdown"}
                     itemStyle={{
                       fontSize: 22,
                       fontFamily: "Outfit_600SemiBold",
@@ -398,12 +400,18 @@ function FormBottomSheet({
                     <Picker.Item
                       label="---"
                       value={-1}
+                      fontFamily={"Outfit_600SemiBold"}
                     />
                     {Array.from({ length: 14 }).map((_, index) => (
                       <Picker.Item
                         key={index + 1}
                         label={(index + 1).toString()}
                         value={index + 1}
+                        fontFamily={"Outfit_600SemiBold"}
+                        style={{
+                          color: "white",
+                          backgroundColor: Colors.dark.secondary,
+                        }}
                       />
                     ))}
                   </Picker>

@@ -34,7 +34,7 @@ export default function Loading() {
     }
   }, [trip, tripMetadata?.status]);
 
-  return (
+  return trip && trip.length > 0 ? (
     <SafeAreaView
       style={{
         position: "absolute",
@@ -115,7 +115,7 @@ export default function Loading() {
         </AnimatePresence>
       </View>
     </SafeAreaView>
-  );
+  ) : null;
 }
 
 function DayCard({ day }: { day: Day }) {

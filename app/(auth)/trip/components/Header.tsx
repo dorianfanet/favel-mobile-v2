@@ -175,7 +175,7 @@ export default function Header() {
               paddingHorizontal: padding,
             }}
           >
-            <BlurView
+            <View
               style={{
                 width: "100%",
                 borderRadius: 25,
@@ -185,7 +185,7 @@ export default function Header() {
                 padding: 2.5,
               }}
             >
-              <View
+              <BlurView
                 style={{
                   flex: 0,
                   width: 40,
@@ -210,8 +210,8 @@ export default function Header() {
                     color={Colors.dark.primary}
                   />
                 </TouchableOpacity>
-              </View>
-              <View
+              </BlurView>
+              {/* <View
                 style={{
                   flex: 1,
                 }}
@@ -234,36 +234,47 @@ export default function Header() {
                     Modifier le voyage...
                   </Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
               <View
                 style={{
                   flexDirection: "row",
-                  gap: 0,
+                  gap: 10,
                 }}
               >
-                <View
+                {/* <BlurView
                   style={{
                     flex: 0,
-                    width: 40,
                     height: 40,
+                    paddingHorizontal: 10,
                   }}
                 >
                   <TouchableOpacity
                     style={{
-                      width: 40,
                       height: 40,
                       justifyContent: "center",
                       alignItems: "center",
+                      flexDirection: "row",
+                      gap: 5,
                     }}
                   >
+                    <Text
+                      style={{
+                        color: Colors.dark.primary,
+                        fontFamily: "Outfit_400Regular",
+                        fontSize: 16,
+                        opacity: 1,
+                      }}
+                    >
+                      Modifier le voyage...
+                    </Text>
                     <Icon
                       icon="messageDotsIcon"
-                      size={20}
+                      size={22}
                       color={Colors.dark.primary}
                     />
                   </TouchableOpacity>
-                </View>
-                <View
+                </BlurView> */}
+                <BlurView
                   style={{
                     flex: 0,
                     width: 40,
@@ -310,14 +321,14 @@ export default function Header() {
                       color={Colors.dark.primary}
                     />
                   </TouchableOpacity>
-                </View>
+                </BlurView>
                 {tripMetadata && tripMetadata.status?.startsWith("trip") && (
                   <View
                     style={{
                       position: "relative",
                     }}
                   >
-                    <View
+                    <BlurView
                       style={{
                         flex: 0,
                         width: 40,
@@ -339,7 +350,7 @@ export default function Header() {
                           color={Colors.dark.primary}
                         />
                       </TouchableOpacity>
-                    </View>
+                    </BlurView>
                     <View
                       style={{
                         position: "absolute",
@@ -352,7 +363,7 @@ export default function Header() {
                   </View>
                 )}
               </View>
-            </BlurView>
+            </View>
           </View>
         )}
       </SafeAreaView>

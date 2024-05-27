@@ -8,6 +8,7 @@ import { useEditor } from "@/context/editorContext";
 import { getBoundsOfDay } from "@/lib/utils";
 import { useTrip } from "@/context/tripContext";
 import { BBox } from "@turf/turf";
+import { useCamera } from "@/context/cameraContext";
 
 export default function DayCard({ day }: { day: Day }) {
   const { setEditor } = useEditor();

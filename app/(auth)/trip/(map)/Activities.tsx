@@ -54,10 +54,8 @@ export default function Activities() {
                         editor.day.id === day.id) ||
                       (editor &&
                         editor.type === "activity" &&
-                        editor.dayId === day.id) ||
-                      (tripMetadata?.status.includes("loading") &&
-                        trip.length - 1 === index)
-                        ? "inactive"
+                        editor.dayId === day.id)
+                        ? "active"
                         : "inactive"
                     }
                     onPress={() => {
