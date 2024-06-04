@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { router, useRouter } from "expo-router";
+import { Link, router, useRouter } from "expo-router";
 import Icon, { IconByKey } from "@/components/Icon";
 import Colors from "@/constants/Colors";
 import { useTrip } from "@/context/tripContext";
@@ -241,39 +241,46 @@ export default function Header() {
                   gap: 10,
                 }}
               >
-                {/* <BlurView
+                {/* {Platform.OS === "ios" && ( */}
+                <BlurView
                   style={{
                     flex: 0,
                     height: 40,
                     paddingHorizontal: 10,
                   }}
                 >
-                  <TouchableOpacity
-                    style={{
-                      height: 40,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      flexDirection: "row",
-                      gap: 5,
-                    }}
+                  <Link
+                    href="/(auth)/conversation/82699fd2-f805-4deb-8e6b-8058bede1509"
+                    asChild
                   >
-                    <Text
+                    <TouchableOpacity
                       style={{
-                        color: Colors.dark.primary,
-                        fontFamily: "Outfit_400Regular",
-                        fontSize: 16,
-                        opacity: 1,
+                        height: 40,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        flexDirection: "row",
+                        gap: 5,
                       }}
                     >
-                      Modifier le voyage...
-                    </Text>
-                    <Icon
-                      icon="messageDotsIcon"
-                      size={22}
-                      color={Colors.dark.primary}
-                    />
-                  </TouchableOpacity>
-                </BlurView> */}
+                      <Text
+                        style={{
+                          color: Colors.dark.primary,
+                          fontFamily: "Outfit_400Regular",
+                          fontSize: 16,
+                          opacity: 1,
+                        }}
+                      >
+                        Modifier le voyage...
+                      </Text>
+                      <Icon
+                        icon="messageDotsIcon"
+                        size={22}
+                        color={Colors.dark.primary}
+                      />
+                    </TouchableOpacity>
+                  </Link>
+                </BlurView>
+                {/* )} */}
                 <BlurView
                   style={{
                     flex: 0,

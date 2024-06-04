@@ -149,6 +149,23 @@ export default function ActivityModal() {
       }}
       onDismiss={() => setEditor(null)}
     >
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 20,
+          zIndex: 10,
+        }}
+        onPress={() => {
+          setEditor(null);
+        }}
+      >
+        <Icon
+          icon="closeIconFixed"
+          size={20}
+          color={Colors.dark.primary}
+        />
+      </TouchableOpacity>
       <BottomSheetScrollView
         style={{
           padding: padding,

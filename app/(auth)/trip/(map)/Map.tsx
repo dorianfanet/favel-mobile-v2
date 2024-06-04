@@ -147,6 +147,7 @@ export default function Map() {
       logoEnabled={false}
       styleURL="mapbox://styles/dorianfanet/clj4mafi6000201qx5ci9eaj8"
       rotateEnabled={false}
+      pitchEnabled={false}
       onCameraChanged={(camera) => {
         setCurrentZoom(camera.properties.zoom);
         checkForHotspotsInBounds(camera);

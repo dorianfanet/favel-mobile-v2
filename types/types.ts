@@ -385,3 +385,26 @@ export type TripUserRole = {
 export type NotificationsPreferences = {
   main: boolean;
 };
+
+export type Conversation = {
+  id: string;
+  created_at: string;
+  trip_id?: string;
+  name: string;
+};
+
+export type ConversationMessage = {
+  id: string;
+  created_at: string;
+  conversation_id: string;
+  author_id: string;
+  content: string;
+  mentions: string[];
+  is_modification: boolean;
+};
+
+export type ConversationParticipant = {
+  id: string;
+  user_id: string;
+  conversation_id: string;
+};

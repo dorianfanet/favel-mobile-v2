@@ -269,6 +269,24 @@ class ApiClient {
       null
     );
   }
+
+  async tripConversationFavel(
+    conversation_id: string,
+    favelId: string,
+    suggestions: {
+      id: string;
+      mentionName: string;
+    }[],
+    tripId: string
+  ): Promise<void> {
+    return this.request(
+      `trip-conversation-favel?conversationId=${conversation_id}&favelId=${favelId}&tripId=${tripId}`,
+      "POST",
+      {
+        suggestions,
+      }
+    );
+  }
 }
 
 export async function favelClient(getToken: any) {

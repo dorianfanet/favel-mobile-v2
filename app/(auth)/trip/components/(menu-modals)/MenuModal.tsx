@@ -331,6 +331,25 @@ export default function MenuModal({
           >
             Historique des modifications
           </Text>
+          <View
+            style={{
+              position: "absolute",
+              top: 15,
+              right: padding,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                historyModalRef.current?.dismiss();
+              }}
+            >
+              <Icon
+                icon="closeIconFixed"
+                size={20}
+                color={Colors.dark.primary}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <TripEdits />
       </BottomSheetModal>
@@ -383,7 +402,7 @@ export default function MenuModal({
             justifyContent: "center",
             alignItems: "center",
             height: 50,
-            position: "relative",
+            width: "100%",
             // marginBottom: 20,
           }}
         >
@@ -396,6 +415,25 @@ export default function MenuModal({
           >
             Voyageurs
           </Text>
+          <View
+            style={{
+              position: "absolute",
+              top: 15,
+              right: padding,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                travelersModalRef.current?.dismiss();
+              }}
+            >
+              <Icon
+                icon="closeIconFixed"
+                size={20}
+                color={Colors.dark.primary}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <Travelers />
       </BottomSheetModal>

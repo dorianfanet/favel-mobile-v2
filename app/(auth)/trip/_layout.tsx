@@ -1,4 +1,4 @@
-import { StatusBar } from "react-native";
+import { Platform, StatusBar } from "react-native";
 import React, { useEffect } from "react";
 import { Slot, Stack } from "expo-router";
 import { TripProvider } from "@/context/tripContext";
@@ -30,7 +30,7 @@ export default function Layout() {
                 <MapWrapper />
                 <Header />
                 <Slot />
-                {/* <Chat /> */}
+                {Platform.OS === "ios" && <Chat />}
               </>
             </TripUserRoleProvider>
           </EditorProvider>

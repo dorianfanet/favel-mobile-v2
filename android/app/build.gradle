@@ -91,13 +91,13 @@ packagingOptions {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'net.favel.favelapp'
+    namespace 'net.favel.favel'
     defaultConfig {
-        applicationId 'net.favel.favelapp'
+        applicationId 'net.favel.favel'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 22
-        versionName "1.2.0"
+        versionCode 34
+        versionName "1.2.2"
 
         buildConfigField("boolean", "REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS", (findProperty("reactNative.unstable_useRuntimeSchedulerAlways") ?: true).toString())
     }

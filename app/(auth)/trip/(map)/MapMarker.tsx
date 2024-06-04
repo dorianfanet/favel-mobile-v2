@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Platform } from "react-native";
 import React from "react";
 import { Activity, Category } from "@/types/types";
 import Icon from "@/components/Icon";
@@ -83,8 +83,8 @@ export default function MapMarker({
   return (
     <Pressable
       style={{
-        width: 40,
-        height: 60,
+        width: Platform.OS === "android" ? 150 : 40,
+        height: Platform.OS === "android" ? 120 : 60,
         justifyContent: "center",
         alignItems: "center",
       }}

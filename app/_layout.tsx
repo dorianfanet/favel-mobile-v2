@@ -117,13 +117,26 @@ function InitialLayout() {
           options={{
             presentation: "modal",
             title: "Modifier le profil",
-            headerLeft: () => (
-              <Button
-                title="Annuler"
-                onPress={() => router.back()}
+            headerLeft:
+              Platform.OS === "ios"
+                ? () => (
+                    <Button
+                      title="Annuler"
+                      onPress={() => router.back()}
+                    />
+                  )
+                : undefined,
+            headerTransparent: Platform.OS === "ios" ? true : false,
+            headerBackground: () => (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.light.accent,
+                }}
               />
             ),
-            headerTransparent: true,
+            headerTintColor:
+              Platform.OS === "ios" ? Colors.light.primary : "white",
           }}
         />
         <Stack.Screen
@@ -166,15 +179,18 @@ function InitialLayout() {
               backgroundColor: Colors.light.accent,
             },
             headerTintColor: "white",
-            headerRight: () => {
-              return (
-                <Button
-                  onPress={() => router.back()}
-                  title="Fermer"
-                  color="white"
-                />
-              );
-            },
+            headerRight:
+              Platform.OS === "ios"
+                ? () => {
+                    return (
+                      <Button
+                        onPress={() => router.back()}
+                        title="Fermer"
+                        color="white"
+                      />
+                    );
+                  }
+                : undefined,
           }}
         />
         <Stack.Screen
@@ -206,6 +222,12 @@ function InitialLayout() {
         />
         <Stack.Screen
           name="(auth)/(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(auth)/conversation/[id]"
           options={{
             headerShown: false,
           }}

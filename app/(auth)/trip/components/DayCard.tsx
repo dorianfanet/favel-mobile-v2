@@ -63,51 +63,50 @@ export default function DayCard({ day }: { day: Day }) {
       //   });
       // }}
       >
-        {day.type === "day" && (
+        {/* {day.type === "day" && ( */}
+        <View
+          style={{
+            alignItems: "center",
+            flexDirection: "row",
+            gap: 5,
+          }}
+        >
           <View
             style={{
-              alignItems: "center",
-              flexDirection: "row",
-              gap: 5,
+              alignItems: "flex-end",
             }}
           >
-            <View
+            <Text
               style={{
-                alignItems: "flex-end",
+                color: Colors.dark.primary,
+                fontSize: 16,
+                fontFamily: "Outfit_600SemiBold",
               }}
             >
-              <Text
-                style={{
-                  color: Colors.dark.primary,
-                  fontSize: 16,
-                  fontFamily: "Outfit_600SemiBold",
-                }}
-              >
-                {
-                  tripMetadata?.route?.find(
-                    (route) => route.id === day.hotspotId
-                  )?.location
-                }
-                {/* {day.location} */}
-              </Text>
-              <Text
-                style={{
-                  color: Colors.dark.primary,
-                  fontSize: 12,
-                  opacity: 0.8,
-                  fontFamily: "Outfit_500Medium",
-                }}
-              >
-                {day.location}
-              </Text>
-            </View>
-            <Icon
-              icon="mapPinIcon"
-              size={16}
-              color={Colors.dark.primary}
-            />
+              {
+                tripMetadata?.route?.find((route) => route.id === day.hotspotId)
+                  ?.location
+              }
+              {/* {day.location} */}
+            </Text>
+            <Text
+              style={{
+                color: Colors.dark.primary,
+                fontSize: 12,
+                opacity: 0.8,
+                fontFamily: "Outfit_500Medium",
+              }}
+            >
+              {day.location}
+            </Text>
           </View>
-        )}
+          <Icon
+            icon="mapPinIcon"
+            size={16}
+            color={Colors.dark.primary}
+          />
+        </View>
+        {/* )}
         {day.type === "transfer" && (
           <View
             style={{
@@ -136,7 +135,7 @@ export default function DayCard({ day }: { day: Day }) {
               {day.destination}
             </Text>
           </View>
-        )}
+        )} */}
       </Pressable>
     </TouchableOpacity>
   );

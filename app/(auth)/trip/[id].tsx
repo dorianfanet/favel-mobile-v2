@@ -12,6 +12,7 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import New from "./new/New";
 import Trip from "./trip/Trip";
 import Loading from "./trip/loading/Loading";
+import { AppEventsLogger } from "react-native-fbsdk-next";
 
 export default function Index() {
   const { user } = useUser();
@@ -115,6 +116,12 @@ export default function Index() {
     }
 
     checkForTrip();
+  }, []);
+
+  useEffect(() => {
+    AppEventsLogger.logEvent(AppEventsLogger.AppEvents.CompletedRegistration, {
+      [AppEventsLogger.AppEventParams.RegistrationMethod]: "test",
+    });
   }, []);
 
   return (

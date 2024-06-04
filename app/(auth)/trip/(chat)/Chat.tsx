@@ -191,7 +191,7 @@ export default function Chat() {
                   >
                     {tripMetadata?.name}
                   </Text>
-                  <Text
+                  {/* <Text
                     style={{
                       color: "white",
                       fontFamily: "Outfit_400Regular",
@@ -200,7 +200,7 @@ export default function Chat() {
                     }}
                   >
                     2 en ligne
-                  </Text>
+                  </Text> */}
                 </View>
               </View>
               <TouchableOpacity
@@ -295,7 +295,7 @@ export default function Chat() {
             keyboardVerticalOffset={60}
           />
         </Animated.View>
-        {!state && (
+        {/* {!state && (
           <TouchableOpacity
             onPress={() => setState((prev) => !prev)}
             style={{
@@ -314,7 +314,7 @@ export default function Chat() {
               color={Colors.dark.primary}
             />
           </TouchableOpacity>
-        )}
+        )} */}
       </SafeAreaView>
     </MotiView>
   );

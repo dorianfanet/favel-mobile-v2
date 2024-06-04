@@ -201,6 +201,18 @@ export default function home() {
               router.navigate(`/(auth)/trip/${id}`);
             }}
           />
+          <ContainedButton
+            title="Rafraîchir"
+            onPress={async () => {
+              setLoading(true);
+              await fetchFollowedUserPosts();
+              setLoading(false);
+            }}
+            type="ghost"
+            style={{
+              marginTop: 10,
+            }}
+          />
         </>
       )}
     </View>

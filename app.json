@@ -12,17 +12,13 @@
       "resizeMode": "cover",
       "backgroundColor": "#44C0E7"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
       "buildNumber": "39",
       "entitlements": {
-        "com.apple.developer.applesignin": [
-          "Default"
-        ]
+        "com.apple.developer.applesignin": ["Default"]
       }
     },
     "android": {
@@ -30,8 +26,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#44C0E7"
       },
-      "package": "net.favel.favelapp",
-      "versionCode": 22,
+      "package": "net.favel.favel",
+      "versionCode": 34,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -49,7 +45,18 @@
           "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiZG9yaWFuZmFuZXQiLCJhIjoiY2xzajYyY2o4MjRnZjJqbWhxYnJ1cHdnNiJ9.V8jfUI3K9ygBN3WTo8Wl7Q"
         }
       ],
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "730290702131835",
+          "clientToken": "68723a69a866c7d91b2bba9ddccd95bc",
+          "displayName": "Favel",
+          "scheme": "fb730290702131835",
+          "autoLogAppEventsEnabled": true,
+          "isAutoInitEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

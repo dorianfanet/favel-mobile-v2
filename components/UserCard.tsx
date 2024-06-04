@@ -38,6 +38,8 @@ export default function UserCard({
   youIndicator,
   followButton,
   style,
+  noLink,
+  onPress,
 }: {
   userId: string | undefined;
   theme?: "light" | "dark";
@@ -47,6 +49,8 @@ export default function UserCard({
   youIndicator?: boolean;
   followButton?: boolean;
   style?: any;
+  noLink?: boolean;
+  onPress?: (user: UserMetadata) => void;
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const { user } = useUser();
@@ -88,10 +92,15 @@ export default function UserCard({
         style,
       ]}
       onPress={() => {
+        if (noLink) return;
+        if (onPress) {
+          onPress(userMetadata);
+          return;
+        }
         try {
           router.dismiss();
         } catch (e) {}
-        router.navigate(`/profile/${userId}`);
+        router.push(`/profile/${userId}`);
       }}
     >
       <Image
