@@ -109,6 +109,7 @@ export type TripMetadata = {
       };
   invited_ids?: string[];
   post_id?: string;
+  conversation_id?: string;
 };
 
 export type Trip = Day[];
@@ -391,6 +392,7 @@ export type Conversation = {
   created_at: string;
   trip_id?: string;
   name: string;
+  thumbnail?: string;
 };
 
 export type ConversationMessage = {
@@ -408,3 +410,9 @@ export type ConversationParticipant = {
   user_id: string;
   conversation_id: string;
 };
+
+export type ConversationModificationsStatus =
+  | "pending"
+  | "applied"
+  | "loading"
+  | "error";

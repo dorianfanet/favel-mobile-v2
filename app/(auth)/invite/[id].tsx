@@ -39,7 +39,7 @@ export default function Index() {
         .then((res) => {
           console.log(res);
           if (res.id) {
-            router.push(`/trip/${res.id}`);
+            router.replace(`/trip/${res.id}`);
           } else {
             setError("Erreur lors de l'invitation. Veuillez réessayer.");
           }

@@ -6,11 +6,19 @@ import {
   TextInput,
   ActivityIndicator,
   TouchableOpacity,
+  Dimensions,
+  Platform,
+  Alert,
 } from "react-native";
-import React, { useEffect, useMemo, useState } from "react";
-import { Stack, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/Colors";
-import { Conversation, ConversationMessage, UserMetadata } from "@/types/types";
+import {
+  Conversation,
+  ConversationMessage,
+  ConversationModificationsStatus,
+  UserMetadata,
+} from "@/types/types";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +27,7 @@ import { createClient } from "@supabase/supabase-js";
 import { useConversation } from "@/context/conversationContext";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import UserCard from "@/components/UserCard";
-import { Text } from "@/components/Themed";
+import { Button, Text } from "@/components/Themed";
 import { borderRadius, padding } from "@/constants/values";
 import Icon from "@/components/Icon";
 import ImageWithFallback from "@/components/ImageWithFallback";
@@ -28,6 +36,7 @@ import { getUserMetadata } from "@/lib/utils";
 import { favelClient } from "@/lib/favelApi";
 import Markdown from "react-native-markdown-display";
 import ContainedButton from "@/components/ContainedButton";
+import { MMKV } from "@/app/_layout";
 
 export default function ConversationComponent() {
   const { id } = useLocalSearchParams();
@@ -54,6 +63,35 @@ export default function ConversationComponent() {
   } = useConversation();
 
   useEffect(() => {
+    const conversationCache = MMKV.getString(`conversation-${id}`);
+    const messagesCache = MMKV.getString(`conversation-messages-${id}`);
+    const participantsCache = MMKV.getString(`conversation-participants-${id}`);
+    const currentParticipantCache = MMKV.getString(
+      `conversation-currentParticipant-${id}`
+    );
+    if (
+      conversationCache &&
+      messagesCache &&
+      participantsCache &&
+      currentParticipantCache
+    ) {
+      console.log(
+        conversationCache,
+        messagesCache,
+        participantsCache,
+        currentParticipantCache
+      );
+      try {
+        setConversation(JSON.parse(conversationCache));
+        setMessages(JSON.parse(messagesCache));
+        setParticipants(JSON.parse(participantsCache));
+        setCurrentParticipant(currentParticipantCache);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
     async function fetchConversation() {
       supabaseClient(getToken).then(async (supabase) => {
         const { data, error } = await supabase
@@ -66,8 +104,11 @@ export default function ConversationComponent() {
           console.error(error);
         }
 
+        console.log(data);
+
         if (data) {
           setConversation(data);
+          MMKV.setString(`conversation-${id}`, JSON.stringify(data));
         }
 
         const { data: messagesData, error: messagesError } = await supabase
@@ -96,6 +137,10 @@ export default function ConversationComponent() {
 
         if (participantsData) {
           setParticipants(participantsData);
+          MMKV.setString(
+            `conversation-participants-${id}`,
+            JSON.stringify(participantsData)
+          );
         }
 
         console.log("participantsData", participantsData);
@@ -109,6 +154,10 @@ export default function ConversationComponent() {
         console.log("currentParticipant", currentParticipant);
 
         setCurrentParticipant(currentParticipant?.id);
+        MMKV.setString(
+          `conversation-currentParticipant-${id}`,
+          currentParticipant?.id
+        );
 
         setLoading(false);
       });
@@ -125,6 +174,10 @@ export default function ConversationComponent() {
     }
     init();
   }, []);
+
+  useEffect(() => {
+    MMKV.setString(`conversation-messages-${id}`, JSON.stringify(messages));
+  }, [messages]);
 
   useEffect(() => {
     if (!token) return;
@@ -162,6 +215,28 @@ export default function ConversationComponent() {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversation_messages",
+          filter: `conversation_id=eq.${id}`,
+        },
+        (payload) => {
+          console.log(payload);
+          if (payload.new) {
+            console.log(payload.new);
+            setMessages((currentMessages) =>
+              currentMessages.map((message) =>
+                message.id === payload.new.id
+                  ? (payload.new as ConversationMessage)
+                  : message
+              )
+            );
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -170,6 +245,8 @@ export default function ConversationComponent() {
   }, [id, token]);
 
   const { user } = useUser();
+
+  const [chatHeight, setChatHeight] = useState(0);
 
   return (
     <>
@@ -274,6 +351,12 @@ export default function ConversationComponent() {
             style={{
               flex: 1,
             }}
+            onLayout={(event) => {
+              console.log(event.nativeEvent.layout.height);
+              if (chatHeight === 0) {
+                setChatHeight(event.nativeEvent.layout.height);
+              }
+            }}
           >
             <FlatList
               data={JSON.parse(JSON.stringify(messages)).reverse()}
@@ -282,7 +365,63 @@ export default function ConversationComponent() {
               contentContainerStyle={{
                 padding: padding,
                 rowGap: 10,
+                marginTop: 50,
               }}
+              ListFooterComponent={
+                <View
+                  style={{
+                    flex: 1,
+                    height: chatHeight,
+                    padding: padding,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 150,
+                      height: 150,
+                      borderRadius: 100,
+                      overflow: "hidden",
+                      marginBottom: 20,
+                    }}
+                  >
+                    <ImageWithFallback
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 10,
+                      }}
+                      source={{
+                        uri: conversation?.thumbnail,
+                      }}
+                      fallbackSource={require("@/assets/images/no-image.png")}
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      fontFamily: "Outfit_600SemiBold",
+                      fontSize: 24,
+                      color: Colors.light.primary,
+                      marginBottom: 10,
+                      textAlign: "center",
+                    }}
+                  >
+                    {conversation?.name}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: "Outfit_400Regular",
+                      fontSize: 14,
+                      color: Colors.light.primary,
+                      textAlign: "center",
+                    }}
+                  >
+                    Discutez avec les autres participants de votre voyage et
+                    demandez des modifications à Favel
+                  </Text>
+                </View>
+              }
               renderItem={({ item }) => (
                 <View
                   style={{
@@ -382,15 +521,44 @@ export default function ConversationComponent() {
                     >
                       {item.content}
                     </ParsedText>
-                    {/* {item.is_modification ? (
-                      <ContainedButton
-                        title="Appliquer les modifications"
-                        onPress={() => {}}
-                        style={{
-                          marginTop: 10,
-                        }}
+                    {item.modifications_status ? (
+                      <ApplyModificationsButton
+                        status={item.modifications_status}
+                        tripId={conversation?.trip_id}
+                        message={item.content}
+                        messageId={item.id}
                       />
-                    ) : null} */}
+                    ) : null}
+                    {item.author_id ===
+                      participants.find((part) => part.user_id === "favel")
+                        ?.id && (
+                      <TouchableOpacity
+                        style={{
+                          position: "absolute",
+                          top: -18,
+                          left: -15,
+                          backgroundColor: Colors.light.accent,
+                          borderRadius: 5,
+                        }}
+                        onPress={() => {
+                          Alert.alert(
+                            "Fonctionnalité en bêta",
+                            "Les discussions avec Favel sont en cours de développement. Il se peut que Favel fasse des erreurs ou ne réponde pas correctement à vos demandes."
+                          );
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            fontFamily: "Outfit_600SemiBold",
+                            fontSize: 14,
+                            padding: 5,
+                          }}
+                        >
+                          Beta
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}
@@ -399,6 +567,180 @@ export default function ConversationComponent() {
           <ConversationInput />
         </View>
       )}
+    </>
+  );
+}
+
+const text = {
+  pending: "Appliquer les modifications",
+  applied: "✅ Votre voyage a été mis à jour",
+  loading: "Chargement",
+  error: "Réessayer",
+};
+
+function ApplyModificationsButton({
+  status,
+  tripId,
+  message,
+  messageId,
+}: {
+  status: ConversationModificationsStatus;
+  tripId?: string;
+  message: string;
+  messageId: string;
+}) {
+  const { getToken } = useAuth();
+
+  const [localStatus, setLocalStatus] =
+    useState<ConversationModificationsStatus>(status);
+
+  useEffect(() => {
+    setLocalStatus(status);
+  }, [status]);
+
+  async function handleClickApply() {
+    setLocalStatus("loading");
+    updateMessageInDb("loading");
+    if (!tripId) {
+      setLocalStatus("error");
+      updateMessageInDb("error");
+      return;
+    }
+    favelClient(getToken).then(async (favel) => {
+      const result: any = await favel.tripConversationFavelApplyModifications(
+        message,
+        tripId,
+        messageId
+      );
+      console.log(result);
+      if (result.error) {
+        setLocalStatus("error");
+        updateMessageInDb("error");
+      }
+    });
+  }
+
+  async function handleRevert() {
+    Alert.alert(
+      "Annuler les modifications",
+      "En annulant les modifications, vous revenez à l'état du voyage au moment où ce message a été envoyé. Toutes les modifications apportées depuis ce message seront perdues. Êtes-vous sûr de vouloir continuer ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
+        },
+        {
+          text: "Confirmer",
+          onPress: () => {
+            setLocalStatus("loading");
+            updateMessageInDb("loading");
+            if (!tripId) {
+              setLocalStatus("applied");
+              updateMessageInDb("applied");
+              return;
+            }
+            favelClient(getToken).then(async (favel) => {
+              const result: any = await favel.tripConversationFavelRevert(
+                tripId,
+                messageId
+              );
+              console.log(result);
+              if (result.error) {
+                setLocalStatus("applied");
+                updateMessageInDb("applied");
+              }
+            });
+          },
+        },
+      ]
+    );
+  }
+
+  async function updateMessageInDb(status: ConversationModificationsStatus) {
+    await supabaseClient(getToken).then(async (supabase) => {
+      const { error } = await supabase
+        .from("conversation_messages")
+        .update({
+          modifications_status: status,
+        })
+        .eq("id", messageId);
+
+      if (error) {
+        console.error(error);
+      }
+    });
+  }
+
+  return (
+    <>
+      <ContainedButton
+        TitleComponent={
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+            }}
+          >
+            {localStatus === "loading" ? (
+              <ActivityIndicator
+                size="small"
+                color="white"
+              />
+            ) : null}
+            <Text
+              style={{
+                color:
+                  localStatus === "applied" ? Colors.light.primary : "white",
+                fontSize: 16,
+                fontFamily: "Outfit_600SemiBold",
+                textAlign: "center",
+              }}
+            >
+              {text[localStatus]}
+            </Text>
+          </View>
+        }
+        onPress={handleClickApply}
+        style={{
+          marginTop: 10,
+          opacity: localStatus === "loading" ? 0.5 : 1,
+          paddingHorizontal: 10,
+          backgroundColor:
+            localStatus === "applied" ? "white" : Colors.light.accent,
+        }}
+        disabled={localStatus === "loading" || localStatus === "applied"}
+      />
+      {localStatus === "applied" ? (
+        <ContainedButton
+          title="Annuler les modifications"
+          onPress={handleRevert}
+          type="ghostLight"
+        />
+      ) : null}
+      {localStatus === "error" ? (
+        <Text
+          style={{
+            textAlign: "center",
+            fontFamily: "Outfit_400Regular",
+            fontSize: 14,
+            marginVertical: 5,
+          }}
+        >
+          Une erreur est survenue. Veuillez réessayer.
+        </Text>
+      ) : null}
+      {/* <Text
+        style={{
+          textAlign: "center",
+          fontFamily: "Outfit_400Regular",
+          fontSize: 12,
+          marginVertical: 5,
+        }}
+      >
+        {`Cette fonctionnalité est en bêta`}
+      </Text> */}
     </>
   );
 }
@@ -416,6 +758,8 @@ function ConversationInput() {
     }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [prompt, setPrompt] = useState<string>("");
+  const [showPrompt, setShowPrompt] = useState<boolean>(false);
 
   const { getToken } = useAuth();
 
@@ -548,6 +892,10 @@ function ConversationInput() {
     });
   }
 
+  const { user } = useUser();
+
+  const inputRef = useRef<TextInput>(null);
+
   return (
     <KeyboardAvoidingView
       behavior="padding"
@@ -555,6 +903,7 @@ function ConversationInput() {
       style={{
         backgroundColor: Colors.light.background,
         paddingBottom: inset.bottom,
+        marginBottom: Platform.OS === "android" ? 10 : 0,
       }}
     >
       <View
@@ -563,6 +912,113 @@ function ConversationInput() {
           paddingBottom: inset.bottom,
         }}
       >
+        {/* <View
+          style={{
+            paddingHorizontal: padding,
+            marginBottom: 10,
+          }}
+        >
+          <ContainedButton
+            title="@Favel"
+            type="ghostLight"
+            onPress={() => {}}
+            style={{
+              paddingVertical: 5,
+            }}
+          >
+            @Favel
+          </ContainedButton>
+        </View> */}
+        <ScrollView
+          style={{
+            borderRadius: borderRadius,
+            paddingHorizontal: padding,
+            paddingVertical: 10,
+            position: "absolute",
+            top: -60,
+            right: 0,
+            left: 0,
+          }}
+          keyboardShouldPersistTaps="always"
+          horizontal
+        >
+          <View
+            key={"participant-favel"}
+            style={{
+              padding: 5,
+              paddingRight: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              backgroundColor: "white",
+              borderRadius: 10,
+            }}
+          >
+            <TouchableOpacity
+              style={[
+                {
+                  flexDirection: "row",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                },
+              ]}
+              onPress={() => {
+                setValue((currentValue) => {
+                  const lastAtPos = currentValue.lastIndexOf("@");
+                  setMentions(false);
+                  return `${currentValue.slice(0, lastAtPos)}@Favel `;
+                });
+                inputRef.current?.focus();
+              }}
+            >
+              <Image
+                source={require("@/assets/images/icon.png")}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 25,
+                  marginRight: 10,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontFamily: "Outfit_600SemiBold",
+                  color: Colors.light.primary,
+                }}
+              >
+                Favel
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {participants?.map((participant) =>
+            participant.user_id !== user?.id ? (
+              <View
+                key={`participant-${participant.id}`}
+                style={{
+                  padding: 0,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <UserCard
+                  userId={participant.user_id}
+                  size="small"
+                  onPress={(user) => {
+                    setValue((currentValue) => {
+                      const lastAtPos = currentValue.lastIndexOf("@");
+                      setMentions(false);
+                      return `${currentValue.slice(0, lastAtPos)}@${
+                        user.firstName
+                      }${user.lastName} `;
+                    });
+                  }}
+                />
+              </View>
+            ) : null
+          )}
+        </ScrollView>
         <View
           style={{
             justifyContent: "center",
@@ -572,6 +1028,43 @@ function ConversationInput() {
             marginHorizontal: padding,
           }}
         >
+          {/* <TouchableOpacity
+            onPress={() => {
+              setValue((currentValue) => {
+                // check if last char is a space
+                const lastChar = currentValue[currentValue.length - 1];
+                console.log(lastChar);
+                if (lastChar === undefined) {
+                  return `@Favel`;
+                } else if (lastChar === " ") {
+                  return `${currentValue}@Favel`;
+                } else {
+                  return `${currentValue} @Favel`;
+                }
+              });
+            }}
+            style={{
+              flexDirection: "row",
+              gap: -3,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: Colors.light.primary,
+                fontFamily: "Outfit_600SemiBold",
+                fontSize: 24,
+              }}
+            >
+              @
+            </Text>
+            <Icon
+              icon="favelAt"
+              size={20}
+              color={Colors.light.primary}
+            />
+          </TouchableOpacity> */}
+
           <View
             style={{
               justifyContent: "center",
@@ -653,31 +1146,35 @@ function ConversationInput() {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  {participants?.map((participant) => (
-                    <View
-                      key={participant.id}
-                      style={{
-                        padding: 10,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <UserCard
-                        userId={participant.user_id}
-                        size="small"
-                        onPress={(user) => {
-                          setValue((currentValue) => {
-                            const lastAtPos = currentValue.lastIndexOf("@");
-                            setMentions(false);
-                            return `${currentValue.slice(0, lastAtPos)}@${
-                              user.firstName
-                            }${user.lastName} `;
-                          });
-                        }}
-                      />
-                    </View>
-                  ))}
+                  {participants?.map((participant) =>
+                    participant.user_id !== "favel" ? (
+                      participant.user_id !== user?.id ? (
+                        <View
+                          key={`participant-${participant.id}`}
+                          style={{
+                            padding: 10,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                        >
+                          <UserCard
+                            userId={participant.user_id}
+                            size="small"
+                            onPress={(user) => {
+                              setValue((currentValue) => {
+                                const lastAtPos = currentValue.lastIndexOf("@");
+                                setMentions(false);
+                                return `${currentValue.slice(0, lastAtPos)}@${
+                                  user.firstName
+                                }${user.lastName} `;
+                              });
+                            }}
+                          />
+                        </View>
+                      ) : null
+                    ) : null
+                  )}
                 </ScrollView>
               </View>
             ) : null}
@@ -714,6 +1211,7 @@ function ConversationInput() {
               onContentSizeChange={(event) =>
                 setHeight(event.nativeEvent.contentSize.height)
               }
+              ref={inputRef}
             >
               <ParsedText
                 parse={[
@@ -754,6 +1252,9 @@ function ConversationInput() {
               alignItems: "center",
               opacity: value.length === 0 ? 0.5 : 1,
             }}
+            onLongPress={() => {
+              setShowPrompt(true);
+            }}
           >
             {loading ? (
               <ActivityIndicator
@@ -770,6 +1271,69 @@ function ConversationInput() {
           </TouchableOpacity>
         </View>
       </View>
+      {/* {showPrompt ? (
+        <PromptComponent
+          prompt={prompt}
+          setPrompt={setPrompt}
+          setShowPrompt={setShowPrompt}
+        />
+      ) : null} */}
     </KeyboardAvoidingView>
+  );
+}
+
+const { width, height } = Dimensions.get("screen");
+
+function PromptComponent({
+  prompt,
+  setPrompt,
+  setShowPrompt,
+}: {
+  prompt: string;
+  setPrompt: (value: string) => void;
+  setShowPrompt: (value: boolean) => void;
+}) {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        left: padding,
+        right: padding,
+        // height: 500,
+        paddingTop: padding,
+        bottom: 100,
+        backgroundColor: "white",
+        borderWidth: 2,
+        borderColor: "#0d2a496c",
+        borderRadius: borderRadius,
+      }}
+    >
+      <TextInput
+        style={{
+          color: Colors.light.primary,
+          fontFamily: "Outfit_400Regular",
+          fontSize: 16,
+          padding: 10,
+          borderWidth: 0,
+          marginHorizontal: padding,
+          height: 430,
+          backgroundColor: "#dcdcdca9",
+          borderRadius: borderRadius,
+        }}
+        placeholder="Prompt..."
+        placeholderTextColor="#0d2a496c"
+        multiline
+        value={prompt}
+        onChangeText={(text) => {
+          setPrompt(text);
+        }}
+      />
+      <Button
+        title="Fermer"
+        onPress={() => {
+          setShowPrompt(false);
+        }}
+      />
+    </View>
   );
 }

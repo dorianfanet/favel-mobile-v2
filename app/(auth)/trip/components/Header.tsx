@@ -30,9 +30,14 @@ import Animated, {
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { MMKV } from "@/app/_layout";
 import { AnimatePresence, MotiView } from "moti";
+import { favelClient } from "@/lib/favelApi";
+import { useAuth } from "@clerk/clerk-expo";
+import { useTripUserRole } from "@/context/tripUserRoleContext";
 
 export default function Header() {
   const { tripMetadata, userActivity } = useTrip();
+
+  const { tripUserRole } = useTripUserRole();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const shareModalRef = useRef<BottomSheetModal>(null);
@@ -53,9 +58,9 @@ export default function Header() {
           top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
         }}
       >
-        {/* {tripMetadata && tripMetadata.status === "trip" ? (
+        {tripMetadata && tripMetadata.status === "trip" ? (
           <OnboardingButton />
-        ) : null} */}
+        ) : null}
         {tripMetadata && tripMetadata.status.includes("loading") ? (
           <>
             {/* <LoadingStuckButton /> */}
@@ -235,101 +240,64 @@ export default function Header() {
                   </Text>
                 </TouchableOpacity>
               </View> */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 10,
-                }}
-              >
-                {/* {Platform.OS === "ios" && ( */}
-                <BlurView
+              {tripMetadata && tripMetadata.status?.startsWith("trip") && (
+                <View
                   style={{
-                    flex: 0,
-                    height: 40,
-                    paddingHorizontal: 10,
+                    flexDirection: "row",
+                    gap: 10,
                   }}
                 >
-                  <Link
-                    href="/(auth)/conversation/82699fd2-f805-4deb-8e6b-8058bede1509"
-                    asChild
+                  {/* {Platform.OS === "ios" && ( */}
+                  {tripUserRole.role !== "read-only" && <ConversationButton />}
+                  {/* )} */}
+                  <BlurView
+                    style={{
+                      flex: 0,
+                      width: 40,
+                      height: 40,
+                    }}
                   >
                     <TouchableOpacity
+                      // onPress={async () => {
+                      //   track("Share trip clicked");
+                      //   try {
+                      //     const result = await Share.share({
+                      //       message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
+                      //     });
+
+                      //     if (result.action === Share.sharedAction) {
+                      //       if (result.activityType) {
+                      //         // shared with activity type of result.activityType
+                      //       } else {
+                      //         // shared
+                      //       }
+                      //     } else if (result.action === Share.dismissedAction) {
+                      //       // dismissed
+                      //     }
+                      //   } catch (error) {
+                      //     alert(error);
+                      //   }
+                      // }}
+                      onPress={() => {
+                        track("Header share button pressed");
+                        shareModalRef.current?.present();
+                      }}
                       style={{
+                        width: 40,
                         height: 40,
                         justifyContent: "center",
                         alignItems: "center",
-                        flexDirection: "row",
-                        gap: 5,
                       }}
                     >
-                      <Text
-                        style={{
-                          color: Colors.dark.primary,
-                          fontFamily: "Outfit_400Regular",
-                          fontSize: 16,
-                          opacity: 1,
-                        }}
-                      >
-                        Modifier le voyage...
-                      </Text>
                       <Icon
-                        icon="messageDotsIcon"
-                        size={22}
+                        icon={
+                          Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"
+                        }
+                        size={20}
                         color={Colors.dark.primary}
                       />
                     </TouchableOpacity>
-                  </Link>
-                </BlurView>
-                {/* )} */}
-                <BlurView
-                  style={{
-                    flex: 0,
-                    width: 40,
-                    height: 40,
-                  }}
-                >
-                  <TouchableOpacity
-                    // onPress={async () => {
-                    //   track("Share trip clicked");
-                    //   try {
-                    //     const result = await Share.share({
-                    //       message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
-                    //     });
-
-                    //     if (result.action === Share.sharedAction) {
-                    //       if (result.activityType) {
-                    //         // shared with activity type of result.activityType
-                    //       } else {
-                    //         // shared
-                    //       }
-                    //     } else if (result.action === Share.dismissedAction) {
-                    //       // dismissed
-                    //     }
-                    //   } catch (error) {
-                    //     alert(error);
-                    //   }
-                    // }}
-                    onPress={() => {
-                      track("Header share button pressed");
-                      shareModalRef.current?.present();
-                    }}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Icon
-                      icon={
-                        Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"
-                      }
-                      size={20}
-                      color={Colors.dark.primary}
-                    />
-                  </TouchableOpacity>
-                </BlurView>
-                {tripMetadata && tripMetadata.status?.startsWith("trip") && (
+                  </BlurView>
                   <View
                     style={{
                       position: "relative",
@@ -368,8 +336,8 @@ export default function Header() {
                       <UserActivityCount userActivity={userActivity} />
                     </View>
                   </View>
-                )}
-              </View>
+                </View>
+              )}
             </View>
           </View>
         )}
@@ -377,6 +345,94 @@ export default function Header() {
       <MenuModal bottomSheetModalRef={bottomSheetModalRef} />
       <ShareModal bottomSheetModalRef={shareModalRef} />
     </>
+  );
+}
+
+function ConversationButton() {
+  const { tripMetadata } = useTrip();
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+
+  const { getToken } = useAuth();
+
+  return (
+    <BlurView
+      style={{
+        flex: 0,
+        height: 40,
+        paddingHorizontal: 10,
+      }}
+    >
+      {/* <Link
+        href="/(auth)/conversation/82699fd2-f805-4deb-8e6b-8058bede1509"
+        asChild
+      > */}
+      <TouchableOpacity
+        style={{
+          height: 40,
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "row",
+          gap: 5,
+        }}
+        onPress={() => {
+          if (loading) return;
+          if (tripMetadata?.conversation_id) {
+            router.navigate(
+              `/(auth)/conversation/${tripMetadata?.conversation_id}`
+            );
+          } else {
+            favelClient(getToken).then(async (favel) => {
+              setLoading(true);
+              const result = await favel.createTripConversation(
+                tripMetadata?.id as string
+              );
+              if (result.id) {
+                router.navigate(`/(auth)/conversation/${result.id}`);
+              }
+              setLoading(false);
+            });
+          }
+        }}
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            {/* <Text
+              style={{
+                color: Colors.dark.primary,
+                fontFamily: "Outfit_400Regular",
+                fontSize: 16,
+                opacity: 1,
+              }}
+            >
+              Chargement...
+            </Text> */}
+            <ActivityIndicator color={Colors.dark.primary} />
+          </>
+        ) : (
+          <>
+            {/* <Text
+              style={{
+                color: Colors.dark.primary,
+                fontFamily: "Outfit_400Regular",
+                fontSize: 16,
+                opacity: 1,
+              }}
+            >
+              Modifier le voyage...
+            </Text> */}
+            <Icon
+              icon="messageDotsIcon"
+              size={22}
+              color={Colors.dark.primary}
+            />
+          </>
+        )}
+      </TouchableOpacity>
+      {/* </Link> */}
+    </BlurView>
   );
 }
 
@@ -398,7 +454,7 @@ function OnboardingButton() {
   });
 
   useEffect(() => {
-    const alreadySeen = MMKV.getString("onboardingSeen");
+    const alreadySeen = MMKV.getString("onboardingSeen1");
     // const alreadySeen = false;
     if (alreadySeen) {
       setAlreadySeen(true);

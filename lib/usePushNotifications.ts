@@ -118,11 +118,11 @@ export const usePushNotifications = (): PushNotificationState => {
       responseListener.current =
         Notifications.addNotificationResponseReceivedListener((response) => {
           const data = response.notification.request.content.data;
-          const link = data.link;
+          // const link = data.link;
 
-          if (link) {
-            router.push(link);
-          }
+          // if (link) {
+          //   router.push(link);
+          // }
 
           async function updateNotification() {
             if (!data.id) return;

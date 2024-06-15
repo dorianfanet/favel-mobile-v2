@@ -59,7 +59,7 @@ export default function Layout() {
           tabBarButton: (props) => {
             return (
               <TabButton
-                icon={"tripsIcon"}
+                icon={"homeIcon"}
                 {...props}
               />
             );

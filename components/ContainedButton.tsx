@@ -13,7 +13,7 @@ type ContainedButtonProps = TouchableOpacityProps & {
   title?: string;
   TitleComponent?: React.ReactNode;
   onPress: () => void;
-  type?: "primary" | "ghost";
+  type?: "primary" | "ghost" | "ghostLight";
   fontSize?: number;
   fontFamily?: string;
   color?: string;
@@ -23,6 +23,13 @@ type ContainedButtonProps = TouchableOpacityProps & {
 const backgroundColors = {
   primary: Colors.light.accent,
   ghost: "transparent",
+  ghostLight: "#083e4f1d",
+};
+
+const textColors = {
+  primary: "#fff",
+  ghost: "#fff",
+  ghostLight: Colors.light.primary,
 };
 
 export default function ContainedButton(props: ContainedButtonProps) {
@@ -34,7 +41,7 @@ export default function ContainedButton(props: ContainedButtonProps) {
     type = "primary",
     fontSize = 16,
     fontFamily = "Outfit_600SemiBold",
-    color = "#fff",
+    color = textColors[type],
     disabled,
     ...otherProps
   } = props;

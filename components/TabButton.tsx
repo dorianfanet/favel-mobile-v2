@@ -28,7 +28,7 @@ const TabButton = ({ icon, accessibilityState, onPress }: IButtonIconProps) => {
         <Icon
           color={isFocused ? colors.light.accent : colors.light.primary}
           icon={icon}
-          size={26}
+          size={isFocused ? 30 : 26}
         />
       </View>
     </Pressable>

@@ -172,17 +172,13 @@ export default function MenuModal({
                 <UserActivityCount userActivity={userActivity} />
               )}
             />
-            {/* <MenuButton
+            <MenuButton
               title="Comment ça marche ?"
               onPress={() => {
                 track("how_it_works_modal_opened");
                 router.push("/(modals)/onboarding");
               }}
-              // notifications={userActivity?.count}
-              NotificationsComponent={() => (
-                <UserActivityCount userActivity={userActivity} />
-              )}
-            /> */}
+            />
             <MenuButton
               title="Signaler un problème"
               onPress={() => {

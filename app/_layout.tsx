@@ -217,7 +217,17 @@ function InitialLayout() {
           name="(modals)/onboarding"
           options={{
             presentation: "modal",
-            headerShown: false,
+            headerShown: Platform.OS === "ios" ? false : true,
+            headerBackground: () => (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.light.accent,
+                }}
+              />
+            ),
+            headerTintColor: "white",
+            headerTitle: "Comment ça marche ?",
           }}
         />
         <Stack.Screen
@@ -233,9 +243,25 @@ function InitialLayout() {
           }}
         />
         <Stack.Screen
+          name="(auth)/conversations/index"
+          options={{
+            headerTitle: "Conversations",
+            headerBackground: () => (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.light.accent,
+                }}
+              />
+            ),
+            headerTintColor: "white",
+            headerBackTitle: "Retour",
+          }}
+        />
+        <Stack.Screen
           name="(auth)/profile/[id]"
           options={{
-            headerTitle: "Profile",
+            headerTitle: "Profil",
             headerBackground: () => (
               <View
                 style={{

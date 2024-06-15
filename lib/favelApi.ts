@@ -287,6 +287,39 @@ class ApiClient {
       }
     );
   }
+
+  async tripConversationFavelApplyModifications(
+    message: string,
+    tripId: string,
+    messageId: string
+  ): Promise<void> {
+    return this.request(
+      `trip-conversation-favel/apply-modifications?tripId=${tripId}&messageId=${messageId}`,
+      "POST",
+      {
+        message,
+      }
+    );
+  }
+
+  async tripConversationFavelRevert(
+    tripId: string,
+    messageId: string
+  ): Promise<void> {
+    return this.request(
+      `trip-conversation-favel/revert?tripId=${tripId}&messageId=${messageId}`,
+      "GET",
+      null
+    );
+  }
+
+  async createTripConversation(tripId: string): Promise<{ id: string }> {
+    return this.request(
+      `create-trip-conversation?tripId=${tripId}`,
+      "GET",
+      null
+    );
+  }
 }
 
 export async function favelClient(getToken: any) {

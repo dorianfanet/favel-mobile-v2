@@ -12,7 +12,7 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import New from "./new/New";
 import Trip from "./trip/Trip";
 import Loading from "./trip/loading/Loading";
-import { AppEventsLogger } from "react-native-fbsdk-next";
+// import { AppEventsLogger } from "react-native-fbsdk-next";
 
 export default function Index() {
   const { user } = useUser();
@@ -29,7 +29,7 @@ export default function Index() {
         const { data, error } = await supabase
           .from("trips_v2")
           .select(
-            "id, trip, status, preferences, route, status_message, prompt, name, dates, author_id, invited_ids, post_id"
+            "id, trip, status, preferences, route, status_message, prompt, name, dates, author_id, invited_ids, post_id, conversation_id"
           )
           .eq("id", id)
           .single();
@@ -118,11 +118,11 @@ export default function Index() {
     checkForTrip();
   }, []);
 
-  useEffect(() => {
-    AppEventsLogger.logEvent(AppEventsLogger.AppEvents.CompletedRegistration, {
-      [AppEventsLogger.AppEventParams.RegistrationMethod]: "test",
-    });
-  }, []);
+  // useEffect(() => {
+  //   AppEventsLogger.logEvent(AppEventsLogger.AppEvents.CompletedRegistration, {
+  //     [AppEventsLogger.AppEventParams.RegistrationMethod]: "test",
+  //   });
+  // }, []);
 
   return (
     <>

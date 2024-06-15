@@ -11,6 +11,7 @@ import MenuButton from "@/components/menu/MenuButton";
 import { MMKV } from "@/app/_layout";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { favelClient } from "@/lib/favelApi";
+import * as Linking from "expo-linking";
 
 export default function settings() {
   const router = useRouter();
@@ -71,6 +72,15 @@ export default function settings() {
       <MenuTitle title="Paramètres de l'application" />
       <MenuWrapper>
         <NotificationsButton />
+      </MenuWrapper>
+      <MenuTitle title="Confidentialité" />
+      <MenuWrapper>
+        <MenuButton
+          title="Politique de confidentialité"
+          onPress={() => {
+            Linking.openURL("https://www.favel.net/privacy-policy");
+          }}
+        />
       </MenuWrapper>
       <MenuTitle title="Connexion" />
       <MenuWrapper>

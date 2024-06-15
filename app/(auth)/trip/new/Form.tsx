@@ -36,11 +36,17 @@ import { favelClient } from "@/lib/favelApi";
 
 const suggestions = [
   "Je ne sais pas",
-  "Balade dans les Alpes",
-  "Séjour à Paris",
-  "Road trip en Californie",
-  "Découverte de l'Asie",
-  "Châteaux de la Loire",
+  "Road trip aux États-Unis",
+  "Plages d'Andalousie",
+  "Tour de la Provence",
+  "Les villes italiennes",
+  "Les temples de Grèce",
+  "Cinque Terre",
+  "Randonnées en Corse",
+  "Les plages de Barcelone",
+  "Circuit en Toscane",
+  "Les plages de Majorque",
+  "Les châteaux de la Loire",
 ];
 
 export default function Form() {

@@ -1,6 +1,6 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, TouchableOpacity } from "react-native";
 import React, { useCallback, useEffect } from "react";
-import { Stack, useRouter } from "expo-router";
+import { Link, Stack, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import Icon from "@/components/Icon";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -58,7 +58,41 @@ export default function ProfileLayout() {
           //   </View>
           // ),
           headerBackground: renderHeaderBackground,
-          headerRight: NotificationsIcon,
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 20,
+                width: 60,
+              }}
+            >
+              <NotificationsIcon />
+              <Link
+                href="/(auth)/conversations"
+                asChild
+              >
+                <TouchableOpacity>
+                  <Icon
+                    icon="messageDotsIcon"
+                    size={24}
+                    color="white"
+                  />
+                </TouchableOpacity>
+              </Link>
+            </View>
+          ),
+          // headerLeft: () => (
+          //   <TouchableOpacity
+          //     onPress={() => router.push("/(modals)/onboarding")}
+          //   >
+          //     <Icon
+          //       icon={"menuIcon"}
+          //       size={24}
+          //       color={"#fff"}
+          //     />
+          //   </TouchableOpacity>
+          // ),
         }}
       />
       <Stack.Screen

@@ -348,6 +348,9 @@ export default function TripBottomSheet() {
               <ShareCTA />
             </View>
           )}
+          onDragBegin={() => {
+            bottomSheetRef.current?.snapToIndex(2);
+          }}
         />
       )}
     </BottomSheet>

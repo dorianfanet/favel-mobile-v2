@@ -10,6 +10,8 @@ import {
   FlatList,
   ActivityIndicator,
   StatusBar,
+  Platform,
+  Share,
 } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -27,6 +29,7 @@ import { MMKV } from "@/app/_layout";
 import PostCard from "@/components/Post/PostCard";
 import ContainedButton from "@/components/ContainedButton";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { track } from "@amplitude/analytics-react-native";
 
 export default function Profile({ userId }: { userId: string }) {
   useEffect(() => {
@@ -346,6 +349,8 @@ function ProfileComponent({
           <View
             style={{
               alignSelf: "flex-start",
+              flexDirection: "row",
+              gap: 5,
             }}
           >
             {authUser && authUser.id !== user.id ? (
@@ -390,11 +395,54 @@ function ProfileComponent({
                       textAlign: "center",
                     }}
                   >
-                    Modifier le profil
+                    Modifier
                   </Text>
                 </TouchableOpacity>
               </Link>
             )}
+            <TouchableOpacity
+              style={{
+                padding: 3,
+                paddingHorizontal: 10,
+                backgroundColor: Colors.light.accent,
+                borderRadius: borderRadius,
+                borderColor: Colors.light.accent,
+                borderWidth: 2,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+              onPress={async () => {
+                track("Share trip clicked");
+                try {
+                  await Share.share({
+                    message: `${user.firstName} ${
+                      user.lastName || ""
+                    } sur Favel\n\n\nhttps://app.favel.net/link?path=profile/${
+                      user.id
+                    }`,
+                  });
+                } catch (error) {
+                  alert(error);
+                }
+              }}
+            >
+              <Icon
+                icon={Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"}
+                color="white"
+                size={18}
+                style={{ marginRight: 5 }}
+              />
+              <Text
+                style={{
+                  color: "white",
+                  fontFamily: "Outfit_600SemiBold",
+                  fontSize: 16,
+                  textAlign: "center",
+                }}
+              >
+                Partager
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

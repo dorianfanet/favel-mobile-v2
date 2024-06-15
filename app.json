@@ -2,7 +2,7 @@
   "expo": {
     "name": "Favel",
     "slug": "favel-mobile",
-    "version": "1.2.2",
+    "version": "1.2.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "favel",
@@ -12,13 +12,20 @@
       "resizeMode": "cover",
       "backgroundColor": "#44C0E7"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "39",
+      "buildNumber": "42",
       "entitlements": {
-        "com.apple.developer.applesignin": ["Default"]
+        "com.apple.developer.applesignin": [
+          "Default"
+        ]
+      },
+      "infoPlist": {
+        "UIBackgroundModes": []
       }
     },
     "android": {
@@ -27,7 +34,7 @@
         "backgroundColor": "#44C0E7"
       },
       "package": "net.favel.favel",
-      "versionCode": 34,
+      "versionCode": 38,
       "googleServicesFile": "./google-services.json"
     },
     "web": {

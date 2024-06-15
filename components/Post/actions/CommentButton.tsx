@@ -39,7 +39,7 @@ export default function CommentButton({
     <ActionButton
       IconComponent={() => (
         <Icon
-          icon="messageDotsIcon"
+          icon="messageDotsSquareIcon"
           size={24}
           color={Colors.light.primary}
         />

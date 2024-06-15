@@ -10,13 +10,16 @@ import {
 } from "@/lib/utils";
 import { Image } from "expo-image";
 import { Text } from "./Themed";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function Comment({ comment }: { comment: PostComment }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
 
+  const { getToken } = useAuth();
+
   async function getUser() {
     if (!comment.author_id) return;
-    const data = await getUserMetadata(comment.author_id);
+    const data = await getUserMetadata(comment.author_id, false, getToken);
 
     setUserMetadata(data);
   }
