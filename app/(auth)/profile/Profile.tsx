@@ -415,8 +415,8 @@ function ProfileComponent({
                 track("Share trip clicked");
                 try {
                   await Share.share({
-                    message: `${user.firstName} ${
-                      user.lastName || ""
+                    message: `${user.firstName}${
+                      user.lastName ? " " + user.lastName : ""
                     } sur Favel\n\n\nhttps://app.favel.net/link?path=profile/${
                       user.id
                     }`,

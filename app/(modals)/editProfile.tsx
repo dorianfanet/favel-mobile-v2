@@ -7,6 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import { padding } from "@/constants/values";
 import { View as ThemedView, Text } from "@/components/Themed";
 import { usePathname, useRouter } from "expo-router";
+import { MMKV } from "../_layout";
 
 export default function editProfile() {
   const { user } = useUser();
@@ -64,6 +65,19 @@ export default function editProfile() {
         lastName,
       });
       setLoading(false);
+      user.reload();
+      const cache = MMKV.getString(`user-${user.id}`);
+      MMKV.setStringAsync(
+        `user-${user.id}`,
+        JSON.stringify({
+          data: {
+            ...JSON.parse(cache).data,
+            firstName: firstName,
+            lastName: lastName,
+          },
+          expiresAt: new Date().getTime() + 720000,
+        })
+      );
       router.back();
     } catch (e) {
       setLoading(false);

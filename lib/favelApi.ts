@@ -11,6 +11,11 @@ import { Alert } from "react-native";
 import { MMKV } from "@/app/_layout";
 import { Form } from "@/context/newTrip";
 
+type Response<T> = {
+  error: string | null;
+  data: T | null;
+};
+
 class ApiClient {
   private baseUrl: string;
   private token: string;
@@ -24,7 +29,7 @@ class ApiClient {
     endpoint: string,
     method: string,
     data: any
-  ): Promise<any> {
+  ): Promise<Response<any>> {
     const response = await fetch(`${this.baseUrl}/${endpoint}`, {
       method: method,
       headers: {
@@ -35,26 +40,43 @@ class ApiClient {
       body: data ? JSON.stringify(data) : null,
     });
 
+    console.log("response", response);
+    console.log("response.ok", response.ok);
+
     if (!response.ok) {
-      const error = await response.json();
-      console.error(`Favel Error ${response.status}: ${error.message}`);
-      return error;
+      try {
+        const error = await response.json();
+        console.error(`Favel Error ${response.status}: ${error.message}`);
+        return {
+          error: error.message || "Internal Server Error`",
+          data: null,
+        };
+      } catch (error) {
+        console.error(`Favel Error ${response.status}: ${error}`);
+        return {
+          error: JSON.stringify(error) || "Internal Server Error`",
+          data: null,
+        };
+      }
     }
 
-    return response.json();
+    return {
+      data: (await response.json()) || null,
+      error: null,
+    };
   }
 
   async getUser(id: string): Promise<UserMetadata> {
     const result = await this.request(`user/get-user?id=${id}`, "GET", null);
-    return result.user;
+    return result.data.user;
   }
 
   async updateUser(id: string, data: any): Promise<void> {
-    return this.request(`user/update-user?id=${id}`, "POST", { data: data });
+    this.request(`user/update-user?id=${id}`, "POST", { data: data });
   }
 
   async deleteUser(id: string): Promise<void> {
-    return this.request(`user/delete-user?id=${id}`, "GET", null);
+    this.request(`user/delete-user?id=${id}`, "GET", null);
   }
 
   async inviteUser(
@@ -62,20 +84,22 @@ class ApiClient {
     userId: string,
     userName: string
   ): Promise<{ status: number; message: string; id: string }> {
-    return this.request(
+    const result = await this.request(
       `invite-user?inviteId=${inviteId}&userId=${userId}&userName=${userName}`,
       "GET",
       null
     );
+    return result.data;
   }
 
   async fetchDestinationData(
     destination: string,
     duration: number
   ): Promise<DestinationData> {
-    return this.request(`destination-funnel-groq`, "POST", {
+    const result = await this.request(`destination-funnel-groq`, "POST", {
       prompt: `${destination} - ${duration} jours.`,
     });
+    return result.data;
   }
 
   async sendNewRouteChatMessage(
@@ -84,12 +108,13 @@ class ApiClient {
     messageId: string,
     form: any
   ): Promise<ChatMessage | { error: string }> {
-    return this.request(`new-trip-chat-groq`, "POST", {
+    const result = await this.request(`new-trip-chat-groq`, "POST", {
       messages,
       tripId,
       messageId,
       form,
     });
+    return result.data;
   }
 
   async sendFirstRouteChatMessage(
@@ -97,21 +122,23 @@ class ApiClient {
     tripId: string,
     messageId: string
   ): Promise<ChatMessage | { error: string }> {
-    return this.request(`new-trip-chat-groq/new`, "POST", {
+    const result = await this.request(`new-trip-chat-groq/new`, "POST", {
       prompt,
       tripId,
       messageId,
     });
+    return result.data;
   }
 
   async createTripName(
     route: TripRoute | { location: string }[],
     tripId: string
   ): Promise<void> {
-    return this.request(`create-name`, "POST", {
+    const result = await this.request(`create-name`, "POST", {
       route,
       tripId,
     });
+    return result.data;
   }
 
   async singleDestination(
@@ -119,11 +146,12 @@ class ApiClient {
     destination: string,
     duration: number
   ): Promise<void> {
-    return this.request(`single-destination`, "POST", {
+    const result = await this.request(`single-destination`, "POST", {
       tripId,
       destination,
       duration,
     });
+    return result.data;
   }
 
   async createTrip(
@@ -132,12 +160,13 @@ class ApiClient {
     authorId: string,
     form: Form
   ): Promise<void> {
-    return this.request(`build-trip-groq`, "POST", {
+    const result = await this.request(`build-trip-groq`, "POST", {
       tripId,
       route,
       authorId: authorId,
       form: form,
     });
+    return result.data;
   }
 
   async sendTripChatMessage(
@@ -148,11 +177,12 @@ class ApiClient {
     },
     messageId: string
   ): Promise<void> {
-    return this.request(`trip-chat-groq`, "POST", {
+    const result = await this.request(`trip-chat-groq`, "POST", {
       tripId,
       userMsg,
       messageId,
     });
+    return result.data;
   }
 
   async sendActivityChatMessage(
@@ -166,7 +196,7 @@ class ApiClient {
     activityName: string,
     authorId: string
   ): Promise<void> {
-    return this.request(`activity-chat`, "POST", {
+    const result = await this.request(`activity-chat`, "POST", {
       tripId,
       userMsg,
       messageId,
@@ -174,6 +204,7 @@ class ApiClient {
       activityName,
       authorId,
     });
+    return result.data;
   }
 
   async updateActivity(
@@ -190,10 +221,11 @@ class ApiClient {
     };
     description?: string;
   }> {
-    return this.request(`update-activity`, "POST", {
+    const result = await this.request(`update-activity`, "POST", {
       id,
       params,
     });
+    return result.data;
   }
 
   async updateImage(
@@ -202,11 +234,12 @@ class ApiClient {
   ): Promise<{
     result: "ok" | "error";
   }> {
-    return this.request(
+    const result = await this.request(
       `find-activity-image?id=${id}&placeId=${placeId}`,
       "GET",
       null
     );
+    return result.data;
   }
 
   async revertModifications(
@@ -214,19 +247,21 @@ class ApiClient {
     editId: string,
     userMessageId: string
   ): Promise<{ result?: string }> {
-    return this.request(
+    const result = await this.request(
       `revert-modifications?tripId=${tripId}&editId=${editId}&userMessageId=${userMessageId}`,
       "GET",
       null
     );
+    return result.data;
   }
 
   async likePost(postId: string, userId: string): Promise<void> {
-    return this.request(
+    const result = await this.request(
       `post/like?userId=${userId}&postId=${postId}`,
       "GET",
       null
     );
+    return result.data;
   }
 
   async sendNotification(
@@ -237,7 +272,7 @@ class ApiClient {
     type?: string,
     authorId?: string
   ): Promise<void> {
-    return this.request(`send-notification`, "POST", {
+    const result = await this.request(`send-notification`, "POST", {
       userId,
       title,
       body,
@@ -245,17 +280,19 @@ class ApiClient {
       type,
       authorId,
     });
+    return result.data;
   }
 
   async createNewTripPost(
     tripId: string,
     authorId: string
   ): Promise<{ id: string }> {
-    return this.request(
+    const result = await this.request(
       `create-new-trip-post?tripId=${tripId}&authorId=${authorId}`,
       "GET",
       null
     );
+    return result.data;
   }
 
   async tripEdit(
@@ -263,11 +300,12 @@ class ApiClient {
     authorId: string,
     postId: string
   ): Promise<{ id: string }> {
-    return this.request(
+    const result = await this.request(
       `trip-edit?tripId=${tripId}&authorId=${authorId}&postId=${postId}`,
       "GET",
       null
     );
+    return result.data;
   }
 
   async tripConversationFavel(
@@ -279,20 +317,27 @@ class ApiClient {
     }[],
     tripId: string
   ): Promise<void> {
-    return this.request(
+    const result = await this.request(
       `trip-conversation-favel?conversationId=${conversation_id}&favelId=${favelId}&tripId=${tripId}`,
       "POST",
       {
         suggestions,
       }
     );
+    return result.data;
   }
 
   async tripConversationFavelApplyModifications(
     message: string,
     tripId: string,
     messageId: string
-  ): Promise<void> {
+  ): Promise<Response<any>> {
+    console.log(
+      "tripConversationFavelApplyModifications",
+      message,
+      tripId,
+      messageId
+    );
     return this.request(
       `trip-conversation-favel/apply-modifications?tripId=${tripId}&messageId=${messageId}`,
       "POST",
@@ -305,7 +350,7 @@ class ApiClient {
   async tripConversationFavelRevert(
     tripId: string,
     messageId: string
-  ): Promise<void> {
+  ): Promise<Response<any>> {
     return this.request(
       `trip-conversation-favel/revert?tripId=${tripId}&messageId=${messageId}`,
       "GET",
@@ -314,11 +359,12 @@ class ApiClient {
   }
 
   async createTripConversation(tripId: string): Promise<{ id: string }> {
-    return this.request(
+    const result = await this.request(
       `create-trip-conversation?tripId=${tripId}`,
       "GET",
       null
     );
+    return result.data;
   }
 }
 

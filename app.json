@@ -2,7 +2,7 @@
   "expo": {
     "name": "Favel",
     "slug": "favel-mobile",
-    "version": "1.2.4",
+    "version": "1.2.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "favel",
@@ -12,17 +12,13 @@
       "resizeMode": "cover",
       "backgroundColor": "#44C0E7"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "42",
+      "buildNumber": "47",
       "entitlements": {
-        "com.apple.developer.applesignin": [
-          "Default"
-        ]
+        "com.apple.developer.applesignin": ["Default"]
       },
       "infoPlist": {
         "UIBackgroundModes": []
@@ -34,7 +30,7 @@
         "backgroundColor": "#44C0E7"
       },
       "package": "net.favel.favel",
-      "versionCode": 38,
+      "versionCode": 40,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -62,6 +58,12 @@
           "scheme": "fb730290702131835",
           "autoLogAppEventsEnabled": true,
           "isAutoInitEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/notification.wav"]
         }
       ]
     ],

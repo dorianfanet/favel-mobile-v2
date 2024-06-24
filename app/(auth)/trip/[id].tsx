@@ -64,27 +64,45 @@ export default function Index() {
           setTripMetadata(data as TripMetadata);
           if (data.trip) {
             async function getTrip() {
-              const newTrip = await Promise.all(
-                data!.trip.map(async (day: Day, index: number) => {
-                  if (day.activities) {
-                    if (day.activities.length === 0) return day;
-                    const activities = await Promise.all(
-                      day.activities.map(async (activity) => {
-                        if (activity.route) {
-                          return activity;
-                        } else {
+              try {
+                const newTrip = await Promise.all(
+                  data!.trip.map(async (day: Day, index: number) => {
+                    if (day.activities) {
+                      if (day.activities.length === 0) return day;
+                      const activities = await Promise.all(
+                        day.activities.map(async (activity) => {
+                          if (activity === null) return null;
                           const newActivity = await getActivity(activity, true);
                           return newActivity;
-                        }
-                      })
-                    );
-                    return { ...day, activities };
-                  } else {
-                    return day;
-                  }
-                })
-              );
-              setTrip(newTrip as Day[]);
+                        })
+                      );
+                      const filteredActivities = activities.filter(
+                        (activity) => activity !== null
+                      );
+                      return { ...day, activities: filteredActivities };
+                    } else {
+                      return day;
+                    }
+                  })
+                );
+                console.log("newTrip", newTrip);
+                setTrip(newTrip as Day[]);
+              } catch (error) {
+                console.error(error);
+              }
+              // const filteredDayTrip = newTrip.filter((day) => day !== null);
+              // const filteredTrip = filteredDayTrip.map((day) => {
+              //   if (day.activities) {
+              //     const filteredActivities = day.activities.filter(
+              //       (activity: any) => activity !== null
+              //     );
+              //     return { ...day, activities: filteredActivities };
+              //   } else {
+              //     return day;
+              //   }
+              // });
+              // console.log("filteredTrip", filteredTrip);
+              // setTrip(filteredTrip as Day[]);
             }
             getTrip();
           }

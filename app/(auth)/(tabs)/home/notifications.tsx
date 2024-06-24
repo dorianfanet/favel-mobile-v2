@@ -33,7 +33,6 @@ export default function notifications() {
           console.error(error);
           return [];
         }
-        console.log("notifications", data);
 
         return data;
       });
@@ -98,7 +97,7 @@ export default function notifications() {
             rowGap: 10,
           }}
           style={{
-            padding: padding,
+            padding: 10,
           }}
         />
       ) : (

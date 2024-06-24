@@ -24,6 +24,6 @@ export const colors: Record<(typeof categories)[number], string> = {
 export const editTypes: Record<TripEditType, string> = {
   move: "#44c0e7",
   // move: "#244CDC",
-  delete: "#DC2424",
-  add: "#52E472",
+  delete: "#fa9999",
+  add: "#6ff18b",
 };

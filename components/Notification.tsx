@@ -13,6 +13,7 @@ import Colors from "@/constants/Colors";
 import { TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { MMKV } from "@/app/_layout";
 
 const colors = {
   like: "#f00",
@@ -24,8 +25,9 @@ const colors = {
 const icons: { [key: string]: IconProps["icon"] } = {
   like: "likeIcon",
   follow: "userPlusIcon",
-  comment: "messageDotsIcon",
+  comment: "messageDotsSquareIcon",
   join_trip: "usersPlusIcon",
+  message: "messageDotsIcon",
 };
 
 const text: { [key: string]: string } = {
@@ -33,6 +35,7 @@ const text: { [key: string]: string } = {
   follow: "vous suit désormais !",
   comment: "a commenté votre voyage",
   join_trip: "a rejoint votre voyage",
+  message: "sur",
 };
 
 export default function Notification({
@@ -61,10 +64,27 @@ export default function Notification({
   }, []);
 
   const tripName = useCallback(() => {
-    if (!notification.data || !notification.data.tripId) return "";
-    const trip = getTripMetadataFromCache(notification.data.tripId);
-    if (trip) {
-      return trip.name;
+    console.log("Notification ", notification);
+    if (notification.data) {
+      if (notification.data.tripId) {
+        const trip = getTripMetadataFromCache(notification.data.tripId);
+        if (trip) {
+          return trip.name;
+        } else {
+          return "";
+        }
+      } else if (notification.data.conversationId) {
+        const conversation = MMKV.getString(
+          `conversation-${notification.data.conversationId}`
+        );
+        console.log("Conversation cahce", conversation);
+        if (conversation) {
+          const json = JSON.parse(conversation);
+          return json.name;
+        } else {
+          return "";
+        }
+      }
     } else {
       return "";
     }
@@ -162,10 +182,24 @@ export default function Notification({
                   <Text style={{ fontFamily: "Outfit_400Regular" }}>
                     {notification.type ? text[notification.type] : ""}
                   </Text>{" "}
-                  {notification.data && notification.data.tripId
+                  {notification.data &&
+                  (notification.data.tripId || notification.data.conversationId)
                     ? tripName()
                     : null}
                 </Text>
+                {notification.data && notification.data.message ? (
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: Colors.light.primary,
+                      fontFamily: "Outfit_400Regular",
+                    }}
+                    numberOfLines={4}
+                    ellipsizeMode="tail"
+                  >
+                    {notification.data.message}
+                  </Text>
+                ) : null}
                 <Text
                   style={{
                     fontSize: 11,

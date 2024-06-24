@@ -11,48 +11,39 @@ import { useRouter } from "expo-router";
 import { favelClient } from "@/lib/favelApi";
 
 export default function mandatoryInfos() {
-  const [infos, setInfos] = useState<{
-    firstName: boolean;
-    origin: boolean;
-  } | null>(null);
   const { user } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      const data = MMKV.getString(`mandatoryInfos-${user.id}`);
-      setInfos(JSON.parse(data));
-    }
-  }, []);
-
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
-  const [origin, setOrigin] = useState("none");
 
   function validate() {
-    if (firstName.length > 0 && origin !== "none") {
+    if (firstName.length > 0) {
       return false;
     } else {
       return true;
     }
   }
 
-  const { getToken } = useAuth();
-
   function handleSave() {
-    user?.update({
+    if (!user) return;
+    user.update({
       firstName: firstName,
       lastName: lastName,
     });
-    favelClient(getToken).then((favel) => {
-      favel.updateUser(user!.id, {
-        privateMetadata: {
-          origin: origin,
+    user.reload();
+    const cache = MMKV.getString(`user-${user.id}`);
+    MMKV.setStringAsync(
+      `user-${user.id}`,
+      JSON.stringify({
+        data: {
+          ...JSON.parse(cache).data,
+          firstName: firstName,
+          lastName: lastName,
         },
-      });
-    });
-
-    user?.reload();
+        expiresAt: new Date().getTime() + 720000,
+      })
+    );
 
     router.back();
   }
@@ -101,7 +92,7 @@ export default function mandatoryInfos() {
             />
           </>
         )}
-        <Text>Comment avez-vous découvert Favel ?</Text>
+        {/* <Text>Comment avez-vous découvert Favel ?</Text>
         <Picker
           selectedValue={origin}
           onValueChange={(itemValue, itemIndex) => setOrigin(itemValue)}
@@ -129,8 +120,8 @@ export default function mandatoryInfos() {
           <Picker.Item
             label="Autre"
             value="other"
-          />
-        </Picker>
+          /> */}
+        {/* </Picker> */}
       </View>
       <ContainedButton
         title="Enregistrer les informations"

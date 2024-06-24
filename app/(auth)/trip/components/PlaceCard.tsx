@@ -185,6 +185,7 @@ export function ActivityCardContent({
   noCache,
   highlighted,
   noClick,
+  oneLine = false,
 }: {
   activity: Activity;
   drag?: any;
@@ -195,6 +196,7 @@ export function ActivityCardContent({
   noCache?: boolean;
   highlighted?: boolean;
   noClick?: boolean;
+  oneLine?: boolean;
 }) {
   const [activityData, setActivityData] = useState<Activity>(activity);
 
@@ -307,6 +309,8 @@ export function ActivityCardContent({
                 fontSize: 16,
                 color: Colors[theme].primary,
               }}
+              numberOfLines={oneLine ? 1 : 2}
+              ellipsizeMode="tail"
             >
               {activityData.name}
             </Text>

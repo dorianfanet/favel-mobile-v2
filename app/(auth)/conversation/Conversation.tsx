@@ -11,7 +11,7 @@ import {
   Alert,
 } from "react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { Link, Stack, router, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/Colors";
 import {
   Conversation,
@@ -32,11 +32,17 @@ import { borderRadius, padding } from "@/constants/values";
 import Icon from "@/components/Icon";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { Image } from "expo-image";
-import { getUserMetadata } from "@/lib/utils";
+import {
+  formatDateToRelative,
+  formatDateToRelativeShort,
+  formatHoursToHoursAndMinutes,
+  getUserMetadata,
+} from "@/lib/utils";
 import { favelClient } from "@/lib/favelApi";
 import Markdown from "react-native-markdown-display";
 import ContainedButton from "@/components/ContainedButton";
 import { MMKV } from "@/app/_layout";
+import Message from "./Message";
 
 export default function ConversationComponent() {
   const { id } = useLocalSearchParams();
@@ -265,53 +271,31 @@ export default function ConversationComponent() {
           headerTintColor: "white",
           headerTitle(props) {
             return conversation ? (
-              // <View
-              //   style={{
-              //     flexDirection: "row",
-              //     alignItems: "center",
-              //     gap: 10,
-              //     flexShrink: 1,
-              //   }}
-              // >
-              //  <View
-              //     style={{
-              //       width: 40,
-              //       height: 40,
-              //       borderRadius: 100,
-              //       overflow: "hidden",
-              //     }}
-              //   >
-              //     <ImageWithFallback
-              //       style={{
-              //         width: "100%",
-              //         height: "100%",
-              //         borderRadius: 10,
-              //       }}
-              //       source={{
-              //         uri: `https://storage.googleapis.com/favel-photos/hotspots/${tripMetadata?.route?.[0]?.id}-700.jpg`,
-              //       }}
-              //       fallbackSource={require("@/assets/images/no-image.png")}
-              //     />
-              //   </View>
-              //   <View
-              //     style={{
-              //       flex: 1,
-              //     }}
-              //   >
-              <Text
-                style={{
-                  color: "white",
-                  fontFamily: "Outfit_600SemiBold",
-                  fontSize: 18,
-                }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+              <Link
+                href={`/(auth)/trip/${conversation.trip_id}`}
+                asChild
               >
-                {conversation.name}
-              </Text>
+                <TouchableOpacity
+                  style={{
+                    width: "100%",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "white",
+                      fontFamily: "Outfit_600SemiBold",
+                      fontSize: 18,
+                      width: "80%",
+                      textAlign: "center",
+                    }}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {conversation.name}
+                  </Text>
+                </TouchableOpacity>
+              </Link>
             ) : (
-              // </View>
-              // </View>
               <Text
                 style={{
                   color: "white",
@@ -319,7 +303,7 @@ export default function ConversationComponent() {
                   fontSize: 18,
                 }}
               >
-                Discussion
+                Conversation
               </Text>
             );
           },
@@ -423,324 +407,18 @@ export default function ConversationComponent() {
                 </View>
               }
               renderItem={({ item }) => (
-                <View
-                  style={{
-                    width: "100%",
-                    flexDirection:
-                      item.author_id === currentParticipant
-                        ? "row-reverse"
-                        : "row",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  {item.author_id !== currentParticipant &&
-                    (item.author_id ===
-                    participants.find((part) => part.user_id === "favel")
-                      ?.id ? (
-                      <View
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 25,
-                          marginRight: 10,
-                          backgroundColor: "white",
-                        }}
-                      >
-                        <Image
-                          source={require("@/assets/images/icon.png")}
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: 25,
-                          }}
-                        />
-                      </View>
-                    ) : (
-                      <UserCard
-                        userId={
-                          participants?.find(
-                            (participant) => participant.id === item.author_id
-                          )?.user_id!
-                        }
-                        size="extraSmall"
-                        avatarOnly
-                      />
-                    ))}
-                  <View
-                    style={{
-                      backgroundColor:
-                        item.author_id === currentParticipant
-                          ? Colors.light.accent
-                          : Colors.light.secondary,
-                      padding: 10,
-                      borderRadius: 15,
-                      maxWidth: "80%",
-                    }}
-                  >
-                    <ParsedText
-                      style={{
-                        color:
-                          item.author_id === currentParticipant
-                            ? "white"
-                            : Colors.light.primary,
-                        fontFamily: "Outfit_400Regular",
-                        fontSize: 16,
-                      }}
-                      parse={[
-                        {
-                          pattern: /\*\*(.*?)\*\*/,
-                          style: {
-                            fontFamily: "Outfit_600SemiBold",
-                          },
-                          renderText(matchingString, matches) {
-                            return matchingString.replace(/\*\*/g, "");
-                          },
-                        },
-                        {
-                          pattern: /@\[\S+\]/,
-                          style: {
-                            color:
-                              item.author_id === currentParticipant
-                                ? "#fff"
-                                : Colors.light.accent,
-                            fontFamily: "Outfit_600SemiBold",
-                          },
-                          renderText(matchingString, matches) {
-                            console.log(matches);
-
-                            const pattern = /@\[([^\]]+)\]/;
-                            let match = matchingString.match(pattern);
-                            if (match) {
-                              return `@${match[1].split(":")[0]}`;
-                            } else {
-                              return matchingString;
-                            }
-                          },
-                        },
-                      ]}
-                    >
-                      {item.content}
-                    </ParsedText>
-                    {item.modifications_status ? (
-                      <ApplyModificationsButton
-                        status={item.modifications_status}
-                        tripId={conversation?.trip_id}
-                        message={item.content}
-                        messageId={item.id}
-                      />
-                    ) : null}
-                    {item.author_id ===
-                      participants.find((part) => part.user_id === "favel")
-                        ?.id && (
-                      <TouchableOpacity
-                        style={{
-                          position: "absolute",
-                          top: -18,
-                          left: -15,
-                          backgroundColor: Colors.light.accent,
-                          borderRadius: 5,
-                        }}
-                        onPress={() => {
-                          Alert.alert(
-                            "Fonctionnalité en bêta",
-                            "Les discussions avec Favel sont en cours de développement. Il se peut que Favel fasse des erreurs ou ne réponde pas correctement à vos demandes."
-                          );
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: "white",
-                            fontFamily: "Outfit_600SemiBold",
-                            fontSize: 14,
-                            padding: 5,
-                          }}
-                        >
-                          Beta
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
+                <Message
+                  message={item}
+                  currentParticipant={currentParticipant}
+                  participants={participants}
+                  conversation={conversation}
+                />
               )}
             />
           </View>
           <ConversationInput />
         </View>
       )}
-    </>
-  );
-}
-
-const text = {
-  pending: "Appliquer les modifications",
-  applied: "✅ Votre voyage a été mis à jour",
-  loading: "Chargement",
-  error: "Réessayer",
-};
-
-function ApplyModificationsButton({
-  status,
-  tripId,
-  message,
-  messageId,
-}: {
-  status: ConversationModificationsStatus;
-  tripId?: string;
-  message: string;
-  messageId: string;
-}) {
-  const { getToken } = useAuth();
-
-  const [localStatus, setLocalStatus] =
-    useState<ConversationModificationsStatus>(status);
-
-  useEffect(() => {
-    setLocalStatus(status);
-  }, [status]);
-
-  async function handleClickApply() {
-    setLocalStatus("loading");
-    updateMessageInDb("loading");
-    if (!tripId) {
-      setLocalStatus("error");
-      updateMessageInDb("error");
-      return;
-    }
-    favelClient(getToken).then(async (favel) => {
-      const result: any = await favel.tripConversationFavelApplyModifications(
-        message,
-        tripId,
-        messageId
-      );
-      console.log(result);
-      if (result.error) {
-        setLocalStatus("error");
-        updateMessageInDb("error");
-      }
-    });
-  }
-
-  async function handleRevert() {
-    Alert.alert(
-      "Annuler les modifications",
-      "En annulant les modifications, vous revenez à l'état du voyage au moment où ce message a été envoyé. Toutes les modifications apportées depuis ce message seront perdues. Êtes-vous sûr de vouloir continuer ?",
-      [
-        {
-          text: "Annuler",
-          style: "cancel",
-        },
-        {
-          text: "Confirmer",
-          onPress: () => {
-            setLocalStatus("loading");
-            updateMessageInDb("loading");
-            if (!tripId) {
-              setLocalStatus("applied");
-              updateMessageInDb("applied");
-              return;
-            }
-            favelClient(getToken).then(async (favel) => {
-              const result: any = await favel.tripConversationFavelRevert(
-                tripId,
-                messageId
-              );
-              console.log(result);
-              if (result.error) {
-                setLocalStatus("applied");
-                updateMessageInDb("applied");
-              }
-            });
-          },
-        },
-      ]
-    );
-  }
-
-  async function updateMessageInDb(status: ConversationModificationsStatus) {
-    await supabaseClient(getToken).then(async (supabase) => {
-      const { error } = await supabase
-        .from("conversation_messages")
-        .update({
-          modifications_status: status,
-        })
-        .eq("id", messageId);
-
-      if (error) {
-        console.error(error);
-      }
-    });
-  }
-
-  return (
-    <>
-      <ContainedButton
-        TitleComponent={
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
-          >
-            {localStatus === "loading" ? (
-              <ActivityIndicator
-                size="small"
-                color="white"
-              />
-            ) : null}
-            <Text
-              style={{
-                color:
-                  localStatus === "applied" ? Colors.light.primary : "white",
-                fontSize: 16,
-                fontFamily: "Outfit_600SemiBold",
-                textAlign: "center",
-              }}
-            >
-              {text[localStatus]}
-            </Text>
-          </View>
-        }
-        onPress={handleClickApply}
-        style={{
-          marginTop: 10,
-          opacity: localStatus === "loading" ? 0.5 : 1,
-          paddingHorizontal: 10,
-          backgroundColor:
-            localStatus === "applied" ? "white" : Colors.light.accent,
-        }}
-        disabled={localStatus === "loading" || localStatus === "applied"}
-      />
-      {localStatus === "applied" ? (
-        <ContainedButton
-          title="Annuler les modifications"
-          onPress={handleRevert}
-          type="ghostLight"
-        />
-      ) : null}
-      {localStatus === "error" ? (
-        <Text
-          style={{
-            textAlign: "center",
-            fontFamily: "Outfit_400Regular",
-            fontSize: 14,
-            marginVertical: 5,
-          }}
-        >
-          Une erreur est survenue. Veuillez réessayer.
-        </Text>
-      ) : null}
-      {/* <Text
-        style={{
-          textAlign: "center",
-          fontFamily: "Outfit_400Regular",
-          fontSize: 12,
-          marginVertical: 5,
-        }}
-      >
-        {`Cette fonctionnalité est en bêta`}
-      </Text> */}
     </>
   );
 }
@@ -789,7 +467,9 @@ function ConversationInput() {
         );
         return {
           id: participant.id,
-          mentionName: `${userMetadata.firstName}${userMetadata.lastName}`,
+          mentionName: `${userMetadata.firstName}${
+            userMetadata.lastName || ""
+          }`,
         };
       });
 
@@ -964,9 +644,7 @@ function ConversationInput() {
               ]}
               onPress={() => {
                 setValue((currentValue) => {
-                  const lastAtPos = currentValue.lastIndexOf("@");
-                  setMentions(false);
-                  return `${currentValue.slice(0, lastAtPos)}@Favel `;
+                  return `${currentValue}@Favel `;
                 });
                 inputRef.current?.focus();
               }}
@@ -992,30 +670,35 @@ function ConversationInput() {
             </TouchableOpacity>
           </View>
           {participants?.map((participant) =>
-            participant.user_id !== user?.id ? (
-              <View
-                key={`participant-${participant.id}`}
-                style={{
-                  padding: 0,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <UserCard
-                  userId={participant.user_id}
-                  size="small"
-                  onPress={(user) => {
-                    setValue((currentValue) => {
-                      const lastAtPos = currentValue.lastIndexOf("@");
-                      setMentions(false);
-                      return `${currentValue.slice(0, lastAtPos)}@${
-                        user.firstName
-                      }${user.lastName} `;
-                    });
+            participant.user_id !== "favel" ? (
+              participant.user_id !== user?.id ? (
+                <View
+                  key={`participant-${participant.id}`}
+                  style={{
+                    padding: 5,
+                    paddingRight: 10,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    backgroundColor: "white",
+                    borderRadius: 10,
+                    marginLeft: 10,
                   }}
-                />
-              </View>
+                >
+                  <UserCard
+                    userId={participant.user_id}
+                    size="small"
+                    onPress={(user) => {
+                      setValue((currentValue) => {
+                        return `${currentValue}@${user.firstName}${
+                          user.lastName || ""
+                        } `;
+                      });
+                      inputRef.current?.focus();
+                    }}
+                  />
+                </View>
+              ) : null
             ) : null
           )}
         </ScrollView>
@@ -1167,7 +850,7 @@ function ConversationInput() {
                                 setMentions(false);
                                 return `${currentValue.slice(0, lastAtPos)}@${
                                   user.firstName
-                                }${user.lastName} `;
+                                }${user.lastName || ""} `;
                               });
                             }}
                           />

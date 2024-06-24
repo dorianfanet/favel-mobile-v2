@@ -208,7 +208,7 @@ export default function home() {
               await fetchFollowedUserPosts();
               setLoading(false);
             }}
-            type="ghost"
+            type="ghostLight"
             style={{
               marginTop: 10,
             }}

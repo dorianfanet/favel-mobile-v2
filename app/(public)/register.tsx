@@ -8,8 +8,10 @@ import { logInStyles } from "./login";
 const Register = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
 
+  const [firstName, setFirstName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,6 +26,7 @@ const Register = () => {
     try {
       // Create the user on Clerk
       await signUp.create({
+        firstName,
         emailAddress,
         password,
       });
@@ -72,6 +75,13 @@ const Register = () => {
 
       {!pendingVerification && (
         <>
+          <TextInput
+            autoCapitalize="none"
+            placeholder="Prénom"
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholderTextColor={"#083E4F8b"}
+          />
           <TextInput
             autoCapitalize="none"
             placeholder="Email"

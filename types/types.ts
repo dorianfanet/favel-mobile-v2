@@ -393,6 +393,9 @@ export type Conversation = {
   trip_id?: string;
   name: string;
   thumbnail?: string;
+  last_message_content?: string;
+  last_message_timestamp?: string;
+  last_message_author?: string;
 };
 
 export type ConversationMessage = {
@@ -402,7 +405,8 @@ export type ConversationMessage = {
   author_id: string;
   content: string;
   mentions: string[];
-  is_modification: boolean;
+  modifications?: TripChatEditDay[];
+  modifications_status: "pending" | "applied" | "loading" | "error";
 };
 
 export type ConversationParticipant = {

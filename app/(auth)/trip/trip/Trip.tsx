@@ -56,28 +56,57 @@ export default function Trip({ id }: { id: string }) {
             setTripMetadata(payload.new as TripMetadata);
             if (payload.new.trip) {
               async function getTrip() {
-                const newTrip = await Promise.all(
-                  payload.new.trip.map(async (day: Day, index: number) => {
-                    if (day.activities) {
-                      if (day.activities.length === 0) return day;
-                      const activities = await Promise.all(
-                        day.activities.map(async (activity) => {
-                          if (activity.route) {
-                            return activity;
-                          } else {
+                try {
+                  const newTrip = await Promise.all(
+                    payload.new.trip.map(async (day: Day, index: number) => {
+                      if (day.activities) {
+                        if (day.activities.length === 0) return day;
+                        const activities = await Promise.all(
+                          day.activities.map(async (activity) => {
+                            // if (activity.route) {
+                            //   return activity;
+                            // } else {
+                            if (activity === null) return null;
                             const newActivity = await getActivity(activity);
                             return newActivity;
-                          }
-                        })
-                      );
-                      return { ...day, activities };
-                    } else {
-                      return day;
-                    }
-                  })
-                );
-                console.log(newTrip);
-                setTrip(newTrip as Day[]);
+                            // }
+                          })
+                        );
+                        return { ...day, activities };
+                      } else {
+                        return day;
+                      }
+                    })
+                  );
+                  console.log(newTrip as Day[]);
+                  // remove all potential null activities
+
+                  setTrip(newTrip as Day[]);
+                  // const newTrip = await Promise.all(
+                  //   data!.trip.map(async (day: Day, index: number) => {
+                  //     if (day.activities) {
+                  //       if (day.activities.length === 0) return day;
+                  //       const activities = await Promise.all(
+                  //         day.activities.map(async (activity) => {
+                  //           if (activity === null) return null;
+                  //           const newActivity = await getActivity(activity, true);
+                  //           return newActivity;
+                  //         })
+                  //       );
+                  //       const filteredActivities = activities.filter(
+                  //         (activity) => activity !== null
+                  //       );
+                  //       return { ...day, activities: filteredActivities };
+                  //     } else {
+                  //       return day;
+                  //     }
+                  //   })
+                  // );
+                  // console.log("newTrip", newTrip);
+                  // setTrip(newTrip as Day[]);
+                } catch (error) {
+                  console.error(error);
+                }
               }
               getTrip();
             }

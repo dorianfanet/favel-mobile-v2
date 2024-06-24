@@ -35,6 +35,8 @@ export default function UserCard({
   DetailsComponent,
   size = "default",
   avatarOnly = false,
+  noAvatar = false,
+  noLastName = false,
   youIndicator,
   followButton,
   style,
@@ -46,6 +48,8 @@ export default function UserCard({
   DetailsComponent?: React.ComponentType;
   size?: "extraSmall" | "small" | "default";
   avatarOnly?: boolean;
+  noAvatar?: boolean;
+  noLastName?: boolean;
   youIndicator?: boolean;
   followButton?: boolean;
   style?: any;
@@ -70,7 +74,7 @@ export default function UserCard({
       } catch (error) {
         console.log("error", error);
       }
-      const data = await getUserMetadata(userId, undefined, getToken);
+      const data = await getUserMetadata(userId, true, getToken);
 
       setUserMetadata(data);
     }
@@ -103,16 +107,18 @@ export default function UserCard({
         router.push(`/profile/${userId}`);
       }}
     >
-      <Image
-        source={{ uri: userMetadata.imageUrl }}
-        style={{
-          width: sizes[size].image,
-          height: sizes[size].image,
-          borderRadius: 25,
-          // marginLeft: 10,
-          marginRight: sizes[size].gap,
-        }}
-      />
+      {!noAvatar && (
+        <Image
+          source={{ uri: userMetadata.imageUrl }}
+          style={{
+            width: sizes[size].image,
+            height: sizes[size].image,
+            borderRadius: 25,
+            // marginLeft: 10,
+            marginRight: sizes[size].gap,
+          }}
+        />
+      )}
       {!avatarOnly && (
         <Text
           style={{
@@ -121,7 +127,8 @@ export default function UserCard({
             color: Colors[theme].primary,
           }}
         >
-          {userMetadata.firstName} {userMetadata.lastName}{" "}
+          {userMetadata.firstName}
+          {!noLastName ? " " + userMetadata.lastName || "" : ""}
           {/* {youIndicator && userMetadata.id === user?.id ? "(vous)" : ""} */}
         </Text>
       )}

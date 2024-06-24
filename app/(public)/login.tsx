@@ -136,7 +136,7 @@ export default function login() {
               marginVertical: 10,
             }}
           >
-            Créer un compte
+            {`Pas encore de compte ?\nCréer un compte`}
           </Text>
         </Pressable>
       </Link>

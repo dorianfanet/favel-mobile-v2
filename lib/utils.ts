@@ -130,8 +130,8 @@ export async function getUserMetadata(
     if (response) {
       const data = {
         id: response.id,
-        firstName: response.firstName,
-        lastName: response.lastName,
+        firstName: response.firstName || "Anonyme",
+        lastName: response.lastName || "",
         imageUrl: response.imageUrl,
         createdAt: response.createdAt,
         publicMetadata: response.publicMetadata,
@@ -241,11 +241,11 @@ export function formatDateToRelativeShort(timestamp: string | number): string {
     if (diffInSeconds < 60) {
       return `${diffInSeconds}s`; // Seconds
     } else if (diffInSeconds < 3600) {
-      return `${Math.floor(diffInSeconds / 60)}min`; // Minutes
+      return `${Math.floor(diffInSeconds / 60)} min`; // Minutes
     } else if (diffInSeconds < 86400) {
-      return `${Math.floor(diffInSeconds / 3600)}h`; // Hours
+      return `${Math.floor(diffInSeconds / 3600)} h`; // Hours
     } else {
-      return `${Math.floor(diffInSeconds / 86400)}j`; // Days
+      return `${Math.floor(diffInSeconds / 86400)} j`; // Days
     }
   } catch (error) {
     console.error(error);
