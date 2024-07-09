@@ -653,6 +653,14 @@ function TripName({ name }: { name: string | undefined }) {
         .from("trips_v2")
         .update({ name: inputValue })
         .eq("id", tripMetadata?.id);
+      const { error: errorConversation } = await supabase
+        .from("conversations")
+        .update({ name: inputValue })
+        .eq("id", tripMetadata?.conversation_id);
+
+      if (errorConversation) {
+        console.error(errorConversation);
+      }
 
       if (error) {
         console.error(error);

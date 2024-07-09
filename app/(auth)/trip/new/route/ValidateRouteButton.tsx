@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import React, { RefObject, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import "react-native-get-random-values";
@@ -23,22 +23,22 @@ export default function ValidateRouteButton({
 }: {
   listRef?: RefObject<BottomSheetFlatListMethods>;
 }) {
-  const opacity = useSharedValue(0);
-  const height = useSharedValue(0);
+  // const opacity = useSharedValue(0);
+  // const height = useSharedValue(0);
 
   const { user } = useUser();
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: withDelay(2000, withTiming(opacity.value, { duration: 500 })),
-      height: withDelay(2000, withTiming(height.value, { duration: 500 })),
-    };
-  });
+  // const animatedStyle = useAnimatedStyle(() => {
+  //   return {
+  //     opacity: withDelay(2000, withTiming(opacity.value, { duration: 500 })),
+  //     height: withDelay(2000, withTiming(height.value, { duration: 500 })),
+  //   };
+  // });
 
-  useEffect(() => {
-    opacity.value = 1;
-    height.value = 63;
-  }, []);
+  // useEffect(() => {
+  //   opacity.value = 1;
+  //   height.value = 63;
+  // }, []);
 
   const { setDestinationData, tripMetadata, setTripMetadata } = useTrip();
 
@@ -49,7 +49,7 @@ export default function ValidateRouteButton({
   const { getToken } = useAuth();
 
   return (
-    <Animated.View
+    <View
       style={[
         {
           justifyContent: "center",
@@ -60,7 +60,6 @@ export default function ValidateRouteButton({
           marginHorizontal: 20,
           flex: 1,
         },
-        animatedStyle,
       ]}
     >
       <TouchableOpacity
@@ -121,7 +120,9 @@ export default function ValidateRouteButton({
             color: "white",
           }}
         >
-          Créer mon voyage
+          {tripMetadata?.routeValidationText
+            ? tripMetadata?.routeValidationText
+            : "Valider l'itinéraire"}
         </Text>
       </TouchableOpacity>
       {/* <Text
@@ -137,6 +138,6 @@ export default function ValidateRouteButton({
       >
         {`Favel créera votre voyage à partir de cet itinéraire`}
       </Text> */}
-    </Animated.View>
+    </View>
   );
 }

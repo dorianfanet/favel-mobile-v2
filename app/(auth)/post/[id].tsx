@@ -1,12 +1,6 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import PostCard from "@/components/Post/PostCard";
 import { Post } from "@/types/types";
 import { MMKV } from "@/app/_layout";
@@ -16,6 +10,9 @@ import Comments from "./Comments";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useAuth } from "@clerk/clerk-expo";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { TouchableOpacity } from "@gorhom/bottom-sheet";
+import Icon from "@/components/Icon";
+import { Text } from "@/components/Themed";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -49,54 +46,58 @@ export default function Index() {
     getPost();
   }, [id]);
 
-  return post ? (
-    <KeyboardAwareScrollView
-      extraHeight={30}
-      extraScrollHeight={30}
-      style={{
-        flex: 1,
-        backgroundColor: Colors.light.background,
-      }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={async () => {
-            setRefreshing(true);
-            await getPost();
-            setRefreshing(false);
+  return (
+    <>
+      {post ? (
+        <KeyboardAwareScrollView
+          extraHeight={30}
+          extraScrollHeight={30}
+          style={{
+            flex: 1,
+            backgroundColor: Colors.light.background,
           }}
-        />
-      }
-    >
-      <PostCard
-        post={post}
-        style={{ borderRadius: 0, marginBottom: 10 }}
-        noLink
-        followButton
-      />
-      <Comments post={post} />
-    </KeyboardAwareScrollView>
-  ) : loading ? (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: Colors.light.background,
-      }}
-    >
-      <Text>Chargement...</Text>
-    </View>
-  ) : (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: Colors.light.background,
-      }}
-    >
-      <Text>{error || "Une erreur est survenue"}</Text>
-    </View>
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                await getPost();
+                setRefreshing(false);
+              }}
+            />
+          }
+        >
+          <PostCard
+            post={post}
+            style={{ borderRadius: 0, marginBottom: 10 }}
+            noLink
+            followButton
+          />
+          <Comments post={post} />
+        </KeyboardAwareScrollView>
+      ) : loading ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: Colors.light.background,
+          }}
+        >
+          <Text>Chargement...</Text>
+        </View>
+      ) : (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: Colors.light.background,
+          }}
+        >
+          <Text>{error || "Une erreur est survenue"}</Text>
+        </View>
+      )}
+    </>
   );
 }

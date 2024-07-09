@@ -124,7 +124,8 @@ export function TextInput(props: TextInputProps) {
 export const BlurView = forwardRef<typeof View, BlurViewProps>((props, ref) => {
   const { style, ...otherProps } = props;
 
-  return Platform.OS === "ios" || Platform.OS === "android" ? (
+  // return Platform.OS === "ios" || Platform.OS === "android" ? (
+  return (
     <DefaultBlurView
       ref={ref as any}
       intensity={40}
@@ -139,25 +140,27 @@ export const BlurView = forwardRef<typeof View, BlurViewProps>((props, ref) => {
           borderRadius: 20,
           opacity: 1,
           // backgroundColor: "#5d9bd5b9",
-          backgroundColor: Platform.OS === "ios" ? "#0d4376b8" : "#0d4376",
+          backgroundColor: Platform.OS === "ios" ? "#0d4376b8" : "#195995",
         },
         style,
       ]}
       {...otherProps}
-    />
-  ) : (
-    <View
-      style={{
-        flex: 1,
-        padding: 0,
-        margin: 0,
-        justifyContent: "center",
-        overflow: "hidden",
-        borderRadius: 20,
-        opacity: 1,
-        backgroundColor: "#2e648b",
-      }}
-      {...props}
+      // experimentalBlurMethod="dimezisBlurView"
     />
   );
+  // ) : (
+  //   <View
+  //     style={{
+  //       flex: 1,
+  //       padding: 0,
+  //       margin: 0,
+  //       justifyContent: "center",
+  //       overflow: "hidden",
+  //       borderRadius: 20,
+  //       opacity: 1,
+  //       backgroundColor: "#2e648b",
+  //     }}
+  //     {...props}
+  //   />
+  // );
 });

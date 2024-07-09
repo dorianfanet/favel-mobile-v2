@@ -110,6 +110,7 @@ export type TripMetadata = {
   invited_ids?: string[];
   post_id?: string;
   conversation_id?: string;
+  routeValidationText?: string;
 };
 
 export type Trip = Day[];
@@ -290,7 +291,7 @@ export type TripRoute = Hotspot[];
 export type Hotspot = {
   id?: string;
   location: string;
-  duration: number;
+  duration: number | number[];
   coordinates: [number, number];
 };
 

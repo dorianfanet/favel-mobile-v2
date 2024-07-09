@@ -12,6 +12,7 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import New from "./new/New";
 import Trip from "./trip/Trip";
 import Loading from "./trip/loading/Loading";
+import { getRouteValidationText } from "@/lib/utils";
 // import { AppEventsLogger } from "react-native-fbsdk-next";
 
 export default function Index() {
@@ -108,10 +109,21 @@ export default function Index() {
           }
         } else {
           await supabaseClient(getToken).then(async (supabase) => {
+            const routeValidationText = await getRouteValidationText(getToken);
+            console.log("Route validation text", routeValidationText);
+            const randomRouteValidationText =
+              routeValidationText[
+                Math.floor(Math.random() * routeValidationText.length)
+              ];
+            console.log(
+              "Random route validation text",
+              randomRouteValidationText
+            );
             setTripMetadata({
               id: id as string,
               status: "new",
               name: "Nouveau voyage",
+              routeValidationText: randomRouteValidationText,
             });
             setTripUserRole({
               id: user!.id,
@@ -123,6 +135,7 @@ export default function Index() {
                 author_id: user?.id,
                 status: "new",
                 name: "Nouveau voyage",
+                route_validation_text: randomRouteValidationText,
               },
             ]);
             if (error) {

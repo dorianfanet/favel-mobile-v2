@@ -4,9 +4,22 @@ import {
   Pressable,
   SafeAreaView,
   StatusBar,
+  StyleProp,
+  TextInput,
+  TextInputProps,
   View,
+  ViewStyle,
+  TextInputState,
+  Keyboard,
+  LayoutChangeEvent,
 } from "react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Link, router, useRouter } from "expo-router";
 import Icon, { IconByKey } from "@/components/Icon";
 import Colors from "@/constants/Colors";
@@ -33,489 +46,751 @@ import { AnimatePresence, MotiView } from "moti";
 import { favelClient } from "@/lib/favelApi";
 import { useAuth } from "@clerk/clerk-expo";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
+import {
+  Action as ActionType,
+  Assistant,
+  Button,
+  useAssistant,
+} from "@/context/assistantContext";
+import ContainedButton from "@/components/ContainedButton";
+import TypewriterMardown, {
+  TypewriterText,
+} from "@/components/TypewriterMardown";
+import { useEditor } from "@/context/editorContext";
+import { v4 as uuidv4 } from "uuid";
+// import { LinearGradient } from "expo-linear-gradient";
+// import MaskedView from "@react-native-masked-view/masked-view";
 
 export default function Header() {
-  const { tripMetadata, userActivity } = useTrip();
-
-  const { tripUserRole } = useTripUserRole();
-
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const shareModalRef = useRef<BottomSheetModal>(null);
 
-  const handlePresentModalPress = useCallback(() => {
-    track("Trip Menu clicked");
-    bottomSheetModalRef.current?.present();
-  }, []);
+  const {
+    assistant,
+    pushAssistant,
+    canPopAssistant,
+    clearAssistant,
+    popAssistant,
+  } = useAssistant();
+  const { editor, setEditor } = useEditor();
+
+  const [contentHeight, setContentHeight] = useState(35);
+  const [inputFocused, setInputFocused] = useState(false);
+  // const [backButton, setBackButton] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  const followUpInputPosition = useRef(0);
+
+  // useEffect(() => {
+  //   if (inputFocused || assistant.state === "speaking") {
+  //     setBackButton(true);
+  //   }
+  // }, [assistant.state, inputFocused]);
+
+  function abortRequest() {
+    // todo
+  }
 
   return (
-    <>
+    <MotiView
+      style={{
+        flex: 1,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+      from={{
+        backgroundColor: "#8ab5dd0",
+      }}
+      animate={{
+        backgroundColor:
+          assistant.state === "loading" ? "#8ab5ddb2" : "#8ab5dd0",
+        // backgroundColor: "#8ab5ddb2",
+      }}
+      transition={{
+        type: "timing",
+        duration: 300,
+        delay: 0,
+      }}
+      pointerEvents={assistant.state === "loading" ? "auto" : "box-none"}
+    >
       <SafeAreaView
         style={{
-          position: "absolute",
           width: "100%",
           justifyContent: "center",
           alignItems: "center",
           top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
         }}
       >
-        {tripMetadata && tripMetadata.status === "trip" ? (
-          <OnboardingButton />
-        ) : null}
-        {tripMetadata && tripMetadata.status.includes("loading") ? (
-          <>
-            {/* <LoadingStuckButton /> */}
-            <View
+        <View
+          style={{
+            width: "100%",
+            paddingHorizontal: padding,
+            position: "relative",
+          }}
+        >
+          <MotiView
+            style={{
+              width: "100%",
+              height: 50,
+            }}
+            from={{
+              height: 50,
+            }}
+            animate={{
+              height: contentHeight + 15,
+            }}
+            transition={{
+              type: "timing",
+              duration: 300,
+              delay: 0,
+            }}
+          >
+            <BlurView
               style={{
-                flex: 1,
                 width: "100%",
-                height: "100%",
-                paddingHorizontal: padding,
-                justifyContent: "center",
-                alignItems: "center",
+                borderRadius: 25,
+                backgroundColor: "#1c769cae",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                padding: 6.5,
+                alignItems: "flex-start",
+                borderWidth: 1,
+                borderColor: "#ffffffb6",
+                flex: 1,
               }}
             >
-              <BlurView
+              <View
                 style={{
-                  paddingHorizontal: 10,
-                  paddingLeft: 30,
-                  margin: 0,
-                  width: "100%",
-                  height: 90,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  overflow: "hidden",
-                  borderRadius: 15,
-                  position: "relative",
+                  width: 35,
+                  height: "100%",
                 }}
               >
-                <ActivityIndicator
-                  color={"white"}
-                  style={{
-                    position: "absolute",
-                    left: 20,
-                  }}
-                />
-                <AnimatePresence exitBeforeEnter>
+                <AnimatePresence>
                   <MotiView
-                    key={
-                      tripMetadata.status_message
-                        ? tripMetadata.status_message.message
-                        : "loading"
-                    }
-                    style={{
-                      marginLeft: 20,
-                    }}
-                    from={{
+                    exit={{
                       opacity: 0,
+                      translateX: -30,
                     }}
                     animate={{
                       opacity: 1,
+                      translateX: 0,
                     }}
-                    exit={{
+                    from={{
                       opacity: 0,
+                      translateX: -30,
                     }}
                     transition={{
                       type: "timing",
                       duration: 300,
-                      delay: 0,
+                      delay: 100,
                     }}
                     exitTransition={{
                       type: "timing",
                       duration: 300,
-                      delay: 800,
+                      delay: 0,
                     }}
-                  >
-                    <Text
-                      style={{
-                        color: "white",
-                        fontFamily: "Outfit_600SemiBold",
-                        fontSize: 16,
-                        textAlign: "center",
-                      }}
-                    >
-                      {tripMetadata.status_message
-                        ? tripMetadata.status_message.message
-                        : "Chargement..."}
-                    </Text>
-                    {tripMetadata.status_message &&
-                      tripMetadata.status_message.details && (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            gap: 3,
-                            opacity: 0.8,
-                          }}
-                        >
-                          <Icon
-                            icon={
-                              tripMetadata.status_message.details
-                                .icon as IconByKey
-                            }
-                            size={12}
-                            color="white"
-                          />
-                          <Text
-                            style={{
-                              color: "white",
-                              fontFamily: "Outfit_500Medium",
-                              fontSize: 12,
-                            }}
-                          >
-                            {tripMetadata.status_message.details.title}
-                          </Text>
-                        </View>
-                      )}
-                  </MotiView>
-                </AnimatePresence>
-              </BlurView>
-            </View>
-          </>
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              width: "100%",
-              paddingHorizontal: padding,
-            }}
-          >
-            <View
-              style={{
-                width: "100%",
-                borderRadius: 25,
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexDirection: "row",
-                padding: 2.5,
-              }}
-            >
-              <BlurView
-                style={{
-                  flex: 0,
-                  width: 40,
-                  height: 40,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    track("Back to home from trip");
-                    router.back();
-                  }}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Icon
-                    icon="chevronLeftIcon"
-                    size={20}
-                    color={Colors.dark.primary}
-                  />
-                </TouchableOpacity>
-              </BlurView>
-              {/* <View
-                style={{
-                  flex: 1,
-                }}
-              >
-                <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Text
+                    key={
+                      canPopAssistant || inputFocused
+                        ? "backButton"
+                        : "leaveButton"
+                    }
                     style={{
-                      color: Colors.dark.primary,
-                      fontFamily: "Outfit_400Regular",
-                      fontSize: 16,
-                      opacity: 0.8,
-                    }}
-                  >
-                    Modifier le voyage...
-                  </Text>
-                </TouchableOpacity>
-              </View> */}
-              {tripMetadata && tripMetadata.status?.startsWith("trip") && (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 10,
-                  }}
-                >
-                  {/* {Platform.OS === "ios" && ( */}
-                  {tripUserRole.role !== "read-only" && <ConversationButton />}
-                  {/* )} */}
-                  <BlurView
-                    style={{
-                      flex: 0,
-                      width: 40,
-                      height: 40,
+                      position: "absolute",
+                      right: 0,
+                      top: 0,
                     }}
                   >
                     <TouchableOpacity
-                      // onPress={async () => {
-                      //   track("Share trip clicked");
-                      //   try {
-                      //     const result = await Share.share({
-                      //       message: `Rejoins-moi pour mon voyage sur Favel !\n\n${tripMetadata?.name}\n\n\https://app.favel.net/invite/${tripMetadata?.id}`,
-                      //     });
-
-                      //     if (result.action === Share.sharedAction) {
-                      //       if (result.activityType) {
-                      //         // shared with activity type of result.activityType
-                      //       } else {
-                      //         // shared
-                      //       }
-                      //     } else if (result.action === Share.dismissedAction) {
-                      //       // dismissed
-                      //     }
-                      //   } catch (error) {
-                      //     alert(error);
-                      //   }
-                      // }}
                       onPress={() => {
-                        track("Header share button pressed");
-                        shareModalRef.current?.present();
+                        if (canPopAssistant || inputFocused) {
+                          if (inputFocused) {
+                            setInputFocused(false);
+                            Keyboard.dismiss();
+                            setInputValue("");
+                            // if (assistant.state === "default") {
+                            //   setBackButton(false);
+                            // }
+                          } else {
+                            // setAssistant({
+                            //   state: "default",
+                            //   key: "initial",
+                            //   placeholder: "Ajoute une balade en forêt...",
+                            // });
+                            popAssistant();
+                            if (editor && editor.type === "activity") {
+                              setEditor(null);
+                            }
+                          }
+                        } else {
+                          track("Back to home from trip");
+                          router.back();
+                        }
                       }}
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: 35,
+                        height: 35,
                         justifyContent: "center",
                         alignItems: "center",
+                        borderRadius: 20,
+                        backgroundColor: "#74A5B5",
                       }}
                     >
                       <Icon
                         icon={
-                          Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"
+                          assistant.state === "loading"
+                            ? "stopIcon"
+                            : canPopAssistant || inputFocused
+                            ? "chevronLeftIcon"
+                            : "logoutIcon"
                         }
+                        size={20}
+                        color={Colors.dark.primary}
+                        style={{
+                          transform: [
+                            {
+                              rotate:
+                                canPopAssistant || inputFocused
+                                  ? "0deg"
+                                  : "180deg",
+                            },
+                          ],
+                        }}
+                      />
+                    </TouchableOpacity>
+                  </MotiView>
+                </AnimatePresence>
+              </View>
+              <AnimatePresence>
+                <MotiView
+                  exit={{
+                    opacity: 0,
+                    translateY: -20,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    translateY: 0,
+                  }}
+                  from={{
+                    opacity: 0,
+                    translateY: 20,
+                  }}
+                  transition={{
+                    type: "timing",
+                    duration: 300,
+                    delay: 0,
+                  }}
+                  style={{
+                    flex: 1,
+                    position: "absolute",
+                    top: 6.5,
+                    left: 41.5,
+                    right: 41.5,
+                  }}
+                  onLayout={(e) => {
+                    setContentHeight(e.nativeEvent.layout.height);
+                  }}
+                  key={assistant.key}
+                >
+                  {assistant.state === "loading" ? (
+                    <Loader assistant={assistant} />
+                  ) : null}
+                  {assistant.state === "default" ? (
+                    <Input
+                      onFocus={() => setInputFocused(true)}
+                      onBlur={() => setInputFocused(false)}
+                      placeholder={assistant.placeholder}
+                      onLayout={(e) => {
+                        console.log(e.nativeEvent.layout.y);
+                        followUpInputPosition.current = e.nativeEvent.layout.y;
+                      }}
+                      value={inputValue}
+                      onChangeText={(text) => setInputValue(text)}
+                    />
+                  ) : null}
+                  {assistant.state === "speaking" ? (
+                    <View
+                      style={{
+                        padding: 10,
+                        paddingTop: 7.5,
+                        paddingBottom: 7.5,
+                        flex: 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "white",
+                          fontFamily: "Outfit_500Medium",
+                          fontSize: 16,
+                          width: "100%",
+                        }}
+                        // numberOfLines={3}
+                      >
+                        {assistant.message}
+                      </Text>
+                      {/* <TypewriterText
+                        key={"assistantMessage"}
+                        text={assistant.message}
+                        shouldAnimate={true}
+                        style={{
+                          color: "white",
+                          fontFamily: "Outfit_500Medium",
+                          fontSize: 16,
+                        }}
+                      /> */}
+                      {/* <MotiView
+                        from={{
+                          opacity: 0,
+                          translateY: 20,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          translateY: 0,
+                        }}
+                        transition={{
+                          type: "timing",
+                          duration: 100,
+                          delay: 1000,
+                        }}
+                      > */}
+                      {assistant.action ? (
+                        <Action action={assistant.action} />
+                      ) : null}
+                      {assistant.followUp ? (
+                        <Input
+                          onFocus={() => setInputFocused(true)}
+                          onBlur={() => setInputFocused(false)}
+                          dark
+                          style={{
+                            marginTop: 8,
+                          }}
+                          onLayout={(e) => {
+                            console.log(e.nativeEvent.layout.y);
+                            followUpInputPosition.current =
+                              e.nativeEvent.layout.y;
+                          }}
+                          value={inputValue}
+                          onChangeText={(text) => setInputValue(text)}
+                          autoFocus={assistant.followUp.autoFocus}
+                          placeholder={assistant.followUp.placeholder}
+                        />
+                      ) : null}
+                      {/* </MotiView> */}
+                    </View>
+                  ) : null}
+                </MotiView>
+              </AnimatePresence>
+              <View
+                style={{
+                  width: 35,
+                  height: "100%",
+                }}
+              >
+                <AnimatePresence>
+                  <MotiView
+                    exit={{
+                      opacity: 0,
+                      translateX: 30,
+                      top: !inputFocused ? 0 : followUpInputPosition.current,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      translateX: 0,
+                      top: inputFocused ? followUpInputPosition.current : 0,
+                    }}
+                    from={{
+                      opacity: 0,
+                      translateX: 30,
+                      top: inputFocused ? followUpInputPosition.current : 0,
+                    }}
+                    transition={{
+                      type: "timing",
+                      duration: 300,
+                      delay: 100,
+                    }}
+                    exitTransition={{
+                      type: "timing",
+                      duration: 300,
+                      delay: 0,
+                    }}
+                    key={inputFocused ? "sendButton" : "menuButton"}
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: 0,
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (inputFocused) {
+                        } else {
+                          bottomSheetModalRef.current?.present();
+                        }
+                      }}
+                      style={{
+                        width: 35,
+                        height: 35,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: 20,
+                        backgroundColor: inputFocused
+                          ? Colors.light.accent
+                          : "#74A5B5",
+                      }}
+                    >
+                      <Icon
+                        icon={inputFocused ? "sendIcon" : "menuIcon"}
                         size={20}
                         color={Colors.dark.primary}
                       />
                     </TouchableOpacity>
-                  </BlurView>
-                  <View
-                    style={{
-                      position: "relative",
-                    }}
-                  >
-                    <BlurView
-                      style={{
-                        flex: 0,
-                        width: 40,
-                        height: 40,
-                      }}
-                    >
-                      <TouchableOpacity
-                        onPress={handlePresentModalPress}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Icon
-                          icon="menuIcon"
-                          size={20}
-                          color={Colors.dark.primary}
-                        />
-                      </TouchableOpacity>
-                    </BlurView>
-                    <View
-                      style={{
-                        position: "absolute",
-                        bottom: -5,
-                        right: -5,
-                      }}
-                    >
-                      <UserActivityCount userActivity={userActivity} />
-                    </View>
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
+                  </MotiView>
+                </AnimatePresence>
+              </View>
+            </BlurView>
+          </MotiView>
+          {/* <MaskedView
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              height: 50,
+              position: "absolute",
+              top: 0,
+              left: padding,
+              right: padding,
+            }}
+            maskElement={
+              <View
+                style={{
+                  backgroundColor: "transparent",
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderWidth: 1,
+                  borderColor: "black",
+                  borderRadius: 25,
+                }}
+              ></View>
+            }
+          >
+            <LinearGradient
+              // Background Linear Gradient
+              colors={[
+                "rgba(255,255,255,0.8)",
+                "rgba(255,255,255,0)",
+                "rgba(255,255,255,0)",
+                "rgba(255,255,255,0.4)",
+              ]}
+              locations={[0, 0.41, 0.57, 1]}
+              style={{
+                width: "100%",
+                position: "absolute",
+                top: -14,
+                height: 80,
+                transform: [
+                  {
+                    rotate: "-5deg",
+                  },
+                ],
+              }}
+            />
+          </MaskedView> */}
+        </View>
       </SafeAreaView>
+      <View
+        style={{
+          padding: padding,
+          flexDirection: "row",
+          gap: 10,
+          marginTop: 300,
+        }}
+      >
+        <ContainedButton
+          title="default"
+          onPress={() => {
+            pushAssistant({
+              state: "default",
+              key: "1",
+              placeholder: "Ajoute une balade en forêt...",
+            });
+          }}
+        />
+        <ContainedButton
+          title="speaking"
+          onPress={() => {
+            pushAssistant({
+              state: "speaking",
+              key: "2",
+              message:
+                "Salut ! Je suis Favel votre assistant, avez-vous besoin d'aide ?",
+              action: {
+                type: "boolean",
+                primary: {
+                  text: "Oui",
+                  action: "follow-up",
+                },
+                secondary: {
+                  text: "Non",
+                  action: "clear",
+                },
+              },
+              // followUp: true,
+            });
+          }}
+        />
+        <ContainedButton
+          title="list"
+          onPress={() => {
+            pushAssistant({
+              state: "speaking",
+              key: "2",
+              message:
+                "Quel type d'activité souhaitez-vous faire pendant votre séjour ?",
+              action: {
+                type: "list",
+                items: ["Campagne", "Visites culturelles", "Détente"],
+              },
+              followUp: {
+                placeholder: "Autre chose ?",
+              },
+            });
+          }}
+        />
+        <ContainedButton
+          title="loading"
+          onPress={() => {
+            pushAssistant({
+              state: "loading",
+              key: `loading`,
+              message: "Je réfléchis...",
+            });
+          }}
+        />
+      </View>
       <MenuModal bottomSheetModalRef={bottomSheetModalRef} />
-      <ShareModal bottomSheetModalRef={shareModalRef} />
+      {/*<ShareModal bottomSheetModalRef={shareModalRef} /> */}
+    </MotiView>
+  );
+}
+
+function Input({
+  onFocus,
+  onBlur,
+  onLayout,
+  dark = false,
+  placeholder = "Écrivez votre réponse...",
+  style,
+  value,
+  onChangeText,
+  autoFocus = false,
+}: {
+  onFocus: () => void;
+  onBlur: () => void;
+  onLayout?: (e: LayoutChangeEvent) => void;
+  dark?: boolean;
+  placeholder?: string;
+  style?: any;
+  value: string;
+  onChangeText: (text: string) => void;
+  autoFocus?: boolean;
+}) {
+  return (
+    <TextInput
+      style={[
+        {
+          color: "white",
+          fontFamily: "Outfit_500Medium",
+          fontSize: 16,
+          backgroundColor: dark ? "rgba(0,0,0,0.1)" : "transparent",
+          borderWidth: 0,
+          flex: 1,
+          height: 35,
+          marginVertical: 0,
+          borderRadius: 12,
+          paddingVertical: 0,
+          paddingHorizontal: 10,
+        },
+        style,
+      ]}
+      placeholder={placeholder}
+      placeholderTextColor="#ffffff91"
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onLayout={onLayout}
+      value={value}
+      onChangeText={onChangeText}
+      autoFocus={autoFocus}
+      selectionColor="#ffffffba"
+    />
+  );
+}
+
+function Action({ action }: { action: ActionType }) {
+  const {
+    assistant,
+    pushAssistant,
+    canPopAssistant,
+    clearAssistant,
+    replaceAssistant,
+    popAssistant,
+  } = useAssistant();
+
+  function handleButtonClick(clickAction: Button) {
+    if (clickAction.action === "clear") clearAssistant();
+    if (clickAction.action === "pop") popAssistant();
+    if (clickAction.action === "follow-up" && assistant.state === "speaking") {
+      replaceAssistant({
+        ...assistant,
+        followUp: {
+          placeholder: "Écrivez votre réponse...",
+          autoFocus: true,
+        },
+        action: null,
+      });
+    }
+    if (clickAction.action === "push") {
+      pushAssistant(clickAction.assistant);
+    }
+    if (clickAction.action === "replace") {
+      replaceAssistant(clickAction.assistant);
+    }
+  }
+
+  return (
+    <>
+      {action.type === "boolean" ? (
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 10,
+            marginTop: 8,
+          }}
+        >
+          <ContainedButton
+            title={action.secondary.text}
+            onPress={() => handleButtonClick(action.secondary)}
+            type="ghost"
+            style={{
+              flex: 1,
+              paddingHorizontal: 0,
+              paddingVertical: 7,
+              borderRadius: 8,
+            }}
+          />
+          <ContainedButton
+            title={action.primary.text}
+            onPress={() => handleButtonClick(action.primary)}
+            style={{
+              flex: 1,
+              paddingHorizontal: 0,
+              paddingVertical: 7,
+              borderRadius: 8,
+            }}
+          />
+        </View>
+      ) : null}
+      {action.type === "list" ? (
+        <View
+          style={{
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 10,
+            marginTop: 8,
+          }}
+        >
+          {action.items.map((item, index) => (
+            <ContainedButton
+              key={index}
+              title={item}
+              onPress={() => {}}
+              style={{
+                paddingHorizontal: 0,
+                paddingVertical: 7,
+                borderRadius: 8,
+              }}
+              type="ghost"
+            />
+          ))}
+        </View>
+      ) : null}
     </>
   );
 }
 
-function ConversationButton() {
-  const { tripMetadata } = useTrip();
-  const router = useRouter();
-
-  const [loading, setLoading] = useState(false);
-
-  const { getToken } = useAuth();
-
-  return (
-    <BlurView
-      style={{
-        flex: 0,
-        height: 40,
-        paddingHorizontal: 10,
-      }}
-    >
-      {/* <Link
-        href="/(auth)/conversation/82699fd2-f805-4deb-8e6b-8058bede1509"
-        asChild
-      > */}
-      <TouchableOpacity
-        style={{
-          height: 40,
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "row",
-          gap: 5,
-        }}
-        onPress={() => {
-          if (loading) return;
-          if (tripMetadata?.conversation_id) {
-            router.navigate(
-              `/(auth)/conversation/${tripMetadata?.conversation_id}`
-            );
-          } else {
-            favelClient(getToken).then(async (favel) => {
-              setLoading(true);
-              const result = await favel.createTripConversation(
-                tripMetadata?.id as string
-              );
-              if (result.id) {
-                router.navigate(`/(auth)/conversation/${result.id}`);
-              }
-              setLoading(false);
-            });
-          }
-        }}
-        disabled={loading}
-      >
-        {loading ? (
-          <>
-            {/* <Text
-              style={{
-                color: Colors.dark.primary,
-                fontFamily: "Outfit_400Regular",
-                fontSize: 16,
-                opacity: 1,
-              }}
-            >
-              Chargement...
-            </Text> */}
-            <ActivityIndicator color={Colors.dark.primary} />
-          </>
-        ) : (
-          <>
-            {/* <Text
-              style={{
-                color: Colors.dark.primary,
-                fontFamily: "Outfit_400Regular",
-                fontSize: 16,
-                opacity: 1,
-              }}
-            >
-              Modifier le voyage...
-            </Text> */}
-            <Icon
-              icon="messageDotsIcon"
-              size={22}
-              color={Colors.dark.primary}
-            />
-          </>
-        )}
-      </TouchableOpacity>
-      {/* </Link> */}
-    </BlurView>
-  );
-}
-
-function OnboardingButton() {
-  const [alreadySeen, setAlreadySeen] = useState(false);
-
-  const scale = useSharedValue(1);
-  const height = useSharedValue(0);
-  // const opacity = useSharedValue(0);
-  const marginBottom = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-      height: height.value,
-      // opacity: opacity.value,
-      marginBottom: marginBottom.value,
-    };
-  });
+function Loader({ assistant }: { assistant: Assistant }) {
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
   useEffect(() => {
-    const alreadySeen = MMKV.getString("onboardingSeen1");
-    // const alreadySeen = false;
-    if (alreadySeen) {
-      setAlreadySeen(true);
-    } else {
-      scale.value = withRepeat(withTiming(0.95, { duration: 500 }), -1, true);
-      height.value = withDelay(5000, withSpring(50));
-      marginBottom.value = withDelay(5000, withSpring(10));
-    }
-  }, []);
+    if (assistant.state !== "loading") return;
 
-  const router = useRouter();
+    const timer = setTimeout(() => {
+      setShouldAnimate(true);
+    }, 610); // Match this delay with the parent's animation duration
 
-  return !alreadySeen ? (
-    <View
+    return () => clearTimeout(timer);
+  }, [assistant.state]);
+
+  return shouldAnimate ? (
+    <MotiView
+      from={{
+        opacity: 0.3,
+      }}
+      animate={{
+        opacity: 1,
+      }}
+      exit={{
+        opacity: 0.3,
+      }}
+      transition={{
+        type: "timing",
+        duration: 500,
+        repeat: Infinity,
+        delay: 0,
+      }}
+      // key={`${assistant.key}-loading`}
+      key="biusd"
       style={{
-        width: "100%",
+        padding: 10,
+        paddingTop: 7.5,
+        paddingBottom: 7.5,
+        flex: 1,
       }}
     >
-      <TouchableOpacity
+      <Text
         style={{
+          color: "#dfebf9",
+          fontFamily: "Outfit_500Medium",
+          fontSize: 16,
           width: "100%",
         }}
-        onPress={() => {
-          setAlreadySeen(true);
-          router.push("/(modals)/onboarding");
-        }}
+        // numberOfLines={3}
       >
-        <Animated.View
-          style={[
-            {
-              justifyContent: "center",
-              alignItems: "center",
-              marginHorizontal: padding,
-              backgroundColor: Colors.light.accent,
-              height: 50,
-              borderRadius: borderRadius,
-              shadowColor: "#19c2d1",
-              shadowOffset: {
-                width: 0,
-                height: 1,
-              },
-              shadowOpacity: 0.8,
-              shadowRadius: 10,
-              elevation: 3,
-              opacity: 1,
-            },
-            animatedStyle,
-          ]}
-        >
-          <Text
-            style={{
-              color: "white",
-              fontFamily: "Outfit_700Bold",
-              textAlign: "center",
-              fontSize: 22,
-            }}
-          >
-            Comment ça marche ?
-          </Text>
-        </Animated.View>
-      </TouchableOpacity>
+        {assistant.state === "loading" ? assistant.message : "Chargement..."}
+      </Text>
+    </MotiView>
+  ) : (
+    <View
+      style={{
+        padding: 10,
+        paddingTop: 7.5,
+        paddingBottom: 7.5,
+        flex: 1,
+        opacity: 0.3,
+      }}
+    >
+      <Text
+        style={{
+          color: "#dfebf9",
+          fontFamily: "Outfit_500Medium",
+          fontSize: 16,
+          width: "100%",
+        }}
+        // numberOfLines={3}
+      >
+        {assistant.state === "loading" ? assistant.message : "Chargement..."}
+      </Text>
     </View>
-  ) : null;
+  );
 }

@@ -34,7 +34,13 @@ export default function TypewriterMardown({
   }, []);
 
   return (
-    <View>
+    <View
+      style={{
+        marginVertical: 0,
+        paddingVertical: 0,
+        backgroundColor: "red",
+      }}
+    >
       <Markdown
         style={{
           body: {
@@ -52,5 +58,54 @@ export default function TypewriterMardown({
         {displayedText}
       </Markdown>
     </View>
+  );
+}
+
+export function TypewriterText({
+  text,
+  typingDelay = 10,
+  batchSize = 5,
+  shouldAnimate = true,
+  style,
+}: {
+  text: string;
+  typingDelay?: number;
+  batchSize?: number;
+  shouldAnimate: boolean;
+  style?: any;
+}) {
+  const [displayedText, setDisplayedText] = useState("");
+
+  useEffect(() => {
+    if (!shouldAnimate) {
+      setDisplayedText(text);
+      return;
+    }
+    setDisplayedText("");
+    let index = 0;
+    const timer = setInterval(() => {
+      setDisplayedText((prev) => prev + text.slice(index, index + batchSize));
+      index += batchSize;
+      if (index >= text.length) {
+        clearInterval(timer);
+      }
+    }, typingDelay);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <Text
+      style={[
+        {
+          fontSize: 16,
+          fontFamily: "Outfit_400Regular",
+          color: "white",
+        },
+        style,
+      ]}
+    >
+      {displayedText}
+    </Text>
   );
 }

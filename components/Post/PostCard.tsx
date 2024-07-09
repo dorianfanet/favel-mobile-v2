@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Share } from "react-native";
+import { View, TouchableOpacity, Share, Alert } from "react-native";
 import React, { useEffect, useState } from "react";
 import Colors from "@/constants/Colors";
 import { borderRadius, padding } from "@/constants/values";
@@ -15,9 +15,10 @@ import { MMKV } from "@/app/_layout";
 import { Text } from "../Themed";
 import CommentButton from "./actions/CommentButton";
 import { track } from "@amplitude/analytics-react-native";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import ContainedButton from "../ContainedButton";
 import { useRouter } from "expo-router";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function PostCard({
   post,
@@ -34,6 +35,8 @@ export default function PostCard({
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const { getToken } = useAuth();
+
+  const { user } = useUser();
 
   async function getUser() {
     if (!post.author_id) return;
@@ -164,6 +167,44 @@ export default function PostCard({
               }
             }}
           />
+          {post.type === "trip" &&
+          post.trip_id &&
+          post.author_id === user?.id ? (
+            <ActionButton
+              icon="deleteIcon"
+              title={`Supprimer`}
+              onPress={() => {
+                Alert.alert(
+                  "Supprimer le voyage",
+                  "Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible.",
+                  [
+                    {
+                      text: "Oui",
+                      onPress: () => {
+                        // handleDeleteTrip();
+                        supabaseClient(getToken).then(async (supabase) => {
+                          const { error } = await supabase
+                            .from("trips_v2")
+                            .delete()
+                            .eq("id", post.trip_id);
+                          if (error) {
+                            console.log(error);
+                          }
+                        });
+                      },
+                      style: "destructive",
+                    },
+                    {
+                      text: "Non",
+                      onPress: () => {},
+                      style: "cancel",
+                    },
+                  ],
+                  { cancelable: true }
+                );
+              }}
+            />
+          ) : null}
         </View>
       )}
     </View>

@@ -9,6 +9,7 @@ import { useTrip } from "@/context/tripContext";
 import TripBottomSheet from "./TripBottomSheet";
 import ActivityModal from "./ActivityModal";
 import Loading from "./loading/Loading";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function Trip({ id }: { id: string }) {
   const { setTripMetadata, setTrip, setTripEdits, tripMetadata } = useTrip();
@@ -148,6 +149,27 @@ export default function Trip({ id }: { id: string }) {
       supabase.removeChannel(channel);
     };
   }, [id, token]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      supabaseClient(getToken).then(async (supabase) => {
+        if (!user) return;
+        const { error } = await supabase.from("user_activity").upsert([
+          {
+            id: `${id}-${user.id}`,
+            last_activity: new Date(),
+            trip_id: id,
+            user_id: user.id,
+          },
+        ]);
+        if (error) {
+          console.log(error);
+        }
+      });
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <>

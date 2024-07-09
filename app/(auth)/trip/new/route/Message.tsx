@@ -156,7 +156,13 @@ function HotspotCard({ hotspot }: { hotspot: Hotspot }) {
       </View>
       <ImageCard text={hotspot.location} />
       <ImageCard
-        text={`${hotspot.duration}  jour${hotspot.duration > 1 ? "s" : ""}`}
+        text={
+          Array.isArray(hotspot.duration)
+            ? `${hotspot.duration[0]}  jour${
+                hotspot.duration[0] > 1 ? "s" : ""
+              }`
+            : `${hotspot.duration}  jour${hotspot.duration > 1 ? "s" : ""}`
+        }
         style={{
           top: undefined,
           bottom: 8,

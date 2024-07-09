@@ -50,7 +50,8 @@ export default function Header({
             href={
               post.original_post
                 ? `/post/${post.original_post.id}`
-                : `/profile/${post.author_id}`
+                : // : `/(auth)/profile/(tabs)`
+                  `/profile/${post.author_id}`
             }
             asChild
           >

@@ -9,6 +9,7 @@ import { EditorProvider } from "@/context/editorContext";
 import { TripUserRoleProvider } from "@/context/tripUserRoleContext";
 import Map from "./(map)/Map";
 import Chat from "./(chat)/Chat";
+import { AssistantProvider } from "@/context/assistantContext";
 
 export default function Layout() {
   useEffect(() => {
@@ -26,12 +27,14 @@ export default function Layout() {
         <BottomSheetModalProvider>
           <EditorProvider>
             <TripUserRoleProvider>
-              <>
-                <MapWrapper />
-                <Header />
-                <Slot />
-                {Platform.OS === "ios" && <Chat />}
-              </>
+              <AssistantProvider>
+                <>
+                  <MapWrapper />
+                  <Header />
+                  <Slot />
+                  {Platform.OS === "ios" && <Chat />}
+                </>
+              </AssistantProvider>
             </TripUserRoleProvider>
           </EditorProvider>
         </BottomSheetModalProvider>

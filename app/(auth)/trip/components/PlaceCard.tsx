@@ -18,6 +18,7 @@ import { useTrip } from "@/context/tripContext";
 import { newTripEdit } from "@/lib/tripEdits";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useEditor } from "@/context/editorContext";
+import { useAssistant } from "@/context/assistantContext";
 
 export default function PlaceCard({
   swipeable,
@@ -210,6 +211,7 @@ export function ActivityCardContent({
   }, []);
 
   const { setEditor } = useEditor();
+  const { pushAssistant } = useAssistant();
 
   return (
     <TouchableOpacity
@@ -223,6 +225,15 @@ export function ActivityCardContent({
             id: activityData.id!,
           },
         });
+        if (activity.id) {
+          pushAssistant({
+            state: "default",
+            key: activity.id,
+            placeholder: `Poser une question sur ${
+              activity.name || "ce lieu"
+            }...`,
+          });
+        }
       }}
       style={{
         opacity: highlighted === false ? 0.5 : 1,

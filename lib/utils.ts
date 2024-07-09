@@ -292,3 +292,50 @@ export async function createTripInvite(authorId: string, tripId: string) {
     id: id,
   };
 }
+
+export async function getRouteValidationText(getToken: any): Promise<string[]> {
+  const defaultText = "Valider l'itinéraire";
+
+  const cache = MMKV.getString("route_validation_text");
+
+  if (cache) {
+    try {
+      const parsedCache = JSON.parse(cache);
+      if (parsedCache.expiresAt > new Date().getTime()) {
+        return parsedCache.data;
+      }
+    } catch (error) {
+      console.error(error);
+      return [defaultText];
+    }
+  }
+
+  console.log("Updating route validation text cache");
+
+  return await favelClient(getToken)
+    .then(async (favel) => {
+      const { data, error } = await favel.getRouteValidationText();
+      if (error) {
+        console.error(error);
+        return [defaultText];
+      }
+      console.log("Route validation text", data);
+      if (data) {
+        MMKV.setString(
+          "route_validation_text",
+          JSON.stringify({
+            expiresAt: new Date().getTime() + 7200000,
+            data: data.list,
+          })
+        );
+
+        return data.list;
+      } else {
+        return [defaultText];
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      return [defaultText];
+    });
+}

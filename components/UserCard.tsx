@@ -105,6 +105,7 @@ export default function UserCard({
           router.dismiss();
         } catch (e) {}
         router.push(`/profile/${userId}`);
+        // router.push(`/(auth)/profile/(tabs)`);
       }}
     >
       {!noAvatar && (

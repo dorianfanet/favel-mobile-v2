@@ -23,7 +23,7 @@ export default function settings() {
 
   const handleDeleteAccount = async () => {
     favelClient(getToken).then((favel) => favel.deleteUser(user!.id));
-    await signOut();
+    // await signOut();
   };
 
   const showConfirmationDialog = () => {

@@ -259,6 +259,7 @@ function InitialLayout() {
           }}
         />
         <Stack.Screen
+          // name="(auth)/profile/(tabs)"
           name="(auth)/profile/[id]"
           options={{
             headerTitle: "Profil",

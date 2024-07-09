@@ -30,6 +30,7 @@ class ApiClient {
     method: string,
     data: any
   ): Promise<Response<any>> {
+    console.log("JWT", this.token);
     const response = await fetch(`${this.baseUrl}/${endpoint}`, {
       method: method,
       headers: {
@@ -366,10 +367,18 @@ class ApiClient {
     );
     return result.data;
   }
+
+  async getRouteValidationText(): Promise<
+    Response<{
+      list: string[];
+    }>
+  > {
+    return this.request(`route-validation-text`, "GET", null);
+  }
 }
 
 export async function favelClient(getToken: any) {
-  const token = await getToken({ template: "supabase" });
+  const token = await getToken();
 
   if (token) {
     return new ApiClient(`${process.env.EXPO_PUBLIC_API_URL}/api`, token);
