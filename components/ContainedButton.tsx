@@ -85,6 +85,7 @@ export default function ContainedButton(props: ContainedButtonProps) {
             color,
             fontSize,
             fontFamily,
+            textAlign: "center",
           }}
         >
           {title}

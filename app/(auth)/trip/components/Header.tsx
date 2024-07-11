@@ -50,6 +50,7 @@ import {
   Action as ActionType,
   Assistant,
   Button,
+  FullConversation,
   useAssistant,
 } from "@/context/assistantContext";
 import ContainedButton from "@/components/ContainedButton";
@@ -58,8 +59,12 @@ import TypewriterMardown, {
 } from "@/components/TypewriterMardown";
 import { useEditor } from "@/context/editorContext";
 import { v4 as uuidv4 } from "uuid";
+import CircularProgress from "@/components/CircularProgress/CircularProgress";
+import { Picker } from "@react-native-picker/picker";
 // import { LinearGradient } from "expo-linear-gradient";
 // import MaskedView from "@react-native-masked-view/masked-view";
+
+const tripState = "new";
 
 export default function Header() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -68,8 +73,11 @@ export default function Header() {
     assistant,
     pushAssistant,
     canPopAssistant,
-    clearAssistant,
+    replaceAssistant,
     popAssistant,
+    setConversation,
+    clearAssistant,
+    conversation,
   } = useAssistant();
   const { editor, setEditor } = useEditor();
 
@@ -77,6 +85,10 @@ export default function Header() {
   const [inputFocused, setInputFocused] = useState(false);
   // const [backButton, setBackButton] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
+
+  const { getToken } = useAuth();
 
   const followUpInputPosition = useRef(0);
 
@@ -89,6 +101,154 @@ export default function Header() {
   function abortRequest() {
     // todo
   }
+
+  async function sendMessage(
+    response?: string,
+    customConversation?: FullConversation | null,
+    avoidConversationUpdate?: boolean
+  ) {
+    if (abortController) {
+      abortController.abort(); // Abort any previous request
+    }
+
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
+
+    const signal = newAbortController.signal;
+
+    const value = response ? response : inputValue;
+    setInputFocused(false);
+    setInputValue("");
+    if (assistant.state === "speaking" && assistant.shouldReplace) {
+      replaceAssistant({
+        state: "loading",
+        key: `loading`,
+        message: "Je réfléchis...",
+      });
+    } else {
+      // if (!canPopAssistant) {
+      pushAssistant({
+        state: "loading",
+        key: `loading`,
+        message: "Je réfléchis...",
+      });
+    }
+    // } else {
+    //   replaceAssistant({
+    //     state: "loading",
+    //     key: `loading`,
+    //     message: "Je réfléchis...",
+    //   });
+    // }
+    // }
+    let conversationCopy;
+    if (customConversation) {
+      conversationCopy = customConversation;
+    } else {
+      conversationCopy = conversation
+        ? JSON.parse(JSON.stringify(conversation))
+        : {
+            id: uuidv4(),
+            messages: [],
+          };
+    }
+    favelClient(getToken).then(async (favel) => {
+      if (!avoidConversationUpdate) {
+        if (
+          conversationCopy.messages[conversationCopy.messages.length - 1]
+            ?.role === "user"
+        ) {
+          conversationCopy.messages[
+            conversationCopy.messages.length - 1
+          ].content = value;
+        } else {
+          conversationCopy.messages.push({
+            role: "user",
+            content: value,
+          });
+        }
+      }
+      const { data, error } = await favel
+        .assistant("test", signal)
+        .send(value, conversationCopy);
+      if (error) {
+        replaceAssistant({
+          state: "loading",
+          key: `loading-retry`,
+          message: "Encore un instant...",
+        });
+        const { data, error } = await favel
+          .assistant("test", signal)
+          .send(value, conversationCopy);
+        if (error) {
+          replaceAssistant({
+            state: "speaking",
+            key: `speaking-${uuidv4()}`,
+            message: "Une erreur est survenue, veuillez réessayer.",
+            action: {
+              type: "list",
+              items: [
+                {
+                  text: "Réessayer",
+                  action: "retry",
+                  response: value,
+                },
+              ],
+            },
+            shouldReplace: true,
+          });
+        }
+        if (data) {
+          replaceAssistant({
+            state: "speaking",
+            key: `speaking-${uuidv4()}`,
+            message: data.message,
+            action: data.action,
+            followUp: data.followUp,
+            timeout: data.timeout,
+          });
+          // addMessage({
+          //   role: "assistant",
+          //   content: data.message,
+          // });
+          conversationCopy.messages.push({
+            role: "assistant",
+            content: data.message,
+          });
+        }
+      }
+      if (data) {
+        replaceAssistant({
+          state: "speaking",
+          key: `speaking-${uuidv4()}`,
+          message: data.message,
+          action: data.action,
+          followUp: data.followUp,
+          timeout: data.timeout,
+        });
+        // addMessage({
+        //   role: "assistant",
+        //   content: data.message,
+        // });
+        conversationCopy.messages.push({
+          role: "assistant",
+          content: data.message,
+        });
+      }
+    });
+    setConversation(conversationCopy);
+  }
+
+  useEffect(() => {
+    if (assistant.state === "speaking" && assistant.timeout) {
+      const timer = setTimeout(() => {
+        popAssistant();
+      }, assistant.timeout);
+      return () => clearTimeout(timer);
+    }
+  }, [assistant]);
+
+  console.log("assistant", assistant);
 
   return (
     <MotiView
@@ -204,6 +364,11 @@ export default function Header() {
                   >
                     <TouchableOpacity
                       onPress={() => {
+                        if (assistant.state === "loading") {
+                          abortController?.abort();
+                          popAssistant();
+                          return;
+                        }
                         if (canPopAssistant || inputFocused) {
                           if (inputFocused) {
                             setInputFocused(false);
@@ -237,6 +402,25 @@ export default function Header() {
                         backgroundColor: "#74A5B5",
                       }}
                     >
+                      {assistant.state === "speaking" && assistant.timeout ? (
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            transform: [{ rotate: "-90deg" }],
+                          }}
+                        >
+                          <CircularProgress
+                            radius={20}
+                            strokeWidth={5}
+                            duration={assistant.timeout}
+                            color={Colors.light.accent}
+                          />
+                        </View>
+                      ) : null}
                       <Icon
                         icon={
                           assistant.state === "loading"
@@ -307,6 +491,7 @@ export default function Header() {
                       }}
                       value={inputValue}
                       onChangeText={(text) => setInputValue(text)}
+                      onSubmit={() => sendMessage()}
                     />
                   ) : null}
                   {assistant.state === "speaking" ? (
@@ -325,18 +510,21 @@ export default function Header() {
                           fontSize: 16,
                           width: "100%",
                         }}
-                        // numberOfLines={3}
+                        numberOfLines={3}
                       >
                         {assistant.message}
                       </Text>
                       {/* <TypewriterText
-                        key={"assistantMessage"}
+                        key={assistant.message}
                         text={assistant.message}
                         shouldAnimate={true}
                         style={{
                           color: "white",
                           fontFamily: "Outfit_500Medium",
                           fontSize: 16,
+                        }}
+                        onAnimationEnd={() => {
+                          console.log("animation end");
                         }}
                       /> */}
                       {/* <MotiView
@@ -355,7 +543,21 @@ export default function Header() {
                         }}
                       > */}
                       {assistant.action ? (
-                        <Action action={assistant.action} />
+                        <Action
+                          action={assistant.action}
+                          assistantKey={assistant.key}
+                          onResponse={(
+                            response,
+                            customConversation,
+                            avoidConversationUpdate
+                          ) =>
+                            sendMessage(
+                              response,
+                              customConversation,
+                              avoidConversationUpdate
+                            )
+                          }
+                        />
                       ) : null}
                       {assistant.followUp ? (
                         <Input
@@ -374,6 +576,7 @@ export default function Header() {
                           onChangeText={(text) => setInputValue(text)}
                           autoFocus={assistant.followUp.autoFocus}
                           placeholder={assistant.followUp.placeholder}
+                          onSubmit={() => sendMessage()}
                         />
                       ) : null}
                       {/* </MotiView> */}
@@ -414,7 +617,13 @@ export default function Header() {
                       duration: 300,
                       delay: 0,
                     }}
-                    key={inputFocused ? "sendButton" : "menuButton"}
+                    key={
+                      inputFocused
+                        ? "sendButton"
+                        : canPopAssistant
+                        ? "closeButton"
+                        : "menuButton"
+                    }
                     style={{
                       position: "absolute",
                       right: 0,
@@ -424,6 +633,9 @@ export default function Header() {
                     <TouchableOpacity
                       onPress={() => {
                         if (inputFocused) {
+                          sendMessage();
+                        } else if (canPopAssistant) {
+                          clearAssistant();
                         } else {
                           bottomSheetModalRef.current?.present();
                         }
@@ -440,7 +652,13 @@ export default function Header() {
                       }}
                     >
                       <Icon
-                        icon={inputFocused ? "sendIcon" : "menuIcon"}
+                        icon={
+                          inputFocused
+                            ? "sendIcon"
+                            : canPopAssistant
+                            ? "closeIcon"
+                            : "menuIcon"
+                        }
                         size={20}
                         color={Colors.dark.primary}
                       />
@@ -507,12 +725,36 @@ export default function Header() {
         }}
       >
         <ContainedButton
+          title="timeout"
+          onPress={() => {
+            pushAssistant({
+              state: "speaking",
+              key: "23",
+              message: "Salut, ce message est temporaire !",
+              timeout: 5000,
+            });
+          }}
+        />
+        <ContainedButton
           title="default"
           onPress={() => {
             pushAssistant({
-              state: "default",
+              state: "speaking",
               key: "1",
-              placeholder: "Ajoute une balade en forêt...",
+              message: "Salut, comment ça va ?",
+              action: {
+                type: "list",
+                items: [
+                  {
+                    text: "Bien mais lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec odio.",
+                    action: "response",
+                  },
+                  {
+                    text: "Pas bien",
+                    action: "response",
+                  },
+                ],
+              },
             });
           }}
         />
@@ -521,25 +763,34 @@ export default function Header() {
           onPress={() => {
             pushAssistant({
               state: "speaking",
-              key: "2",
-              message:
-                "Salut ! Je suis Favel votre assistant, avez-vous besoin d'aide ?",
+              key: "duration",
+              message: "Combien de temps partez-vous ?",
+              // action: {
+              //   type: "boolean",
+              //   primary: {
+              //     text: "Oui",
+              //     action: "follow-up",
+              //   },
+              //   secondary: {
+              //     text: "Non",
+              //     action: "clear",
+              //   },
+              // },
               action: {
-                type: "boolean",
-                primary: {
-                  text: "Oui",
-                  action: "follow-up",
-                },
-                secondary: {
-                  text: "Non",
-                  action: "clear",
+                type: "select",
+                items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                label: "jours",
+                button: {
+                  text: "Suivant",
+                  action: "next",
+                  value: null,
                 },
               },
               // followUp: true,
             });
           }}
         />
-        <ContainedButton
+        {/* <ContainedButton
           title="list"
           onPress={() => {
             pushAssistant({
@@ -556,7 +807,7 @@ export default function Header() {
               },
             });
           }}
-        />
+        /> */}
         <ContainedButton
           title="loading"
           onPress={() => {
@@ -584,6 +835,7 @@ function Input({
   value,
   onChangeText,
   autoFocus = false,
+  onSubmit,
 }: {
   onFocus: () => void;
   onBlur: () => void;
@@ -594,6 +846,7 @@ function Input({
   value: string;
   onChangeText: (text: string) => void;
   autoFocus?: boolean;
+  onSubmit?: () => void;
 }) {
   return (
     <TextInput
@@ -602,7 +855,7 @@ function Input({
           color: "white",
           fontFamily: "Outfit_500Medium",
           fontSize: 16,
-          backgroundColor: dark ? "rgba(0,0,0,0.1)" : "transparent",
+          backgroundColor: dark ? "rgba(0,0,0,0.2)" : "transparent",
           borderWidth: 0,
           flex: 1,
           height: 35,
@@ -622,11 +875,25 @@ function Input({
       onChangeText={onChangeText}
       autoFocus={autoFocus}
       selectionColor="#ffffffba"
+      returnKeyType="send"
+      onSubmitEditing={onSubmit}
     />
   );
 }
 
-function Action({ action }: { action: ActionType }) {
+function Action({
+  action,
+  assistantKey,
+  onResponse,
+}: {
+  action: ActionType;
+  assistantKey: string;
+  onResponse?: (
+    response: string,
+    customConversation?: FullConversation | null,
+    avoidConversationUpdate?: boolean
+  ) => void;
+}) {
   const {
     assistant,
     pushAssistant,
@@ -634,9 +901,13 @@ function Action({ action }: { action: ActionType }) {
     clearAssistant,
     replaceAssistant,
     popAssistant,
+    nextForm,
   } = useAssistant();
 
+  const [pickerValue, setPickerValue] = useState<number | string | null>(null);
+
   function handleButtonClick(clickAction: Button) {
+    console.log("clickAction", clickAction);
     if (clickAction.action === "clear") clearAssistant();
     if (clickAction.action === "pop") popAssistant();
     if (clickAction.action === "follow-up" && assistant.state === "speaking") {
@@ -655,11 +926,31 @@ function Action({ action }: { action: ActionType }) {
     if (clickAction.action === "replace") {
       replaceAssistant(clickAction.assistant);
     }
+    if (clickAction.action === "retry") {
+      onResponse && onResponse(clickAction.response);
+    }
+    if (clickAction.action === "response") {
+      onResponse && onResponse(clickAction.text);
+    }
+    if (clickAction.action === "next") {
+      const res = nextForm(
+        assistantKey,
+        clickAction.value ? clickAction.value.toString() : clickAction.text
+      );
+      if (res) {
+        onResponse &&
+          onResponse(
+            clickAction.value ? clickAction.value.toString() : clickAction.text,
+            res.conversation,
+            true
+          );
+      }
+    }
   }
 
   return (
     <>
-      {action.type === "boolean" ? (
+      {/* {action.type === "boolean" ? (
         <View
           style={{
             flexDirection: "row",
@@ -668,29 +959,33 @@ function Action({ action }: { action: ActionType }) {
             marginTop: 8,
           }}
         >
-          <ContainedButton
-            title={action.secondary.text}
-            onPress={() => handleButtonClick(action.secondary)}
-            type="ghost"
-            style={{
-              flex: 1,
-              paddingHorizontal: 0,
-              paddingVertical: 7,
-              borderRadius: 8,
-            }}
-          />
-          <ContainedButton
-            title={action.primary.text}
-            onPress={() => handleButtonClick(action.primary)}
-            style={{
-              flex: 1,
-              paddingHorizontal: 0,
-              paddingVertical: 7,
-              borderRadius: 8,
-            }}
-          />
+          {action.secondary ? (
+            <ContainedButton
+              title={action.secondary.text}
+              onPress={() => handleButtonClick(action.secondary!)}
+              type="ghost"
+              style={{
+                flex: 1,
+                paddingHorizontal: 0,
+                paddingVertical: 7,
+                borderRadius: 8,
+              }}
+            />
+          ) : null}
+          {action.primary ? (
+            <ContainedButton
+              title={action.primary.text}
+              onPress={() => handleButtonClick(action.primary!)}
+              style={{
+                flex: 1,
+                paddingHorizontal: 0,
+                paddingVertical: 7,
+                borderRadius: 8,
+              }}
+            />
+          ) : null}
         </View>
-      ) : null}
+      ) : null} */}
       {action.type === "list" ? (
         <View
           style={{
@@ -703,8 +998,8 @@ function Action({ action }: { action: ActionType }) {
           {action.items.map((item, index) => (
             <ContainedButton
               key={index}
-              title={item}
-              onPress={() => {}}
+              title={item.text}
+              onPress={() => handleButtonClick(item)}
               style={{
                 paddingHorizontal: 0,
                 paddingVertical: 7,
@@ -714,6 +1009,84 @@ function Action({ action }: { action: ActionType }) {
             />
           ))}
         </View>
+      ) : null}
+      {action.type === "select" ? (
+        <>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 20,
+              width: "80%",
+            }}
+          >
+            <Picker
+              selectedValue={pickerValue}
+              onValueChange={(itemValue, itemIndex) => {
+                setPickerValue(itemValue === -1 ? null : itemValue);
+              }}
+              style={{
+                flex: 1,
+                color: "white",
+              }}
+              mode={"dropdown"}
+              itemStyle={{
+                fontSize: 16,
+                fontFamily: "Outfit_600SemiBold",
+                color: "white",
+              }}
+              dropdownIconColor={"white"}
+            >
+              <Picker.Item
+                label="---"
+                value={-1}
+                fontFamily={"Outfit_600SemiBold"}
+              />
+              {action.items.map((item, index) =>
+                item ? (
+                  <Picker.Item
+                    key={index}
+                    label={item.toString()}
+                    value={item}
+                    fontFamily={"Outfit_600SemiBold"}
+                    style={{
+                      color: "white",
+                      backgroundColor: Colors.dark.secondary,
+                    }}
+                  />
+                ) : null
+              )}
+            </Picker>
+            {action.label ? (
+              <Text
+                style={{
+                  fontFamily: "Outfit_500Medium",
+                  fontSize: 16,
+                  color: "white",
+                }}
+              >
+                {action.label}
+              </Text>
+            ) : null}
+          </View>
+          <ContainedButton
+            title={action.button.text}
+            onPress={() =>
+              handleButtonClick({
+                ...action.button,
+                value: pickerValue,
+              })
+            }
+            style={{
+              flex: 1,
+              paddingHorizontal: 0,
+              paddingVertical: 7,
+              borderRadius: 8,
+              opacity: pickerValue === null ? 0.5 : 1,
+            }}
+            disabled={pickerValue === null}
+          />
+        </>
       ) : null}
     </>
   );

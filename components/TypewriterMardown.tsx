@@ -67,12 +67,14 @@ export function TypewriterText({
   batchSize = 5,
   shouldAnimate = true,
   style,
+  onAnimationEnd,
 }: {
   text: string;
   typingDelay?: number;
   batchSize?: number;
   shouldAnimate: boolean;
   style?: any;
+  onAnimationEnd?: () => void;
 }) {
   const [displayedText, setDisplayedText] = useState("");
 
@@ -88,6 +90,7 @@ export function TypewriterText({
       index += batchSize;
       if (index >= text.length) {
         clearInterval(timer);
+        onAnimationEnd && onAnimationEnd();
       }
     }, typingDelay);
 

@@ -10,6 +10,7 @@ import { getDaysDiff } from "./utils";
 import { Alert } from "react-native";
 import { MMKV } from "@/app/_layout";
 import { Form } from "@/context/newTrip";
+import { FullConversation } from "@/context/assistantContext";
 
 type Response<T> = {
   error: string | null;
@@ -28,7 +29,8 @@ class ApiClient {
   private async request(
     endpoint: string,
     method: string,
-    data: any
+    data: any,
+    signal?: AbortSignal
   ): Promise<Response<any>> {
     console.log("JWT", this.token);
     const response = await fetch(`${this.baseUrl}/${endpoint}`, {
@@ -39,6 +41,7 @@ class ApiClient {
         Authorization: `Bearer ${this.token}`,
       },
       body: data ? JSON.stringify(data) : null,
+      signal,
     });
 
     console.log("response", response);
@@ -374,6 +377,26 @@ class ApiClient {
     }>
   > {
     return this.request(`route-validation-text`, "GET", null);
+  }
+
+  assistant(id: string, signal?: AbortSignal) {
+    return {
+      send: async (
+        message: string,
+        conversation: FullConversation
+      ): Promise<Response<any>> => {
+        return await this.request(
+          `assistant/send`,
+          "POST",
+          {
+            id,
+            message,
+            conversation,
+          },
+          signal
+        );
+      },
+    };
   }
 }
 
