@@ -1,3 +1,5 @@
+import { favelClient } from "@/lib/favelApi";
+import { useAuth } from "@clerk/clerk-expo";
 import React, {
   createContext,
   useContext,
@@ -6,6 +8,8 @@ import React, {
   useEffect,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useTrip } from "./tripContext";
+import { TripMetadata } from "@/types/types";
 
 export interface AssistantContext {
   assistant: Assistant;
@@ -14,18 +18,16 @@ export interface AssistantContext {
   popAssistant: () => void;
   clearAssistant: () => void;
   canPopAssistant: boolean;
-  // addMessage: (message: Message, force?: boolean) => FullConversation;
   setConversation: React.Dispatch<
     React.SetStateAction<FullConversation | null>
   >;
   conversation: FullConversation | null;
-  nextForm: (
-    key: string,
-    value: string
-  ) => {
-    state: string;
-    conversation: FullConversation;
-  } | null;
+  sendMessage: (
+    tripId: string,
+    textResponse: string,
+    customConversation?: FullConversation | null,
+    avoidConversationUpdate?: boolean
+  ) => void;
 }
 
 const assistantContext = createContext<AssistantContext>({} as any);
@@ -45,6 +47,8 @@ export const AssistantProvider = ({
   const [conversation, setConversation] = useState<FullConversation | null>(
     null
   );
+
+  const { setTripMetadata } = useTrip();
 
   useEffect(() => {
     console.log("AssistantProvider", history);
@@ -97,108 +101,316 @@ export const AssistantProvider = ({
 
   const assistant = history[history.length - 1];
 
-  const nextForm = (key: string, value: string) => {
-    const formIndex = newTripForm.findIndex((form) => form.key === key);
-    if (formIndex === -1) {
-      // find something to do here
-      return null;
-    }
+  const { getToken } = useAuth();
 
-    const conversationCopy: FullConversation = conversation
-      ? JSON.parse(JSON.stringify(conversation))
-      : {
-          id: uuidv4(),
-          messages: [],
-        };
+  async function sendMessage(
+    tripId: string,
+    textResponse: string,
+    customConversation?: FullConversation | null,
+    avoidConversationUpdate?: boolean
+  ) {
+    // if (abortController) {
+    //   abortController.abort(); // Abort any previous request
+    // }
 
-    console.log("conversationCopy", conversationCopy);
+    const newAbortController = new AbortController();
+    // setAbortController(newAbortController);
 
-    const question = newTripForm[formIndex].message;
+    const signal = newAbortController.signal;
 
-    conversationCopy.messages.push({
-      role: "assistant",
-      content: question,
-    });
-
-    conversationCopy.messages.push({
-      role: "user",
-      content: value,
-    });
-
-    console.log("conversationCopyNew", conversationCopy);
-
-    const nextForm = newTripForm[formIndex + 1];
-
-    setConversation(conversationCopy);
-
-    if (nextForm) {
-      pushAssistant(nextForm);
-
-      // setConversation((conversation) => {
-      //   const question = newTripForm[formIndex].message;
-      //   const newMessage: Message = {
-      //     role: "assistant",
-      //     content: question,
-      //   };
-      //   const userMessage: Message = {
-      //     role: "user",
-      //     content: value,
-      //   };
-      //   if (!conversation) {
-      //     return {
-      //       id: uuidv4(),
-      //       messages: [newMessage, userMessage],
-      //     };
-      //   } else {
-      //     return {
-      //       ...conversation,
-      //       messages: [...conversation.messages, newMessage, userMessage],
-      //     };
-      //   }
-      // });
-      return null;
+    const value = textResponse;
+    if (assistant.state === "speaking" && assistant.shouldReplace) {
+      replaceAssistant({
+        state: "loading",
+        key: `loading`,
+        message: "Je réfléchis...",
+      });
     } else {
-      return {
-        state: "response",
-        conversation: conversationCopy,
-      };
+      pushAssistant({
+        state: "loading",
+        key: `loading`,
+        message: "Je réfléchis...",
+      });
     }
-  };
+    let conversationCopy: FullConversation;
+    if (customConversation) {
+      conversationCopy = customConversation;
+    } else {
+      conversationCopy = conversation
+        ? JSON.parse(JSON.stringify(conversation))
+        : {
+            id: uuidv4(),
+            type: "trip",
+            messages: [],
+          };
+    }
+    console.log("value, ", value);
+    favelClient(getToken).then(async (favel) => {
+      if (!avoidConversationUpdate) {
+        if (
+          conversationCopy.messages[conversationCopy.messages.length - 1]
+            ?.role === "user"
+        ) {
+          conversationCopy.messages[
+            conversationCopy.messages.length - 1
+          ].content = value;
+        } else {
+          conversationCopy.messages.push({
+            role: "user",
+            content: value,
+            key: assistant.key,
+          });
+        }
+      }
+      const { data, error } = await favel
+        .assistant(signal)
+        .send(conversationCopy, tripId);
+      9;
+      let messageData = data;
+      if (error) {
+        replaceAssistant({
+          state: "loading",
+          key: `loading-retry`,
+          message: "Encore un instant...",
+        });
+        const { data, error } = await favel
+          .assistant(signal)
+          .send(conversationCopy, tripId);
+        messageData = data;
+        if (error) {
+          replaceAssistant({
+            state: "speaking",
+            key: `speaking-${uuidv4()}`,
+            message: "Une erreur est survenue, veuillez réessayer.",
+            action: {
+              type: "list",
+              items: [
+                {
+                  text: "Réessayer",
+                  action: "retry",
+                  response: value,
+                },
+              ],
+            },
+            shouldReplace: true,
+          });
+        }
+      }
+      console.log("messageData", messageData);
+      if (messageData) {
+        replaceAssistant({
+          state: "speaking",
+          key: `speaking-${uuidv4()}`,
+          message: messageData.message,
+          action: messageData.action,
+          followUp: messageData.followUp,
+          timeout: messageData.timeout,
+          modifications: messageData.modifications,
+        });
+        conversationCopy.messages.push({
+          role: "assistant",
+          content: messageData.message,
+          key: messageData.key || undefined,
+        });
+        if (messageData.route) {
+          setTripMetadata((metadata) => {
+            return {
+              ...(metadata as TripMetadata),
+              route: messageData.route,
+            };
+          });
+        }
+        // }
+      }
+    });
+    setConversation(conversationCopy);
+  }
 
-  useEffect(() => {
-    console.log("new conversation", conversation);
-  }, [conversation]);
+  // const nextForm = async (
+  //   key: string,
+  //   value: string
+  // ): Promise<{
+  //   state: string;
+  //   conversation: FullConversation;
+  // } | null> => {
+  //   let shouldReplace = false;
 
-  // const addMessage = (message: Message, force?: boolean) => {
-  //   let newConversation: FullConversation;
+  //   console.log("nextForm: ", key, value);
 
-  //   console.log("conversation in context", conversation);
+  //   try {
+  //     if (key === "destination") {
+  //       pushAssistant({
+  //         state: "loading",
+  //         key: "loading-destination",
+  //         message: "Je réfléchis à votre destination...",
+  //       });
 
-  //   if (!conversation) {
-  //     newConversation = {
-  //       id: uuidv4(),
-  //       messages: [message],
-  //     };
-  //     setConversation(newConversation);
-  //     return newConversation;
-  //   } else {
-  //     if (
-  //       conversation.messages[conversation.messages.length - 1].role ===
-  //         message.role &&
-  //       !force
-  //     ) {
-  //       newConversation = {
-  //         ...conversation,
-  //         messages: [...conversation.messages.slice(0, -1), message],
-  //       };
+  //       shouldReplace = true;
+
+  //       await favelClient(getToken).then(async (favel) => {
+  //         const { data, error } = await favel.assistant("").destination(value);
+
+  //         console.log("data", data);
+
+  //         if (error) {
+  //           console.error(error);
+  //           setForm((form) => {
+  //             return {
+  //               ...form,
+  //               destination: {
+  //                 type: "unknown",
+  //               },
+  //             };
+  //           });
+
+  //           throw new Error(
+  //             "Nous faisons face à une forte affluence pour le moment. Veuillez réessayer ultérieurement."
+  //           );
+  //         }
+
+  //         if (data) {
+  //           setForm((form) => {
+  //             return {
+  //               ...form,
+  //               destination: data,
+  //             };
+  //           });
+  //           if (data.route) {
+  //             setTripMetadata((metadata) => {
+  //               return {
+  //                 ...(metadata as TripMetadata),
+  //                 route: data.route,
+  //               };
+  //             });
+  //           }
+  //         }
+
+  //         await new Promise((resolve) => setTimeout(resolve, 2000));
+  //       });
+  //     } else if (key === "duration") {
+  //       setForm((form) => {
+  //         return {
+  //           ...form,
+  //           duration: parseInt(value),
+  //         };
+  //       });
+  //       if (form?.destination && form.destination.type === "city") {
+  //         setTripMetadata((metadata) => {
+  //           if (!metadata || !metadata.route) return null;
+  //           return {
+  //             ...(metadata as TripMetadata),
+  //             route: metadata?.route.map((route) => {
+  //               return {
+  //                 ...route,
+  //                 duration: parseInt(value),
+  //               };
+  //             }),
+  //           };
+  //         });
+  //       } else if (
+  //         form?.destination &&
+  //         form.destination.type === "multi-city"
+  //       ) {
+  //         favelClient(getToken).then(async (favel) => {
+  //           if (!tripMetadata || !tripMetadata.route) return;
+
+  //           const { data, error } = await favel
+  //             .assistant("")
+  //             .applyDuration(tripMetadata.route!, parseInt(value));
+
+  //           if (error) {
+  //             console.error(error);
+  //             return;
+  //           }
+
+  //           if (data) {
+  //             setTripMetadata((metadata) => {
+  //               return {
+  //                 ...(metadata as TripMetadata),
+  //                 route: data,
+  //               };
+  //             });
+  //           }
+  //         });
+  //       }
+  //     }
+
+  //     const formIndex = newTripForm.findIndex((form) => form.key === key);
+  //     if (formIndex === -1) {
+  //       // find something to do here
+  //       return null;
+  //     }
+
+  //     const conversationCopy: FullConversation = conversation
+  //       ? JSON.parse(JSON.stringify(conversation))
+  //       : {
+  //           id: uuidv4(),
+  //           messages: [],
+  //         };
+
+  //     console.log("conversationCopy", conversationCopy);
+
+  //     const question = newTripForm[formIndex].message;
+
+  //     conversationCopy.messages.push({
+  //       role: "assistant",
+  //       content: question,
+  //     });
+
+  //     conversationCopy.messages.push({
+  //       role: "user",
+  //       content: value,
+  //     });
+
+  //     console.log("conversationCopyNew", conversationCopy);
+
+  //     const nextForm = newTripForm[formIndex + 1];
+
+  //     setConversation(conversationCopy);
+
+  //     if (nextForm) {
+  //       if (shouldReplace) {
+  //         replaceAssistant(nextForm);
+  //       } else {
+  //         pushAssistant(nextForm);
+  //       }
+
+  //       setConversation((conversation) => {
+  //         const question = newTripForm[formIndex].message;
+  //         const newMessage: Message = {
+  //           role: "assistant",
+  //           content: question,
+  //         };
+  //         const userMessage: Message = {
+  //           role: "user",
+  //           content: value,
+  //         };
+  //         if (!conversation) {
+  //           return {
+  //             id: uuidv4(),
+  //             messages: [newMessage, userMessage],
+  //           };
+  //         } else {
+  //           return {
+  //             ...conversation,
+  //             messages: [...conversation.messages, newMessage, userMessage],
+  //           };
+  //         }
+  //       });
+  //       return null;
   //     } else {
-  //       newConversation = {
-  //         ...conversation,
-  //         messages: [...conversation.messages, message],
+  //       return {
+  //         state: "response",
+  //         conversation: conversationCopy,
   //       };
   //     }
-  //     setConversation(newConversation);
-  //     return newConversation;
+  //   } catch (error: any) {
+  //     replaceAssistant({
+  //       state: "speaking",
+  //       key: "error",
+  //       message: error ? error : "Une erreur est survenue...",
+  //     });
+  //     return null;
   //   }
   // };
 
@@ -219,7 +431,7 @@ export const AssistantProvider = ({
         canPopAssistant: history.length > 1,
         setConversation,
         conversation,
-        nextForm,
+        sendMessage,
       }}
     >
       {children}
@@ -235,45 +447,6 @@ export const useAssistant = () => {
   return context;
 };
 
-const newTripForm: Extract<Assistant, { state: "speaking" }>[] = [
-  {
-    state: "speaking",
-    key: "duration",
-    message: "Combien de temps partez-vous ?",
-    action: {
-      type: "list",
-      items: [{ text: "test", action: "next" }],
-    },
-  },
-  {
-    state: "speaking",
-    key: "destination",
-    message: "Où partez-vous ?",
-    action: {
-      type: "list",
-      items: [{ text: "Californie", action: "next" }],
-    },
-  },
-  // {
-  //   state: "speaking",
-  //   key: "budget",
-  //   message: "Quel est votre budget ?",
-  //   action: {
-  //     type: "list",
-  //     items: [{ text: "1000€", action: "next" }],
-  //   },
-  // },
-  // {
-  //   state: "speaking",
-  //   key: "interests",
-  //   message: "Quels sont vos centres d'intérêt ?",
-  //   action: {
-  //     type: "list",
-  //     items: [{ text: "Musées", action: "next" }],
-  //   },
-  // },
-];
-
 export type Assistant =
   | {
       state: "default";
@@ -285,9 +458,10 @@ export type Assistant =
       message: string;
       action?: Action | null;
       followUp?: FollowUp | null;
-      timeout?: number;
+      timeout?: TimeoutPopOrClear;
       key: string;
       shouldReplace?: boolean;
+      modifications?: any;
     }
   | {
       state: "loading";
@@ -295,16 +469,26 @@ export type Assistant =
       message: string;
     };
 
+interface BaseTimeout {
+  duration: number;
+}
+
+interface TimeoutPopOrClear extends BaseTimeout {
+  action: "pop" | "clear";
+}
+
+interface TimeoutReplace extends BaseTimeout {
+  action: "replace";
+}
+
+export type Timeout = TimeoutPopOrClear | TimeoutReplace;
+
 export type Action =
-  // | {
-  //     type: "boolean";
-  //     primary?: Button;
-  //     secondary?: Button;
-  //   }
-  // |
   | {
       type: "list";
       items: Button[];
+      submit?: Button;
+      checkbox?: boolean;
     }
   | {
       type: "select";
@@ -313,54 +497,57 @@ export type Action =
       button: Extract<Button, { action: "next" }>;
     };
 
-// export type ListItem =
-//   | {
-//       text: string;
-//     }
-//   | {
-//       text: string;
-//       action: "next";
-//       // key: string;
-//     };
-
 export type Button =
-  | {
-      text: string;
-      action: "pop" | "follow-up" | "clear";
-    }
-  | {
-      text: string;
-      action: "push" | "replace";
-      assistant: Assistant;
-    }
-  | {
-      text: string;
-      action: "retry";
-      response: string;
-    }
-  | {
-      text: string;
-      action: "next";
-      value?: any;
-    }
-  | {
-      text: string;
-      action: "response";
-    };
+  | PopFollowUpClearButton
+  | PushReplaceButton
+  | RetryButton
+  | ResponseButton
+  | CheckButton;
+
+interface BaseButton {
+  text: string;
+  icon?: string;
+  timeout?: BaseTimeout;
+}
+
+interface PopFollowUpClearButton extends BaseButton {
+  action: "pop" | "follow-up" | "clear";
+}
+
+interface PushReplaceButton extends BaseButton {
+  action: "push" | "replace";
+  assistant: Assistant;
+}
+
+interface RetryButton extends BaseButton {
+  action: "retry";
+  response: string;
+}
+
+interface CheckButton extends BaseButton {
+  action: "check";
+  timeout: undefined;
+}
+
+interface ResponseButton extends BaseButton {
+  action: "response";
+}
 
 export type FollowUp = {
   placeholder: string;
   autoFocus?: boolean;
-  // action: string; todo
 };
 
 export type FullConversation = Conversation & { messages: Message[] };
 
 export type Conversation = {
   id: string;
+  type: "trip" | "new";
+  options?: any;
 };
 
 export type Message = {
   role: "user" | "assistant";
   content: string;
+  key?: string;
 };

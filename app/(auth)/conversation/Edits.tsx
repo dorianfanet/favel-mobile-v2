@@ -7,12 +7,23 @@ import { editTypes } from "@/constants/categories";
 import Colors from "@/constants/Colors";
 import { ActivityCardContent } from "../trip/components/PlaceCard";
 
+// const theme = {
+//   light: {
+//     primary: Colors.light.primary,
+//   },
+//   dark: {
+//     primary: Colors.dark.primary,
+//   },
+// };
+
 export default function Edits({
   edits,
   noMargin,
+  theme = "light",
 }: {
   edits: TripChatEditDay[];
   noMargin?: boolean;
+  theme?: "light" | "dark";
 }) {
   return edits ? (
     <View
@@ -24,13 +35,20 @@ export default function Edits({
         <Edit
           key={`${edit.day_index}-${index}`}
           edit={edit}
+          theme={theme}
         />
       ))}
     </View>
   ) : null;
 }
 
-function Edit({ edit }: { edit: TripChatEditDay }) {
+function Edit({
+  edit,
+  theme,
+}: {
+  edit: TripChatEditDay;
+  theme: "light" | "dark";
+}) {
   const difference = useMemo(() => {
     if (!edit.day_action?.move) return { difference: 0, movement: "no change" };
 
@@ -185,7 +203,7 @@ function Edit({ edit }: { edit: TripChatEditDay }) {
                             : "move"
                         }Icon`}
                         size={edit.day_action.action === "move" ? 10 : 12}
-                        color={Colors.light.primary}
+                        color={Colors[theme].primary}
                         // color={editTypes[edit.action]}
                       />
                     </View>
@@ -195,7 +213,7 @@ function Edit({ edit }: { edit: TripChatEditDay }) {
                   style={{
                     fontSize: 24,
                     fontFamily: "Outfit_600SemiBold",
-                    color: Colors.light.primary,
+                    color: Colors[theme].primary,
                   }}
                 >
                   {`Jour ${edit.day_index + 1}`}
@@ -264,11 +282,11 @@ function Edit({ edit }: { edit: TripChatEditDay }) {
                   <Icon
                     icon="mapPinIcon"
                     size={16}
-                    color={Colors.light.primary}
+                    color={Colors[theme].primary}
                   />
                   <Text
                     style={{
-                      color: Colors.light.primary,
+                      color: Colors[theme].primary,
                     }}
                   >
                     {edit.location}
@@ -289,6 +307,7 @@ function Edit({ edit }: { edit: TripChatEditDay }) {
               <EditCard
                 key={action.name}
                 edit={action}
+                theme={theme}
               />
             ))}
           </View>
@@ -298,7 +317,13 @@ function Edit({ edit }: { edit: TripChatEditDay }) {
   );
 }
 
-function EditCard({ edit }: { edit: TripChatEdit }) {
+function EditCard({
+  edit,
+  theme,
+}: {
+  edit: TripChatEdit;
+  theme: "light" | "dark";
+}) {
   return edit.id ? (
     <View
       style={{
@@ -353,7 +378,7 @@ function EditCard({ edit }: { edit: TripChatEdit }) {
                   : "move"
               }Icon`}
               size={edit.action === "delete" ? 12 : 10}
-              color={Colors.light.primary}
+              color={Colors[theme].primary}
               // color={editTypes[edit.action]}
               style={{}}
             />
@@ -363,7 +388,7 @@ function EditCard({ edit }: { edit: TripChatEdit }) {
               fontSize: 14,
               fontFamily: "Outfit_600SemiBold",
               // color: editTypes[edit.action],
-              color: Colors.light.primary,
+              color: Colors[theme].primary,
             }}
           >
             {edit.action === "delete"
@@ -381,10 +406,9 @@ function EditCard({ edit }: { edit: TripChatEdit }) {
           }}
           style={{
             paddingHorizontal: 0,
-            flex: 1,
           }}
           noClick
-          theme="light"
+          theme={theme}
         />
       </View>
     </View>

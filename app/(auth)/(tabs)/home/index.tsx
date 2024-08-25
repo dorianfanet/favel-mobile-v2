@@ -108,7 +108,16 @@ export default function home() {
     <FlatList
       data={posts}
       keyExtractor={(item) => item.post_json.id}
-      renderItem={({ item }) => <PostCard post={item.post_json} />}
+      renderItem={({ item }) => (
+        <PostCard
+          post={item.post_json}
+          onDelete={() => {
+            setPosts(
+              posts.filter((post) => post.post_json.id !== item.post_json.id)
+            );
+          }}
+        />
+      )}
       style={{
         backgroundColor: Colors.light.background,
         // padding: padding,

@@ -10,6 +10,7 @@ import TripBottomSheet from "./TripBottomSheet";
 import ActivityModal from "./ActivityModal";
 import Loading from "./loading/Loading";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { useAssistant } from "@/context/assistantContext";
 
 export default function Trip({ id }: { id: string }) {
   const { setTripMetadata, setTrip, setTripEdits, tripMetadata } = useTrip();

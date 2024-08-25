@@ -6,9 +6,12 @@ import Icon from "@/components/Icon";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { createClient } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileLayout() {
   const router = useRouter();
+
+  const { t } = useTranslation();
 
   const renderHeaderBackground = useCallback(() => {
     return (
@@ -36,7 +39,8 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Accueil",
+          title: t("home.title"),
+          // title: "Accueil",
           // headerLeft: () => (
           //   <View
           //     style={{

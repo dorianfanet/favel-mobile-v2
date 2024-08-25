@@ -1,6 +1,8 @@
 import {
+  AssistantDestination,
   ChatMessage,
   DestinationData,
+  NewTripForm,
   NotificationsPreferences,
   Route,
   TripRoute,
@@ -162,13 +164,13 @@ class ApiClient {
     tripId: string,
     route: TripRoute,
     authorId: string,
-    form: Form
+    conversation: FullConversation
   ): Promise<void> {
-    const result = await this.request(`build-trip-groq`, "POST", {
+    const result = await this.request(`build-trip-groq-v2`, "POST", {
       tripId,
       route,
       authorId: authorId,
-      form: form,
+      conversation: conversation.messages,
     });
     return result.data;
   }
@@ -379,19 +381,42 @@ class ApiClient {
     return this.request(`route-validation-text`, "GET", null);
   }
 
-  assistant(id: string, signal?: AbortSignal) {
+  assistant(signal?: AbortSignal) {
     return {
       send: async (
-        message: string,
-        conversation: FullConversation
+        conversation: FullConversation,
+        tripId: string
       ): Promise<Response<any>> => {
         return await this.request(
           `assistant/send`,
           "POST",
           {
-            id,
-            message,
             conversation,
+            tripId,
+          },
+          signal
+        );
+      },
+      destination: async (
+        destination: string
+      ): Promise<Response<AssistantDestination>> => {
+        return await this.request(
+          `assistant/destination?destination=${destination}`,
+          "GET",
+          null,
+          signal
+        );
+      },
+      applyDuration: async (
+        route: TripRoute,
+        duration: number
+      ): Promise<Response<TripRoute>> => {
+        return await this.request(
+          `assistant/apply-duration`,
+          "POST",
+          {
+            route,
+            duration,
           },
           signal
         );

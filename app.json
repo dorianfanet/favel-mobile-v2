@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "51",
+      "buildNumber": "52",
       "entitlements": {
         "com.apple.developer.applesignin": [
           "Default"
@@ -71,7 +71,8 @@
             "./assets/audio/notification.wav"
           ]
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

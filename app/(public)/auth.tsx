@@ -5,6 +5,7 @@ import {
   Touchable,
   TouchableOpacity,
   Platform,
+  Linking,
 } from "react-native";
 import React, { useEffect } from "react";
 import { Image } from "expo-image";
@@ -16,6 +17,7 @@ import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth } from "@clerk/clerk-expo";
+import ContainedButton from "@/components/ContainedButton";
 
 enum Strategy {
   Google = "oauth_google",
@@ -122,6 +124,37 @@ export default function Auth() {
           onPress={() => router.push("/login")}
         />
       </View>
+      {/* external link to website */}
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: inset.bottom + padding,
+          left: padding,
+          right: padding,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        onPress={() => Linking.openURL("https://www.favel.net/privacy-policy")}
+      >
+        <View
+          style={{
+            backgroundColor: "#2424244f",
+            borderRadius: 15,
+            padding: 10,
+            paddingVertical: 5,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "Outfit_500Medium",
+              fontSize: 14,
+              color: Colors.dark.primary,
+            }}
+          >
+            Politique de confidentialité
+          </Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }

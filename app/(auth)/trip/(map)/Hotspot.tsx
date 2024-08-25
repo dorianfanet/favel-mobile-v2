@@ -10,7 +10,7 @@ export default function Hotspot({
   data: {
     id?: string;
     location: string;
-    duration: number | number[];
+    duration: number | (number | undefined)[] | undefined;
   };
   noImage?: boolean;
 }) {
@@ -104,7 +104,10 @@ export default function Hotspot({
                 </View>
               )}
             </View>
-            {!noImage && (
+            {!noImage &&
+            !(Array.isArray(data.duration)
+              ? data.duration.some((d) => d === undefined)
+              : false) ? (
               <View
                 style={{
                   position: "absolute",
@@ -140,17 +143,17 @@ export default function Hotspot({
                   {Array.isArray(data.duration)
                     ? data.duration.map(
                         (d, i) =>
-                          `${d} ${d > 1 ? "j" : "j"}${
+                          `${d} ${d! > 1 ? "j" : "j"}${
                             Array.isArray(data.duration) &&
                             i === data.duration.length - 1
                               ? ""
                               : " + "
                           }`
                       )
-                    : `${data.duration} ${data.duration > 1 ? "j" : "j"}`}
+                    : `${data.duration || "?"} j`}
                 </Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
         <View

@@ -37,20 +37,22 @@ export default function Map() {
   const screenHeight = Dimensions.get("window").height;
 
   useEffect(() => {
-    if (tripMetadata?.status === "new") {
-      updatePadding({
-        paddingTop: 50,
-        paddingBottom: 300,
-        paddingLeft: 50,
-        paddingRight: 50,
-      });
-    } else if (tripMetadata?.status === "new.route") {
-      updatePadding({
-        paddingTop: 50,
-        paddingBottom: screenHeight * 0.45,
-        paddingLeft: 50,
-        paddingRight: 50,
-      });
+    if (tripMetadata?.status.startsWith("new")) {
+      if (tripMetadata?.status === "new") {
+        updatePadding({
+          paddingTop: 50,
+          paddingBottom: 50,
+          paddingLeft: 50,
+          paddingRight: 50,
+        });
+      } else {
+        updatePadding({
+          paddingTop: 400,
+          paddingBottom: 100,
+          paddingLeft: 50,
+          paddingRight: 50,
+        });
+      }
     } else if (tripMetadata?.status.startsWith("trip")) {
       if (tripMetadata?.status === "trip.loading") {
         updatePadding({
@@ -67,11 +69,18 @@ export default function Map() {
           paddingRight: 80,
         });
       }
+    } else {
+      updatePadding({
+        paddingTop: 120,
+        paddingBottom: 120,
+        paddingLeft: 80,
+        paddingRight: 80,
+      });
     }
   }, [tripMetadata?.status]);
 
   function checkForHotspotsInBounds(camera: MapboxGL.MapState) {
-    if (tripMetadata && tripMetadata.status === "new.route") {
+    if (tripMetadata && tripMetadata.status.startsWith("new")) {
       setViewState("hotspots");
       return;
     }
@@ -145,6 +154,7 @@ export default function Map() {
       scaleBarEnabled={false}
       attributionEnabled={false}
       logoEnabled={false}
+      // styleURL="mapbox://styles/dorianfanet/clzfqoo7100do01qr9bad7vtk"
       styleURL="mapbox://styles/dorianfanet/clj4mafi6000201qx5ci9eaj8"
       rotateEnabled={false}
       pitchEnabled={false}

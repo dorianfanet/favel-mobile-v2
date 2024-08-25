@@ -13,6 +13,7 @@ import New from "./new/New";
 import Trip from "./trip/Trip";
 import Loading from "./trip/loading/Loading";
 import { getRouteValidationText } from "@/lib/utils";
+import { useAssistant } from "@/context/assistantContext";
 // import { AppEventsLogger } from "react-native-fbsdk-next";
 
 export default function Index() {
@@ -21,6 +22,7 @@ export default function Index() {
   const { id } = useLocalSearchParams();
   const { setTripUserRole } = useTripUserRole();
   const { getToken } = useAuth();
+  const { replaceAssistant } = useAssistant();
 
   useEffect(() => {
     if (tripMetadata) return;

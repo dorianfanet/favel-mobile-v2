@@ -118,15 +118,30 @@ export default function Route() {
 
   useEffect(() => {
     if (tripMetadata?.route && !tripMetadata.status.includes("loading")) {
-      move({
-        coordinates: tripMetadata.route.map((route) => {
-          return {
-            latitude: route.coordinates[1],
-            longitude: route.coordinates[0],
-          };
-        }),
-        customZoom: 10,
-      });
+      if (tripMetadata.route.length === 1 && tripMetadata.route[0].bbox) {
+        move({
+          coordinates: [
+            {
+              latitude: tripMetadata.route[0].bbox[1],
+              longitude: tripMetadata.route[0].bbox[0],
+            },
+            {
+              latitude: tripMetadata.route[0].bbox[3],
+              longitude: tripMetadata.route[0].bbox[2],
+            },
+          ],
+        });
+      } else {
+        move({
+          coordinates: tripMetadata.route.map((route) => {
+            return {
+              latitude: route.coordinates[1],
+              longitude: route.coordinates[0],
+            };
+          }),
+          customZoom: 10,
+        });
+      }
     }
   }, [tripMetadata?.route]);
 

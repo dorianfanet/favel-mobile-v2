@@ -26,12 +26,14 @@ export default function PostCard({
   noLink = false,
   noHeader = false,
   followButton = false,
+  onDelete,
 }: {
   post: Post;
   style?: any;
   noLink?: boolean;
   noHeader?: boolean;
   followButton?: boolean;
+  onDelete?: () => void;
 }) {
   const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
   const { getToken } = useAuth();
@@ -189,6 +191,12 @@ export default function PostCard({
                             .eq("id", post.trip_id);
                           if (error) {
                             console.log(error);
+                            Alert.alert(
+                              "Erreur",
+                              "Une erreur est survenue, votre voyage n'a pas pu être supprimé"
+                            );
+                          } else {
+                            if (onDelete) onDelete();
                           }
                         });
                       },

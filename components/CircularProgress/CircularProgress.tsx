@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedProps,
   withTiming,
   Easing,
+  useAnimatedStyle,
 } from "react-native-reanimated";
 
 const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
@@ -71,6 +72,45 @@ export default function CircularProgress({
       />
     </Svg>
     // </View>
+  );
+}
+
+export function LinearProgress({
+  duration,
+  color,
+  borderRadius,
+}: {
+  duration: number;
+  color?: string;
+  borderRadius?: number;
+}) {
+  const scaleX = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scaleX: withTiming(scaleX.value, { duration }) }],
+    };
+  });
+
+  useEffect(() => {
+    scaleX.value = 1;
+  }, [duration]);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          ...styles.container,
+          width: "100%",
+          height: "100%",
+          backgroundColor: color ? color : "#f0f0f0",
+          overflow: "hidden",
+          borderRadius: borderRadius ? borderRadius : 0,
+          transformOrigin: "left",
+        },
+        animatedStyle,
+      ]}
+    />
   );
 }
 

@@ -24,6 +24,7 @@ import { NotificationsProvider } from "@/context/notificationsContext";
 import Colors from "@/constants/Colors";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { MMKVLoader } from "react-native-mmkv-storage";
+import "@/i18n";
 
 export const MMKV = new MMKVLoader().initialize();
 

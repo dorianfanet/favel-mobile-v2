@@ -12,6 +12,7 @@ import {
   TextInputState,
   Keyboard,
   LayoutChangeEvent,
+  Dimensions,
 } from "react-native";
 import React, {
   forwardRef,
@@ -20,7 +21,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Link, router, useRouter } from "expo-router";
+import { Link, router, useLocalSearchParams, useRouter } from "expo-router";
 import Icon, { IconByKey } from "@/components/Icon";
 import Colors from "@/constants/Colors";
 import { useTrip } from "@/context/tripContext";
@@ -44,7 +45,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { MMKV } from "@/app/_layout";
 import { AnimatePresence, MotiView } from "moti";
 import { favelClient } from "@/lib/favelApi";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
 import {
   Action as ActionType,
@@ -59,15 +60,18 @@ import TypewriterMardown, {
 } from "@/components/TypewriterMardown";
 import { useEditor } from "@/context/editorContext";
 import { v4 as uuidv4 } from "uuid";
-import CircularProgress from "@/components/CircularProgress/CircularProgress";
+import CircularProgress, {
+  LinearProgress,
+} from "@/components/CircularProgress/CircularProgress";
 import { Picker } from "@react-native-picker/picker";
-// import { LinearGradient } from "expo-linear-gradient";
-// import MaskedView from "@react-native-masked-view/masked-view";
-
-const tripState = "new";
+import { TripMetadata } from "@/types/types";
+import ModificationsModal from "./(menu-modals)/ModificationsModal";
+import { LinearGradient } from "expo-linear-gradient";
+import MaskedView from "@react-native-masked-view/masked-view";
 
 export default function Header() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const modificationsModalRef = useRef<BottomSheetModal>(null);
 
   const {
     assistant,
@@ -78,8 +82,16 @@ export default function Header() {
     setConversation,
     clearAssistant,
     conversation,
+    sendMessage,
   } = useAssistant();
   const { editor, setEditor } = useEditor();
+
+  const { id } = useLocalSearchParams();
+  const tripId = id as string;
+
+  const { user } = useUser();
+
+  const { tripMetadata } = useTrip();
 
   const [contentHeight, setContentHeight] = useState(35);
   const [inputFocused, setInputFocused] = useState(false);
@@ -102,155 +114,94 @@ export default function Header() {
     // todo
   }
 
-  async function sendMessage(
-    response?: string,
+  function handleSendMessage(
+    textResponse?: string,
     customConversation?: FullConversation | null,
     avoidConversationUpdate?: boolean
   ) {
-    if (abortController) {
-      abortController.abort(); // Abort any previous request
-    }
+    const message = inputValue;
 
-    const newAbortController = new AbortController();
-    setAbortController(newAbortController);
-
-    const signal = newAbortController.signal;
-
-    const value = response ? response : inputValue;
+    console.log("message: ", message);
     setInputFocused(false);
     setInputValue("");
-    if (assistant.state === "speaking" && assistant.shouldReplace) {
-      replaceAssistant({
-        state: "loading",
-        key: `loading`,
-        message: "Je réfléchis...",
-      });
-    } else {
-      // if (!canPopAssistant) {
-      pushAssistant({
-        state: "loading",
-        key: `loading`,
-        message: "Je réfléchis...",
-      });
-    }
-    // } else {
-    //   replaceAssistant({
-    //     state: "loading",
-    //     key: `loading`,
-    //     message: "Je réfléchis...",
-    //   });
-    // }
-    // }
-    let conversationCopy;
-    if (customConversation) {
-      conversationCopy = customConversation;
-    } else {
-      conversationCopy = conversation
-        ? JSON.parse(JSON.stringify(conversation))
-        : {
-            id: uuidv4(),
-            messages: [],
-          };
-    }
-    favelClient(getToken).then(async (favel) => {
-      if (!avoidConversationUpdate) {
-        if (
-          conversationCopy.messages[conversationCopy.messages.length - 1]
-            ?.role === "user"
-        ) {
-          conversationCopy.messages[
-            conversationCopy.messages.length - 1
-          ].content = value;
-        } else {
-          conversationCopy.messages.push({
-            role: "user",
-            content: value,
-          });
-        }
-      }
-      const { data, error } = await favel
-        .assistant("test", signal)
-        .send(value, conversationCopy);
-      if (error) {
-        replaceAssistant({
-          state: "loading",
-          key: `loading-retry`,
-          message: "Encore un instant...",
-        });
-        const { data, error } = await favel
-          .assistant("test", signal)
-          .send(value, conversationCopy);
-        if (error) {
-          replaceAssistant({
-            state: "speaking",
-            key: `speaking-${uuidv4()}`,
-            message: "Une erreur est survenue, veuillez réessayer.",
-            action: {
-              type: "list",
-              items: [
-                {
-                  text: "Réessayer",
-                  action: "retry",
-                  response: value,
-                },
-              ],
-            },
-            shouldReplace: true,
-          });
-        }
-        if (data) {
-          replaceAssistant({
-            state: "speaking",
-            key: `speaking-${uuidv4()}`,
-            message: data.message,
-            action: data.action,
-            followUp: data.followUp,
-            timeout: data.timeout,
-          });
-          // addMessage({
-          //   role: "assistant",
-          //   content: data.message,
-          // });
-          conversationCopy.messages.push({
-            role: "assistant",
-            content: data.message,
-          });
-        }
-      }
-      if (data) {
-        replaceAssistant({
-          state: "speaking",
-          key: `speaking-${uuidv4()}`,
-          message: data.message,
-          action: data.action,
-          followUp: data.followUp,
-          timeout: data.timeout,
-        });
-        // addMessage({
-        //   role: "assistant",
-        //   content: data.message,
-        // });
-        conversationCopy.messages.push({
-          role: "assistant",
-          content: data.message,
-        });
-      }
-    });
-    setConversation(conversationCopy);
+    sendMessage(
+      id as string,
+      textResponse ? textResponse : message,
+      customConversation,
+      avoidConversationUpdate
+    );
   }
 
   useEffect(() => {
-    if (assistant.state === "speaking" && assistant.timeout) {
-      const timer = setTimeout(() => {
-        popAssistant();
-      }, assistant.timeout);
-      return () => clearTimeout(timer);
+    if (assistant.state === "speaking") {
+      if (assistant.timeout) {
+        const timer = setTimeout(() => {
+          if (!assistant.timeout) return;
+          switch (assistant.timeout.action) {
+            case "clear":
+              clearAssistant();
+              break;
+            case "pop":
+              popAssistant();
+              break;
+            default:
+              popAssistant();
+              break;
+          }
+        }, assistant.timeout.duration);
+        return () => clearTimeout(timer);
+      }
+    }
+    if (assistant.state === "speaking" && assistant.modifications) {
+      modificationsModalRef.current?.present();
+    } else {
+      modificationsModalRef.current?.dismiss();
     }
   }, [assistant]);
 
-  console.log("assistant", assistant);
+  // useEffect(() => {
+  //   if (tripMetadata && tripMetadata.status === "new") {
+  //     const conversation: FullConversation = {
+  //       id: uuidv4(),
+  //       type: "new",
+  //       // options: {
+  //       //   destination: destinationData,
+  //       // },
+  //       messages: [],
+  //     };
+  //     setConversation(conversation);
+  //     pushAssistant({
+  //       state: "speaking",
+  //       key: `destination`,
+  //       message: "Où partez-vous ?",
+  //       action: {
+  //         type: "list",
+  //         items: [
+  //           {
+  //             text: "Road trip en Californie",
+  //             action: "response",
+  //           },
+  //           {
+  //             text: "Séjour à Malaga",
+  //             action: "response",
+  //           },
+  //           {
+  //             text: "Week-end à Paris",
+  //             action: "response",
+  //           },
+  //         ],
+  //       },
+  //       followUp: {
+  //         placeholder: "Une autre destination ?",
+  //         autoFocus: true,
+  //       },
+  //     });
+  //   }
+  // }, [tripMetadata]);
 
-  return (
+  console.log("assistant", JSON.stringify(assistant, null, 2));
+
+  return tripMetadata ? (
     <MotiView
       style={{
         flex: 1,
@@ -293,13 +244,14 @@ export default function Header() {
           <MotiView
             style={{
               width: "100%",
-              height: 50,
             }}
+            // from={!isNewTrip ? { height: 50 } : { width: 35 }}
             from={{
               height: 50,
             }}
             animate={{
               height: contentHeight + 15,
+              // width: isNewTrip ? 35 : "100%",
             }}
             transition={{
               type: "timing",
@@ -308,17 +260,27 @@ export default function Header() {
             }}
           >
             <BlurView
+              tint="light"
               style={{
                 width: "100%",
                 borderRadius: 25,
-                backgroundColor: "#1c769cae",
+                backgroundColor: "#f4fbffd4",
+                // backgroundColor: "#eef8feb4",
                 flexDirection: "row",
                 justifyContent: "space-between",
                 padding: 6.5,
                 alignItems: "flex-start",
                 borderWidth: 1,
-                borderColor: "#ffffffb6",
+                borderColor: "#A7C5D4",
                 flex: 1,
+                // shadowColor: "#79a8c3",
+                // shadowOffset: {
+                //   width: 0,
+                //   height: 2,
+                // },
+                // shadowOpacity: 1,
+                // shadowRadius: 3.84,
+                // elevation: 5,
               }}
             >
               <View
@@ -374,15 +336,7 @@ export default function Header() {
                             setInputFocused(false);
                             Keyboard.dismiss();
                             setInputValue("");
-                            // if (assistant.state === "default") {
-                            //   setBackButton(false);
-                            // }
                           } else {
-                            // setAssistant({
-                            //   state: "default",
-                            //   key: "initial",
-                            //   placeholder: "Ajoute une balade en forêt...",
-                            // });
                             popAssistant();
                             if (editor && editor.type === "activity") {
                               setEditor(null);
@@ -399,10 +353,12 @@ export default function Header() {
                         justifyContent: "center",
                         alignItems: "center",
                         borderRadius: 20,
-                        backgroundColor: "#74A5B5",
+                        // backgroundColor: "#74A5B5",
                       }}
                     >
-                      {assistant.state === "speaking" && assistant.timeout ? (
+                      {assistant.state === "speaking" &&
+                      assistant.timeout &&
+                      assistant.timeout.action === "pop" ? (
                         <View
                           style={{
                             position: "absolute",
@@ -416,7 +372,7 @@ export default function Header() {
                           <CircularProgress
                             radius={20}
                             strokeWidth={5}
-                            duration={assistant.timeout}
+                            duration={assistant.timeout.duration}
                             color={Colors.light.accent}
                           />
                         </View>
@@ -430,7 +386,7 @@ export default function Header() {
                             : "logoutIcon"
                         }
                         size={20}
-                        color={Colors.dark.primary}
+                        color={Colors.light.primary}
                         style={{
                           transform: [
                             {
@@ -447,6 +403,7 @@ export default function Header() {
                 </AnimatePresence>
               </View>
               <AnimatePresence>
+                {/* {!isNewTrip ? ( */}
                 <MotiView
                   exit={{
                     opacity: 0,
@@ -481,18 +438,37 @@ export default function Header() {
                     <Loader assistant={assistant} />
                   ) : null}
                   {assistant.state === "default" ? (
-                    <Input
-                      onFocus={() => setInputFocused(true)}
-                      onBlur={() => setInputFocused(false)}
-                      placeholder={assistant.placeholder}
-                      onLayout={(e) => {
-                        console.log(e.nativeEvent.layout.y);
-                        followUpInputPosition.current = e.nativeEvent.layout.y;
-                      }}
-                      value={inputValue}
-                      onChangeText={(text) => setInputValue(text)}
-                      onSubmit={() => sendMessage()}
-                    />
+                    !tripMetadata || tripMetadata.status === "new" ? (
+                      <Text
+                        style={{
+                          color: Colors.light.primary,
+                          // color: "white",
+                          fontFamily: "Outfit_500Medium",
+                          fontSize: 16,
+                          padding: 10,
+                          paddingTop: 7.5,
+                          paddingBottom: 7.5,
+                          width: "100%",
+                          textAlign: "center",
+                        }}
+                      >
+                        Nouveau voyage
+                      </Text>
+                    ) : (
+                      <Input
+                        onFocus={() => setInputFocused(true)}
+                        onBlur={() => setInputFocused(false)}
+                        placeholder={assistant.placeholder}
+                        onLayout={(e) => {
+                          console.log(e.nativeEvent.layout.y);
+                          followUpInputPosition.current =
+                            e.nativeEvent.layout.y;
+                        }}
+                        value={inputValue}
+                        onChangeText={(text) => setInputValue(text)}
+                        onSubmit={() => handleSendMessage()}
+                      />
+                    )
                   ) : null}
                   {assistant.state === "speaking" ? (
                     <View
@@ -505,14 +481,31 @@ export default function Header() {
                     >
                       <Text
                         style={{
-                          color: "white",
+                          color: Colors.light.primary,
+                          // color: "white",
                           fontFamily: "Outfit_500Medium",
                           fontSize: 16,
                           width: "100%",
                         }}
                         numberOfLines={3}
                       >
-                        {assistant.message}
+                        {assistant.message}{" "}
+                        {/* {assistant.action &&
+                        assistant.action.type === "list" &&
+                        assistant.action.checkbox ? (
+                          <Text
+                            style={{
+                              color: "white",
+                              fontFamily: "Outfit_400Regular",
+                              fontSize: 14,
+                              width: "100%",
+                              opacity: 0.8,
+                              lineHeight: 20,
+                            }}
+                          >
+                            {`\n`}Sélectionnez une ou plusieurs réponses
+                          </Text>
+                        ) : null} */}
                       </Text>
                       {/* <TypewriterText
                         key={assistant.message}
@@ -545,21 +538,33 @@ export default function Header() {
                       {assistant.action ? (
                         <Action
                           action={assistant.action}
-                          assistantKey={assistant.key}
                           onResponse={(
                             response,
                             customConversation,
                             avoidConversationUpdate
                           ) =>
-                            sendMessage(
+                            handleSendMessage(
                               response,
                               customConversation,
                               avoidConversationUpdate
                             )
                           }
+                          onInputFocus={() => setInputFocused(true)}
+                          onInputBlur={() => setInputFocused(false)}
+                          onInputLayout={(e) => {
+                            console.log(e.nativeEvent.layout.y);
+                            followUpInputPosition.current =
+                              e.nativeEvent.layout.y;
+                          }}
+                          inputValue={inputValue}
+                          onInputChangeText={(text) => setInputValue(text)}
                         />
                       ) : null}
-                      {assistant.followUp ? (
+                      {assistant.followUp &&
+                      !(
+                        assistant.action?.type === "list" &&
+                        assistant.action.checkbox
+                      ) ? (
                         <Input
                           onFocus={() => setInputFocused(true)}
                           onBlur={() => setInputFocused(false)}
@@ -576,13 +581,14 @@ export default function Header() {
                           onChangeText={(text) => setInputValue(text)}
                           autoFocus={assistant.followUp.autoFocus}
                           placeholder={assistant.followUp.placeholder}
-                          onSubmit={() => sendMessage()}
+                          onSubmit={() => handleSendMessage()}
                         />
                       ) : null}
                       {/* </MotiView> */}
                     </View>
                   ) : null}
                 </MotiView>
+                {/* ) : null} */}
               </AnimatePresence>
               <View
                 style={{
@@ -633,7 +639,7 @@ export default function Header() {
                     <TouchableOpacity
                       onPress={() => {
                         if (inputFocused) {
-                          sendMessage();
+                          handleSendMessage();
                         } else if (canPopAssistant) {
                           clearAssistant();
                         } else {
@@ -646,11 +652,32 @@ export default function Header() {
                         justifyContent: "center",
                         alignItems: "center",
                         borderRadius: 20,
-                        backgroundColor: inputFocused
-                          ? Colors.light.accent
-                          : "#74A5B5",
+                        // backgroundColor: inputFocused
+                        //   ? Colors.light.accent
+                        //   : "#74A5B5",
                       }}
                     >
+                      {assistant.state === "speaking" &&
+                      assistant.timeout &&
+                      assistant.timeout.action === "clear" ? (
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            transform: [{ rotate: "-90deg" }],
+                          }}
+                        >
+                          <CircularProgress
+                            radius={20}
+                            strokeWidth={5}
+                            duration={assistant.timeout.duration}
+                            color={Colors.light.accent}
+                          />
+                        </View>
+                      ) : null}
                       <Icon
                         icon={
                           inputFocused
@@ -660,14 +687,43 @@ export default function Header() {
                             : "menuIcon"
                         }
                         size={20}
-                        color={Colors.dark.primary}
+                        color={Colors.light.primary}
                       />
                     </TouchableOpacity>
                   </MotiView>
+                  {/* ) : null} */}
                 </AnimatePresence>
               </View>
             </BlurView>
           </MotiView>
+          {/* <MotiView
+            style={{
+              width: "100%",
+              height: 50,
+              marginTop: 10,
+            }}
+          >
+            <BlurView
+              style={{
+                width: "100%",
+                borderRadius: 25,
+                backgroundColor: "#1c769cae",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                padding: 6.5,
+                alignItems: "flex-start",
+                borderWidth: 1,
+                borderColor: "#bddce9",
+                flex: 1,
+              }}
+            >
+              <View
+                style={{
+                  width: 35,
+                }}
+              ></View>
+            </BlurView>
+          </MotiView> */}
           {/* <MaskedView
             style={{
               flex: 1,
@@ -704,8 +760,8 @@ export default function Header() {
               style={{
                 width: "100%",
                 position: "absolute",
-                top: -14,
-                height: 80,
+                top: -16,
+                height: 90,
                 transform: [
                   {
                     rotate: "-5deg",
@@ -722,20 +778,112 @@ export default function Header() {
           flexDirection: "row",
           gap: 10,
           marginTop: 300,
+          pointerEvents: "box-none",
         }}
       >
-        <ContainedButton
-          title="timeout"
+        {/* <ContainedButton
+          title="test"
           onPress={() => {
             pushAssistant({
               state: "speaking",
               key: "23",
               message: "Salut, ce message est temporaire !",
-              timeout: 5000,
+              timeout: {
+                duration: 5000,
+                action: "pop",
+              },
+              // action: {
+              //   type: "list",
+              //   items: [
+              //     {
+              //       text: "Cool !",
+              //       action: "push",
+              //       assistant: {
+              //         state: "speaking",
+              //         key: "24",
+              //         message: "Salut",
+              //         // timeout: {
+              //         //   duration: 5000,
+              //         //   action: "clear", 
+              //         // },
+              //       }
+              //       // timeout: {
+              //       //   duration: 5000,
+              //       //   action: "replace",
+              //       // },
+              //     },
+              //     {}
+              //   ],
+              // },
             });
           }}
-        />
-        <ContainedButton
+        /> */}
+        {/* <ContainedButton
+          title="speak"
+          onPress={() => {
+            pushAssistant({
+              state: "speaking",
+              key: "23",
+              message: "Salut !",
+              action: {
+                type: "list",
+                checkbox: true,
+                submit: {
+                  text: "Valider",
+                  action: "response",
+                },
+                items: [
+                  {
+                    text: "Ok",
+                    action: "push",
+                    assistant: {
+                      state: "speaking",
+                      key: "24",
+                      message: "Ouaaaaaiiissss !",
+                    },
+                  },
+                  {
+                    text: "Pas ok",
+                    action: "clear",
+                  },
+                  {
+                    text: "Et pourquoi pas ?",
+                    action: "pop",
+                  },
+                ],
+              },
+            });
+          }}
+        /> */}
+        {/* <ContainedButton
+          title="speak"
+          onPress={() => {
+            pushAssistant({
+              state: "speaking",
+              key: "23",
+              message:
+                "Excellente idée d'ajouter plus de culture et d'histoire à votre séjour à Malaga !",
+              modifications: [
+                {
+                  day_index: 5,
+                  day_id: "d-5",
+                  location: "Malaga",
+                  name: "Exploration de Malaga",
+                  hotsport_id: null,
+                  country: "Spain",
+                  actions: [
+                    {
+                      name: "Centre Pompidou Malaga",
+                      id: "4ea7186e-9e0c-403b-80ea-9adb764b2547",
+                      action: "add",
+                    },
+                  ],
+                },
+              ],
+            });
+          }}
+        /> */}
+        {/* <ContainedButton
           title="default"
           onPress={() => {
             pushAssistant({
@@ -790,7 +938,7 @@ export default function Header() {
             });
           }}
         />
-        {/* <ContainedButton
+        <ContainedButton
           title="list"
           onPress={() => {
             pushAssistant({
@@ -807,7 +955,7 @@ export default function Header() {
               },
             });
           }}
-        /> */}
+        /> 
         <ContainedButton
           title="loading"
           onPress={() => {
@@ -817,12 +965,13 @@ export default function Header() {
               message: "Je réfléchis...",
             });
           }}
-        />
+        /> */}
       </View>
       <MenuModal bottomSheetModalRef={bottomSheetModalRef} />
+      <ModificationsModal bottomSheetModalRef={modificationsModalRef} />
       {/*<ShareModal bottomSheetModalRef={shareModalRef} /> */}
     </MotiView>
-  );
+  ) : null;
 }
 
 function Input({
@@ -852,7 +1001,8 @@ function Input({
     <TextInput
       style={[
         {
-          color: "white",
+          // color: "white",
+          color: Colors.light.primary,
           fontFamily: "Outfit_500Medium",
           fontSize: 16,
           backgroundColor: dark ? "rgba(0,0,0,0.2)" : "transparent",
@@ -867,7 +1017,7 @@ function Input({
         style,
       ]}
       placeholder={placeholder}
-      placeholderTextColor="#ffffff91"
+      placeholderTextColor="#083e4f7b"
       onFocus={onFocus}
       onBlur={onBlur}
       onLayout={onLayout}
@@ -883,30 +1033,43 @@ function Input({
 
 function Action({
   action,
-  assistantKey,
   onResponse,
+  onInputFocus,
+  onInputBlur,
+  onInputLayout,
+  inputValue,
+  onInputChangeText,
 }: {
   action: ActionType;
-  assistantKey: string;
   onResponse?: (
     response: string,
     customConversation?: FullConversation | null,
     avoidConversationUpdate?: boolean
   ) => void;
+  onInputFocus: () => void;
+  onInputBlur: () => void;
+  onInputLayout: (e: LayoutChangeEvent) => void;
+  inputValue: string;
+  onInputChangeText: (text: string) => void;
 }) {
   const {
     assistant,
     pushAssistant,
-    canPopAssistant,
     clearAssistant,
     replaceAssistant,
     popAssistant,
-    nextForm,
   } = useAssistant();
 
   const [pickerValue, setPickerValue] = useState<number | string | null>(null);
 
-  function handleButtonClick(clickAction: Button) {
+  const [checked, setChecked] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    console.log(checked);
+  }, [checked]);
+  console.log("action", action);
+
+  async function handleButtonClick(clickAction: Button) {
     console.log("clickAction", clickAction);
     if (clickAction.action === "clear") clearAssistant();
     if (clickAction.action === "pop") popAssistant();
@@ -932,20 +1095,50 @@ function Action({
     if (clickAction.action === "response") {
       onResponse && onResponse(clickAction.text);
     }
-    if (clickAction.action === "next") {
-      const res = nextForm(
-        assistantKey,
-        clickAction.value ? clickAction.value.toString() : clickAction.text
-      );
-      if (res) {
-        onResponse &&
-          onResponse(
-            clickAction.value ? clickAction.value.toString() : clickAction.text,
-            res.conversation,
-            true
-          );
-      }
-    }
+    // if (clickAction.action === "next") {
+    //   const res = await nextForm(
+    //     assistantKey,
+    //     clickAction.value ? clickAction.value.toString() : clickAction.text
+    //   );
+    //   if (res) {
+    //     onResponse &&
+    //       onResponse(
+    //         clickAction.value ? clickAction.value.toString() : clickAction.text,
+    //         res.conversation,
+    //         true
+    //       );
+    //   }
+    // }
+    // if (clickAction.action === "validate-route") {
+    //   clearAssistant();
+    //   setTripMetadata((tripMetadata) => {
+    //     return {
+    //       ...(tripMetadata as TripMetadata),
+    //       status: "trip.loading",
+    //     };
+    //   });
+    //   favelClient(getToken).then(async (favel) => {
+    //     if (tripMetadata && tripMetadata.route && conversation) {
+    //       console.log(tripMetadata, tripMetadata.route);
+    //       console.log("Creating trip");
+    //       await favel.createTrip(
+    //         id as string,
+    //         tripMetadata.route,
+    //         user!.id,
+    //         conversation
+    //       );
+    //       replaceAssistant({
+    //         state: "speaking",
+    //         key: `trip-finished`,
+    //         message: "Votre voyage est prêt !",
+    //         timeout: {
+    //           duration: 5000,
+    //           action: "clear",
+    //         },
+    //       });
+    //     }
+    //   });
+    // }
   }
 
   return (
@@ -987,30 +1180,97 @@ function Action({
         </View>
       ) : null} */}
       {action.type === "list" ? (
-        <View
-          style={{
-            flexDirection: "column",
-            justifyContent: "space-between",
-            gap: 10,
-            marginTop: 8,
-          }}
-        >
-          {action.items.map((item, index) => (
+        <>
+          <View
+            style={{
+              flexDirection: "column",
+              justifyContent: "space-between",
+              gap: 10,
+              marginTop: 8,
+            }}
+          >
+            {action.items.map((item, index) => (
+              <ButtonComponent
+                key={index}
+                item={item}
+                index={index}
+                onPress={() => {
+                  if (action.checkbox) {
+                    console.log("checked", checked);
+                    setChecked((checked) => {
+                      if (checked?.includes(item.text)) {
+                        // if (checked.length === 1) return null;
+                        return checked?.filter((i) => i !== item.text);
+                      } else {
+                        return checked ? [...checked, item.text] : [item.text];
+                      }
+                    });
+                  } else {
+                    handleButtonClick(item);
+                  }
+                }}
+                selected={checked?.includes(item.text)}
+              />
+            ))}
+          </View>
+          {/* {action.submit ? (
             <ContainedButton
-              key={index}
-              title={item.text}
-              onPress={() => handleButtonClick(item)}
+              title={action.submit.text}
+              // onPress={() =>
+              //   // action.submit &&
+              //   // handleButtonClick({
+              //   //   ...action.submit,
+              //   // })
+              // }
               style={{
+                flex: 1,
+                marginTop: 10,
                 paddingHorizontal: 0,
                 paddingVertical: 7,
                 borderRadius: 8,
+                opacity: checked === null ? 0.5 : 1,
               }}
-              type="ghost"
+              disabled={checked === null}
             />
-          ))}
-        </View>
+          ) : null} */}
+          {action.checkbox ? (
+            <>
+              <Input
+                onFocus={() => onInputFocus()}
+                onBlur={() => onInputBlur()}
+                dark
+                style={{
+                  marginTop: 8,
+                }}
+                onLayout={onInputLayout}
+                value={inputValue}
+                onChangeText={onInputChangeText}
+                placeholder="Autre chose ?"
+                // onSubmit={() => onResponse && onResponse(inputValue)}
+              />
+              <ContainedButton
+                title="Valider"
+                onPress={() =>
+                  handleButtonClick({
+                    text: checked?.join(", ") || "",
+                    action: "response",
+                  })
+                }
+                style={{
+                  flex: 1,
+                  paddingHorizontal: 0,
+                  paddingVertical: 7,
+                  borderRadius: 8,
+                  opacity: !checked || checked?.length === 0 ? 0.5 : 1,
+                  marginTop: 10,
+                }}
+                disabled={!checked || checked?.length === 0}
+              />
+            </>
+          ) : null}
+        </>
       ) : null}
-      {action.type === "select" ? (
+      {/* {action.type === "select" ? (
         <>
           <View
             style={{
@@ -1087,8 +1347,112 @@ function Action({
             disabled={pickerValue === null}
           />
         </>
-      ) : null}
+      ) : null} */}
     </>
+  );
+}
+
+function ButtonComponent({
+  index,
+  item,
+  onPress,
+  selected,
+}: {
+  index: number;
+  item: Button;
+  onPress: (item: Button) => void;
+  selected?: boolean;
+}) {
+  useEffect(() => {
+    if (item.timeout) {
+      const timer = setTimeout(() => {
+        onPress(item);
+      }, item.timeout.duration);
+      return () => clearTimeout(timer);
+    }
+  }, [item]);
+
+  return (
+    <View
+      key={index}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: borderRadius,
+      }}
+    >
+      {item.timeout ? (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        >
+          <LinearProgress
+            duration={item.timeout.duration}
+            color={Colors.light.accent}
+            borderRadius={0}
+          />
+        </View>
+      ) : null}
+      <ContainedButton
+        title={item.text}
+        TitleComponent={
+          // <View
+          //   style={{
+          //     flexDirection: "row",
+          //     alignItems: "center",
+          //     justifyContent: "center",
+          //     flex: 1,
+          //     gap: 10,
+          //   }}
+          // >
+          <>
+            {item.icon ? (
+              <Text
+                style={{
+                  fontFamily: "Outfit_600Semibold",
+                  fontSize: 16,
+                  position: "absolute",
+                  left: 10,
+                }}
+              >
+                {item.icon}
+              </Text>
+            ) : null}
+            <Text
+              style={{
+                color: Colors.light.primary,
+                // color: "#dfebf9",
+                fontFamily: "Outfit_600SemiBold",
+                fontSize: 16,
+                width: "100%",
+                textAlign: "center",
+              }}
+            >
+              {item.text}
+            </Text>
+          </>
+          // </View>
+        }
+        onPress={() => onPress(item)}
+        style={{
+          paddingHorizontal: 0,
+          paddingVertical: 7,
+          borderRadius: 8,
+        }}
+        backgroundStyle={{
+          backgroundColor: selected ? "#44c1e746" : "rgba(255, 255, 255, 0.1)",
+          borderWidth: selected ? 3 : 0,
+          borderColor: Colors.light.accent,
+          borderRadius: 10,
+        }}
+        type={"ghost"}
+      />
+    </View>
   );
 }
 
@@ -1133,7 +1497,8 @@ function Loader({ assistant }: { assistant: Assistant }) {
     >
       <Text
         style={{
-          color: "#dfebf9",
+          // color: "#dfebf9",
+          color: Colors.light.primary,
           fontFamily: "Outfit_500Medium",
           fontSize: 16,
           width: "100%",
@@ -1155,7 +1520,8 @@ function Loader({ assistant }: { assistant: Assistant }) {
     >
       <Text
         style={{
-          color: "#dfebf9",
+          // color: "#dfebf9",
+          color: Colors.light.primary,
           fontFamily: "Outfit_500Medium",
           fontSize: 16,
           width: "100%",

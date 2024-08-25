@@ -72,6 +72,12 @@ export default function settings() {
       <MenuTitle title="Paramètres de l'application" />
       <MenuWrapper>
         <NotificationsButton />
+        <MenuButton
+          title="Langue"
+          onPress={() => {
+            router.navigate("/(auth)/(tabs)/profile/language");
+          }}
+        />
       </MenuWrapper>
       <MenuTitle title="Confidentialité" />
       <MenuWrapper>

@@ -286,13 +286,24 @@ export interface Form {
   destinationDataSent?: boolean;
 }
 
+export type AssistantDestination = {
+  type: "city" | "multi-city" | "other" | "unknown";
+  route?: TripRoute;
+};
+
+export type NewTripForm = {
+  duration?: number;
+  destination?: AssistantDestination;
+};
+
 export type TripRoute = Hotspot[];
 
 export type Hotspot = {
   id?: string;
   location: string;
-  duration: number | number[];
+  duration: number | (number | undefined)[] | undefined;
   coordinates: [number, number];
+  bbox?: number[];
 };
 
 export type DestinationData =

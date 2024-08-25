@@ -47,7 +47,7 @@ export default function DayCard({ day }: { day: Day }) {
         style={{
           fontSize: 32,
           fontFamily: "Outfit_700Bold",
-          color: Colors.dark.primary,
+          color: Colors.light.primary,
         }}
       >
         Jour {typeof day.day === "number" ? day.day + 1 : ""}
@@ -78,7 +78,7 @@ export default function DayCard({ day }: { day: Day }) {
           >
             <Text
               style={{
-                color: Colors.dark.primary,
+                color: Colors.light.primary,
                 fontSize: 16,
                 fontFamily: "Outfit_600SemiBold",
               }}
@@ -91,7 +91,7 @@ export default function DayCard({ day }: { day: Day }) {
             </Text>
             <Text
               style={{
-                color: Colors.dark.primary,
+                color: Colors.light.primary,
                 fontSize: 12,
                 opacity: 0.8,
                 fontFamily: "Outfit_500Medium",
@@ -103,7 +103,7 @@ export default function DayCard({ day }: { day: Day }) {
           <Icon
             icon="mapPinIcon"
             size={16}
-            color={Colors.dark.primary}
+            color={Colors.light.primary}
           />
         </View>
         {/* )}

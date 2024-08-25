@@ -86,6 +86,19 @@ export default function ProfileLayout() {
         }}
       />
       <Stack.Screen
+        name="language"
+        options={{
+          title: "Language",
+          headerTitleStyle: {
+            fontFamily: "Outfit_600SemiBold",
+            fontSize: 18,
+            color: "#fff",
+          },
+          headerTintColor: "#fff",
+          headerBackTitle: "Retour",
+        }}
+      />
+      <Stack.Screen
         name="notifications"
         options={{
           title: "Notifications",

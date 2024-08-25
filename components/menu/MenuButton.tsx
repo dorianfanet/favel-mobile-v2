@@ -3,6 +3,7 @@ import { Text } from "../Themed";
 import Colors from "@/constants/Colors";
 import { padding } from "@/constants/values";
 import { useState } from "react";
+import Icon from "../Icon";
 
 export default function MenuButton({
   title,
@@ -12,14 +13,16 @@ export default function MenuButton({
   onValueChange,
   initialValue,
   externalValue,
+  value,
 }: {
   title: string;
   onPress?: () => void;
   destructive?: boolean;
-  type?: "default" | "switch";
+  type?: "default" | "switch" | "select";
   onValueChange?: (value: boolean) => void;
   initialValue?: boolean;
   externalValue?: boolean;
+  value?: string;
 }) {
   return (
     <TouchableOpacity
@@ -52,6 +55,13 @@ export default function MenuButton({
           onValueChange={onValueChange ? onValueChange : () => {}}
           initialValue={initialValue ? initialValue : false}
           externalValue={externalValue}
+        />
+      )}
+      {type === "select" && value && (
+        <Icon
+          icon="checkIcon"
+          size={20}
+          color={Colors.light.accent}
         />
       )}
     </TouchableOpacity>

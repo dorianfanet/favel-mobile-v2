@@ -18,6 +18,7 @@ import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetFlatListMethods,
   BottomSheetFooter,
+  BottomSheetModal,
   BottomSheetView,
   TouchableOpacity,
 } from "@gorhom/bottom-sheet";
@@ -47,7 +48,7 @@ import { useTripUserRole } from "@/context/tripUserRoleContext";
 const windowHeight = Dimensions.get("window").height;
 
 export default function TripBottomSheet() {
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const flatListHeight = useRef<number>(0);
 
@@ -70,6 +71,8 @@ export default function TripBottomSheet() {
 
   useEffect(() => {
     if (!trip) return;
+
+    bottomSheetRef.current?.present();
 
     let temp: FormattedTrip = [];
 
@@ -250,7 +253,7 @@ export default function TripBottomSheet() {
   }
 
   return (
-    <BottomSheet
+    <BottomSheetModal
       ref={bottomSheetRef}
       index={1}
       snapPoints={snapPoints}
@@ -264,7 +267,13 @@ export default function TripBottomSheet() {
           }}
           {...props}
         >
-          <BlurView />
+          <BlurView
+            tint="light"
+            style={{
+              backgroundColor: "#f4fbffd4",
+              // backgroundColor: "#eef8feb4",
+            }}
+          />
         </View>
       )}
       handleIndicatorStyle={{
@@ -313,6 +322,7 @@ export default function TripBottomSheet() {
             ) : (
               <>
                 <ActivityCard
+                  theme="light"
                   activity={item}
                   drag={drag}
                   isActive={isActive}
@@ -353,6 +363,6 @@ export default function TripBottomSheet() {
           }}
         />
       )}
-    </BottomSheet>
+    </BottomSheetModal>
   );
 }
