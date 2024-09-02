@@ -68,6 +68,8 @@ import { TripMetadata } from "@/types/types";
 import ModificationsModal from "./(menu-modals)/ModificationsModal";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
+import { useTranslation } from "react-i18next";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function Header() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -132,32 +134,69 @@ export default function Header() {
     );
   }
 
+  // useEffect(() => {
+  //   if (assistant.state === "speaking") {
+  //     if (assistant.timeout) {
+  //       const timer = setTimeout(() => {
+  //         if (!assistant.timeout) return;
+  //         switch (assistant.timeout.action) {
+  //           case "clear":
+  //             clearAssistant();
+  //             break;
+  //           case "pop":
+  //             popAssistant();
+  //             break;
+  //           default:
+  //             popAssistant();
+  //             break;
+  //         }
+  //       }, assistant.timeout.duration);
+  //       return () => clearTimeout(timer);
+  //     }
+  //   }
+  //   if (
+  //     assistant.state === "speaking" &&
+  //     assistant.modifications !== undefined
+  //   ) {
+  //     modificationsModalRef.current?.present();
+  //   }
+  //   console.log("assistant", assistant);
+  //   if (assistant.state === "speaking" && !assistant.modifications) {
+  //     modificationsModalRef.current?.dismiss();
+  //   }
+  // }, [assistant]);
+
   useEffect(() => {
-    if (assistant.state === "speaking") {
-      if (assistant.timeout) {
-        const timer = setTimeout(() => {
-          if (!assistant.timeout) return;
-          switch (assistant.timeout.action) {
-            case "clear":
-              clearAssistant();
-              break;
-            case "pop":
-              popAssistant();
-              break;
-            default:
-              popAssistant();
-              break;
-          }
-        }, assistant.timeout.duration);
-        return () => clearTimeout(timer);
+    if (!tripMetadata) return;
+    if (tripMetadata.status === "trip.loading" && tripMetadata.status_message) {
+      if (tripMetadata.status_message.message === "stop") {
+        replaceAssistant({
+          state: "loading",
+          key: "finishing",
+          message: "Finishing up...",
+        });
+      } else {
+        replaceAssistant({
+          state: "loading",
+          key: tripMetadata.status_message.message,
+          message: tripMetadata.status_message.message,
+        });
       }
     }
-    if (assistant.state === "speaking" && assistant.modifications) {
-      modificationsModalRef.current?.present();
-    } else {
-      modificationsModalRef.current?.dismiss();
+    if (tripMetadata.status === "trip") {
+      console.log("Trip is ready !");
+      clearAssistant();
+      pushAssistant({
+        state: "speaking",
+        key: "trip",
+        message: "Your trip is ready !",
+        timeout: {
+          duration: 5000,
+          action: "pop",
+        },
+      });
     }
-  }, [assistant]);
+  }, [tripMetadata?.status_message, tripMetadata?.status]);
 
   // useEffect(() => {
   //   if (tripMetadata && tripMetadata.status === "new") {
@@ -200,6 +239,7 @@ export default function Header() {
   // }, [tripMetadata]);
 
   console.log("assistant", JSON.stringify(assistant, null, 2));
+  const { t } = useTranslation();
 
   return tripMetadata ? (
     <MotiView
@@ -234,6 +274,16 @@ export default function Header() {
           top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
         }}
       >
+        <ContainedButton
+          title="Dismiss"
+          onPress={() => {
+            pushAssistant({
+              state: "loading",
+              key: `applying-modifications`,
+              message: "Applying modifications...",
+            });
+          }}
+        />
         <View
           style={{
             width: "100%",
@@ -241,9 +291,46 @@ export default function Header() {
             position: "relative",
           }}
         >
+          <View
+            style={{
+              position: "absolute",
+              left: padding,
+              top: 0,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                track("Back to home from trip");
+                router.back();
+              }}
+              style={{
+                flexDirection: "row",
+                gap: 5,
+                paddingVertical: 10,
+                // backgroundColor: "#74A5B5",
+              }}
+            >
+              <Icon
+                icon={"chevronLeftIcon"}
+                size={20}
+                color={Colors.dark.primary}
+              />
+              <Text
+                style={{
+                  color: Colors.dark.primary,
+                  fontFamily: "Outfit_500Medium",
+                  fontSize: 16,
+                  width: "100%",
+                }}
+              >
+                {t("Back")}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <MotiView
             style={{
               width: "100%",
+              opacity: 0,
             }}
             // from={!isNewTrip ? { height: 50 } : { width: 35 }}
             from={{
@@ -251,6 +338,7 @@ export default function Header() {
             }}
             animate={{
               height: contentHeight + 15,
+              opacity: tripMetadata && tripMetadata.status === "new" ? 0 : 1,
               // width: isNewTrip ? 35 : "100%",
             }}
             transition={{
@@ -271,7 +359,7 @@ export default function Header() {
                 padding: 6.5,
                 alignItems: "flex-start",
                 borderWidth: 1,
-                borderColor: "#A7C5D4",
+                borderColor: Colors.light.bottomSheetBorder,
                 flex: 1,
                 // shadowColor: "#79a8c3",
                 // shadowOffset: {
@@ -314,7 +402,12 @@ export default function Header() {
                       delay: 0,
                     }}
                     key={
-                      canPopAssistant || inputFocused
+                      (canPopAssistant || inputFocused) &&
+                      !(
+                        conversation?.messages.length === 3 &&
+                        tripMetadata &&
+                        tripMetadata.status === "new.form"
+                      )
                         ? "backButton"
                         : "leaveButton"
                     }
@@ -331,7 +424,14 @@ export default function Header() {
                           popAssistant();
                           return;
                         }
-                        if (canPopAssistant || inputFocused) {
+                        if (
+                          (canPopAssistant || inputFocused) &&
+                          !(
+                            conversation?.messages.length === 3 &&
+                            tripMetadata &&
+                            tripMetadata.status === "new.form"
+                          )
+                        ) {
                           if (inputFocused) {
                             setInputFocused(false);
                             Keyboard.dismiss();
@@ -381,7 +481,12 @@ export default function Header() {
                         icon={
                           assistant.state === "loading"
                             ? "stopIcon"
-                            : canPopAssistant || inputFocused
+                            : (canPopAssistant || inputFocused) &&
+                              !(
+                                conversation?.messages.length === 3 &&
+                                tripMetadata &&
+                                tripMetadata.status === "new.form"
+                              )
                             ? "chevronLeftIcon"
                             : "logoutIcon"
                         }
@@ -391,7 +496,12 @@ export default function Header() {
                           transform: [
                             {
                               rotate:
-                                canPopAssistant || inputFocused
+                                (canPopAssistant || inputFocused) &&
+                                !(
+                                  conversation?.messages.length === 3 &&
+                                  tripMetadata &&
+                                  tripMetadata.status === "new.form"
+                                )
                                   ? "0deg"
                                   : "180deg",
                             },
@@ -558,6 +668,7 @@ export default function Header() {
                           }}
                           inputValue={inputValue}
                           onInputChangeText={(text) => setInputValue(text)}
+                          modificationsModalRef={modificationsModalRef}
                         />
                       ) : null}
                       {assistant.followUp &&
@@ -568,9 +679,10 @@ export default function Header() {
                         <Input
                           onFocus={() => setInputFocused(true)}
                           onBlur={() => setInputFocused(false)}
-                          dark
+                          // dark
                           style={{
                             marginTop: 8,
+                            backgroundColor: "rgba(8, 62, 79, 0.05)",
                           }}
                           onLayout={(e) => {
                             console.log(e.nativeEvent.layout.y);
@@ -1024,7 +1136,7 @@ function Input({
       value={value}
       onChangeText={onChangeText}
       autoFocus={autoFocus}
-      selectionColor="#ffffffba"
+      selectionColor="#093947d1"
       returnKeyType="send"
       onSubmitEditing={onSubmit}
     />
@@ -1039,6 +1151,7 @@ function Action({
   onInputLayout,
   inputValue,
   onInputChangeText,
+  modificationsModalRef,
 }: {
   action: ActionType;
   onResponse?: (
@@ -1051,13 +1164,17 @@ function Action({
   onInputLayout: (e: LayoutChangeEvent) => void;
   inputValue: string;
   onInputChangeText: (text: string) => void;
+  modificationsModalRef: React.MutableRefObject<BottomSheetModal | null>;
 }) {
+  const { t } = useTranslation();
+
   const {
     assistant,
     pushAssistant,
     clearAssistant,
     replaceAssistant,
     popAssistant,
+    conversation,
   } = useAssistant();
 
   const [pickerValue, setPickerValue] = useState<number | string | null>(null);
@@ -1068,6 +1185,11 @@ function Action({
     console.log(checked);
   }, [checked]);
   console.log("action", action);
+
+  const { getToken } = useAuth();
+  const { tripMetadata, setTripMetadata } = useTrip();
+  const { user } = useUser();
+  const { id } = useLocalSearchParams();
 
   async function handleButtonClick(clickAction: Button) {
     console.log("clickAction", clickAction);
@@ -1094,6 +1216,560 @@ function Action({
     }
     if (clickAction.action === "response") {
       onResponse && onResponse(clickAction.text);
+    }
+    if (clickAction.action === "createTrip") {
+      clearAssistant();
+      pushAssistant({
+        state: "loading",
+        key: `trip-loading`,
+        message: "Preparing your trip...",
+      });
+      if (!tripMetadata) return;
+      if (tripMetadata && tripMetadata.route) {
+        favelClient(getToken).then((favel) => {
+          if (!tripMetadata.route) return;
+          favel.createTripName(tripMetadata.route, id as string);
+        });
+      }
+      favelClient(getToken).then((favel) => {
+        if (tripMetadata.route && conversation) {
+          console.log("Creating trip");
+          favel.createTrip(
+            id as string,
+            tripMetadata.route,
+            user!.id,
+            conversation
+          );
+        }
+      });
+      supabaseClient(getToken).then(async (supabase) => {
+        const { error } = await supabase
+          .from("trips_v2")
+          .update({
+            status: "trip.loading",
+            // dates: {
+            //   type: "flexDates",
+            //   duration: form.flexDates.duration,
+            // },
+          })
+          .eq("id", id);
+        if (error) {
+          console.log(error);
+        }
+      });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setTripMetadata({
+        ...(tripMetadata as TripMetadata),
+        status: "trip.loading",
+      });
+    }
+    if (clickAction.action === "applyModifications") {
+      clearAssistant();
+      pushAssistant({
+        state: "loading",
+        key: `applying-modifications`,
+        message: "Applying modifications...",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      modificationsModalRef.current?.dismiss();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      supabaseClient(getToken).then(async (supabase) => {
+        const { error } = await supabase
+          .from("trips_v2")
+          .update({
+            trip: [
+              {
+                id: "0204c3a0-f902-4887-bdc8-61c5f96b9d1f",
+                day: 0,
+                type: "day",
+                location: "Downtown",
+                hotspotId: "2e346f31-54d2-4a30-80b1-245a8e98e38c",
+                activities: [
+                  {
+                    id: "5a94d305-4924-42ff-abda-beec1657ae03",
+                    name: "Basilique Saint-Sernin de Toulouse",
+                    type: "place",
+                    dayId: "0204c3a0-f902-4887-bdc8-61c5f96b9d1f",
+                    index: 0,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJkRk2cWC7rhIRx3ILZbNVPNk",
+                    coordinates: {
+                      latitude: 43.608315600000005,
+                      longitude: 1.4418039,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Basilique",
+                  },
+                  {
+                    id: "0807c32e-f67b-4463-ae1c-3ae1fc5507a1",
+                    name: "Musée des Augustins",
+                    type: "place",
+                    dayId: "0204c3a0-f902-4887-bdc8-61c5f96b9d1f",
+                    index: 0,
+                    polygon: null,
+                    category: "museum",
+                    g_maps_id: "ChIJm47EwJy8rhIRtd0DFFUgx7M",
+                    coordinates: {
+                      latitude: 43.6007949,
+                      longitude: 1.4466789999999998,
+                    },
+                    avg_duration: 2,
+                    display_category: "Musée d'art",
+                  },
+                  {
+                    id: "5d10691b-34d8-4a03-b35f-318cd9e63ca4",
+                    name: "Place du Capitole",
+                    type: "unknown",
+                    dayId: "0204c3a0-f902-4887-bdc8-61c5f96b9d1f",
+                    index: 0,
+                    polygon: null,
+                    category: "entertainment",
+                    g_maps_id: "ChIJIytxqpXHrhIRRCOODSRHtFM",
+                    coordinates: {
+                      latitude: 43.6043782,
+                      longitude: 1.4433646999999998,
+                    },
+                    avg_duration: 2,
+                    display_category: "Place publique",
+                  },
+                  {
+                    name: "Balade sur le Canal du Midi",
+                    id: "c2632b3e-8ca9-4c78-a055-f02759f9e5d8",
+                  },
+                ],
+                formattedType: "day",
+              },
+              {
+                id: "3926188c-3e18-4039-89a7-13ef37cf7d34",
+                day: 1,
+                type: "day",
+                location: "Les Carmes",
+                hotspotId: "2e346f31-54d2-4a30-80b1-245a8e98e38c",
+                activities: [
+                  {
+                    id: "325f7dc9-becf-4b6f-8384-05bdfb095750",
+                    name: "Couvent des Jacobins",
+                    type: "unknown",
+                    dayId: "3926188c-3e18-4039-89a7-13ef37cf7d34",
+                    index: 1,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJEbQhYGG7rhIRLt4mnjaYTHA",
+                    coordinates: {
+                      latitude: 43.603481599999995,
+                      longitude: 1.4404850999999999,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Couvent",
+                  },
+                  {
+                    id: "e5bb22bb-d5ad-44ce-a563-78efb9a8875f",
+                    name: "Lycée Pierre de Fermat",
+                    type: "unknown",
+                    dayId: "3926188c-3e18-4039-89a7-13ef37cf7d34",
+                    index: 1,
+                    polygon: null,
+                    category: "neighbourhood",
+                    g_maps_id: "ChIJQwom72O7rhIRqBRizFdsICE",
+                    coordinates: {
+                      latitude: 43.603132099999996,
+                      longitude: 1.4390859,
+                    },
+                    avg_duration: 6,
+                    display_category: "Lycée",
+                  },
+                  {
+                    id: "a16f0cb3-a47d-458a-85dc-e8f9e5edc05f",
+                    name: "Place de la Daurade",
+                    dayId: "3926188c-3e18-4039-89a7-13ef37cf7d34",
+                    index: 1,
+                    category: "neighbourhood",
+                    g_maps_id: "ChIJHRC_je67rhIRyDH-hN7N1pk",
+                    coordinates: {
+                      latitude: 43.601651499999996,
+                      longitude: 1.439549,
+                    },
+                    avg_duration: 1,
+                    display_category: "Place publique",
+                  },
+                  {
+                    id: "a4d1cbe3-9862-40fd-8c48-0a3fd6b297d2",
+                    name: "Café des Artistes",
+                    type: "unknown",
+                    dayId: "3926188c-3e18-4039-89a7-13ef37cf7d34",
+                    index: 1,
+                    polygon: null,
+                    category: "restaurant",
+                    g_maps_id: "ChIJKzTfeWO7rhIRawhl4RFCiLE",
+                    coordinates: {
+                      latitude: 43.601884299999995,
+                      longitude: 1.4393327,
+                    },
+                    avg_duration: 2,
+                    display_category: "Café artistique",
+                  },
+                  {
+                    name: "Parc de la Grande Plaine",
+                    id: "b8f02f8e-3a05-41a8-ac3a-c66fef1e795a",
+                    action: "add",
+                  },
+                ],
+                formattedType: "day",
+              },
+              {
+                id: "ef6de899-6246-4cf5-bb05-169e04c37878",
+                day: 2,
+                type: "day",
+                location: "Saint-Cyprien",
+                hotspotId: "2e346f31-54d2-4a30-80b1-245a8e98e38c",
+                activities: [
+                  {
+                    id: "642ab089-f010-4c27-aa8a-dd6dd630a1c5",
+                    name: "Prairie Des Filtres",
+                    type: "place",
+                    dayId: "ef6de899-6246-4cf5-bb05-169e04c37878",
+                    index: 2,
+                    polygon: null,
+                    category: "nature",
+                    g_maps_id: "ChIJwYh3y3u7rhIRlBXmUz6XTZU",
+                    coordinates: {
+                      latitude: 43.5958565,
+                      longitude: 1.4368527,
+                    },
+                    avg_duration: 2,
+                    display_category: "Parc",
+                  },
+                  {
+                    id: "7143ad9b-114d-4ee5-aa59-383a68b54a57",
+                    name: "Muséum de Toulouse",
+                    type: "unknown",
+                    dayId: "ef6de899-6246-4cf5-bb05-169e04c37878",
+                    index: 2,
+                    polygon: null,
+                    category: "museum",
+                    g_maps_id: "ChIJT3pwo4a8rhIRPGSdbax1l80",
+                    coordinates: {
+                      latitude: 43.5941,
+                      longitude: 1.4492855999999998,
+                    },
+                    avg_duration: 2,
+                    display_category: "Musée des sciences",
+                  },
+                  {
+                    id: "c2d68006-51a3-4777-a8a3-e1811fd1d53e",
+                    name: "LES BATEAUX TOULOUSAINS",
+                    type: "unknown",
+                    dayId: "ef6de899-6246-4cf5-bb05-169e04c37878",
+                    index: 2,
+                    polygon: null,
+                    category: "entertainment",
+                    g_maps_id: "ChIJYaHb8468rhIRwwqSelPERZU",
+                    coordinates: {
+                      latitude: 43.601181499999996,
+                      longitude: 1.4387299,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Balade",
+                  },
+                  {
+                    id: "9c264cf8-29ef-41a7-a07e-7afd151f6acb",
+                    name: "Les Chimères",
+                    dayId: "ef6de899-6246-4cf5-bb05-169e04c37878",
+                    index: 2,
+                    category: "restaurant",
+                    g_maps_id: "ChIJI3145Sm7rhIR2CVZQGKhXYI",
+                    coordinates: {
+                      latitude: 43.5976291,
+                      longitude: 1.4315156,
+                    },
+                    avg_duration: 2,
+                    display_category: "Restaurant",
+                  },
+                ],
+                formattedType: "day",
+              },
+              {
+                id: "045030f8-8757-45ff-ae56-46bdf0f369c4",
+                day: 3,
+                type: "day",
+                location: "Cité de Carcassonne",
+                hotspotId: "b440d0d1-32ea-407e-9fe3-c65fb36dcbda",
+                activities: [
+                  {
+                    id: "a0bbfc6c-3c97-43a0-a5ce-149e12ff65b1",
+                    name: "Cité de Carcassonne",
+                    type: "place",
+                    dayId: "045030f8-8757-45ff-ae56-46bdf0f369c4",
+                    index: 3,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJtzSv52osrhIRdMhoy9K25VI",
+                    coordinates: {
+                      latitude: 43.2060816,
+                      longitude: 2.3641961,
+                    },
+                    avg_duration: 2,
+                    display_category: "Cité médiévale",
+                  },
+                  {
+                    id: "5f7a2090-e091-44ae-baa2-bc149ffd8e8d",
+                    name: "Château Comtal",
+                    type: "unknown",
+                    dayId: "045030f8-8757-45ff-ae56-46bdf0f369c4",
+                    index: 3,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJeVF44mosrhIRx02H3ycoLBU",
+                    coordinates: {
+                      latitude: 43.207051899999996,
+                      longitude: 2.3631086999999997,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Château historique",
+                  },
+                  {
+                    id: "010bd791-7150-4f17-9ab0-8e7ecaf2ff2e",
+                    name: "Basilique Saint-Nazaire",
+                    type: "unknown",
+                    dayId: "045030f8-8757-45ff-ae56-46bdf0f369c4",
+                    index: 3,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJSTDHYmosrhIRZgAEamGHImQ",
+                    coordinates: {
+                      latitude: 43.2052778,
+                      longitude: 2.3630556000000005,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Monument historique",
+                  },
+                  {
+                    id: "001c601e-ad77-4c3c-a48e-b9235271de20",
+                    name: "Pont Vieux",
+                    type: "unknown",
+                    dayId: "045030f8-8757-45ff-ae56-46bdf0f369c4",
+                    index: 3,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJW4SW8hUtrhIRgDjnZtMbY60",
+                    coordinates: {
+                      latitude: 43.2103651,
+                      longitude: 2.3585381,
+                    },
+                    avg_duration: 0.5,
+                    display_category: "Pont",
+                  },
+                  {
+                    name: "Zoo de Montpellier",
+                    id: "9d76f1e6-e960-4c94-b8ac-48f62f10f21d",
+                    action: "add",
+                  },
+                ],
+                formattedType: "day",
+              },
+              {
+                id: "355a9cf3-2fd2-48d5-98e7-6d717fb00355",
+                day: 4,
+                type: "day",
+                location: "Carcassonne Centre",
+                hotspotId: "b440d0d1-32ea-407e-9fe3-c65fb36dcbda",
+                activities: [
+                  {
+                    id: "2058da71-5ee2-466d-b8a1-6d7d57c8a51e",
+                    name: "Place Carnot",
+                    type: "unknown",
+                    dayId: "355a9cf3-2fd2-48d5-98e7-6d717fb00355",
+                    index: 4,
+                    polygon: null,
+                    category: "entertainment",
+                    g_maps_id: "ChIJ7Wn3_TksrhIRifgZVic9pcY",
+                    coordinates: {
+                      latitude: 43.213168499999995,
+                      longitude: 2.3518296,
+                    },
+                    avg_duration: 1,
+                    display_category: "Place du marché",
+                  },
+                  {
+                    id: "b36362f4-e7b6-483b-994d-511fb5183fad",
+                    name: "Halles Prosper Montagné",
+                    type: "unknown",
+                    dayId: "355a9cf3-2fd2-48d5-98e7-6d717fb00355",
+                    index: 4,
+                    polygon: null,
+                    category: "entertainment",
+                    g_maps_id: "ChIJ27yNZzcsrhIRsJ0vmXmkKxM",
+                    coordinates: {
+                      latitude: 43.212344699999996,
+                      longitude: 2.3510199,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Marché",
+                  },
+                  {
+                    id: "3a93a976-d8ea-476a-ac2e-410d66122fb4",
+                    name: "Musée des Beaux-Arts de Carcassonne",
+                    type: "unknown",
+                    dayId: "355a9cf3-2fd2-48d5-98e7-6d717fb00355",
+                    index: 4,
+                    polygon: null,
+                    category: "museum",
+                    g_maps_id: "ChIJCRCTbjksrhIRcgBKab6Za7k",
+                    coordinates: {
+                      latitude: 43.212458399999996,
+                      longitude: 2.3552364999999997,
+                    },
+                    avg_duration: 2,
+                    display_category: "Musée des Beaux-Arts",
+                  },
+                  {
+                    id: "0203bd5c-9d87-4a5d-be1a-a05235ea5dbf",
+                    name: "Église Saint-Vincent de Carcassonne",
+                    type: "unknown",
+                    dayId: "355a9cf3-2fd2-48d5-98e7-6d717fb00355",
+                    index: 4,
+                    polygon: null,
+                    category: "monument",
+                    g_maps_id: "ChIJjw_BwTAsrhIR7WMY9pdPN8c",
+                    coordinates: {
+                      latitude: 43.2146926,
+                      longitude: 2.3502145999999997,
+                    },
+                    avg_duration: 1,
+                    display_category: "Église",
+                  },
+                  {
+                    name: "Parc Méric",
+                    id: "c80101ba-6d90-42fd-b220-4793d115763c",
+                    action: "add",
+                  },
+                ],
+                formattedType: "day",
+              },
+              {
+                id: "df0b8443-ecde-4bbe-a3a0-4d64337be75c",
+                day: 5,
+                type: "day",
+                location: "Écusson",
+                hotspotId: "d54dedab-43b7-46be-81d8-07cee5c4d854",
+                activities: [
+                  {
+                    id: "5a59e946-3c6f-460b-8b62-22ddd5f94df6",
+                    name: "Place de la Comédie",
+                    type: "unknown",
+                    dayId: "df0b8443-ecde-4bbe-a3a0-4d64337be75c",
+                    index: 5,
+                    polygon: null,
+                    category: "entertainment",
+                    g_maps_id: "ChIJp9fGGaevthIRdxE3svrneQI",
+                    coordinates: {
+                      latitude: 43.6086545,
+                      longitude: 3.8797773999999996,
+                    },
+                    avg_duration: 1.5,
+                    display_category: "Place centrale",
+                  },
+                  {
+                    id: "01f2055c-c930-4422-b641-b9babdd11ac5",
+                    name: "Musée Fabre",
+                    type: "unknown",
+                    dayId: "df0b8443-ecde-4bbe-a3a0-4d64337be75c",
+                    index: 5,
+                    polygon: null,
+                    category: "museum",
+                    g_maps_id: "ChIJC4Wu9QmvthIRDmojjnJB6rA",
+                    coordinates: {
+                      latitude: 43.6116531,
+                      longitude: 3.8801110999999997,
+                    },
+                    avg_duration: 2,
+                    display_category: "Musée des beaux-arts",
+                  },
+                  {
+                    id: "b7b53263-d913-4e45-9bda-2446e98f7b97",
+                    name: "Promenade du Peyrou",
+                    type: "place",
+                    dayId: "df0b8443-ecde-4bbe-a3a0-4d64337be75c",
+                    index: 5,
+                    polygon: null,
+                    category: "nature",
+                    g_maps_id: "ChIJtW9UagevthIRqBfgUffh-TQ",
+                    coordinates: {
+                      latitude: 43.61125,
+                      longitude: 3.8707581,
+                    },
+                    avg_duration: 0.5,
+                    display_category: "Promenade",
+                  },
+                  {
+                    name: "Randonnée Pic Saint-Loup",
+                    id: "f8552008-9ad4-4d82-995f-cd38924a0814",
+                    action: "add",
+                  },
+                ],
+                formattedType: "day",
+              },
+              {
+                id: "5c8dbbc2-057e-4c5b-88c8-59370f112326",
+                day: 6,
+                type: "day",
+                location: "Port Marianne",
+                hotspotId: "d54dedab-43b7-46be-81d8-07cee5c4d854",
+                activities: [
+                  {
+                    id: "bcee56dc-a131-4c73-844b-cf0114029226",
+                    name: "MO.CO. Panacée",
+                    dayId: "5c8dbbc2-057e-4c5b-88c8-59370f112326",
+                    index: 6,
+                    category: "museum",
+                    g_maps_id: "ChIJofpYVAivthIRXw08nwXMzco",
+                    coordinates: {
+                      latitude: 43.6125496,
+                      longitude: 3.8781073,
+                    },
+                    avg_duration: 2,
+                    display_category: "Centre d'art contemporain",
+                  },
+                  {
+                    id: "65dc651a-3991-4e50-9919-db516509d892",
+                    name: "Zèbre Bleu",
+                    dayId: "5c8dbbc2-057e-4c5b-88c8-59370f112326",
+                    index: 6,
+                    category: "restaurant",
+                    g_maps_id: "ChIJKxB4HhuwthIRdLBYa9Zth-s",
+                    coordinates: {
+                      latitude: 43.573769299999995,
+                      longitude: 3.8958822,
+                    },
+                    avg_duration: 2,
+                    display_category: "Restaurant",
+                  },
+                  {
+                    name: "Plage de Palavas-les-Flots",
+                    id: "96275165-650c-40fb-9bc0-cd6b76605c0d",
+                    action: "add",
+                  },
+                ],
+                formattedType: "day",
+              },
+            ],
+          })
+          .eq("id", id);
+        if (error) {
+          console.log(error);
+        }
+
+        replaceAssistant({
+          state: "speaking",
+          key: "trip-updated",
+          message: "Your trip has been updated!",
+          timeout: {
+            duration: 4000,
+            action: "clear",
+          },
+        });
+      });
     }
     // if (clickAction.action === "next") {
     //   const res = await nextForm(
@@ -1238,18 +1914,19 @@ function Action({
               <Input
                 onFocus={() => onInputFocus()}
                 onBlur={() => onInputBlur()}
-                dark
+                // dark
                 style={{
                   marginTop: 8,
+                  backgroundColor: "rgba(8, 62, 79, 0.05)",
                 }}
                 onLayout={onInputLayout}
                 value={inputValue}
                 onChangeText={onInputChangeText}
-                placeholder="Autre chose ?"
+                placeholder={t("something_else")}
                 // onSubmit={() => onResponse && onResponse(inputValue)}
               />
               <ContainedButton
-                title="Valider"
+                title={t("next")}
                 onPress={() =>
                   handleButtonClick({
                     text: checked?.join(", ") || "",
@@ -1385,10 +2062,11 @@ function ButtonComponent({
         <View
           style={{
             position: "absolute",
-            top: 0,
+
             left: 0,
             right: 0,
             bottom: 0,
+            height: 5,
           }}
         >
           <LinearProgress
@@ -1445,7 +2123,7 @@ function ButtonComponent({
           borderRadius: 8,
         }}
         backgroundStyle={{
-          backgroundColor: selected ? "#44c1e746" : "rgba(255, 255, 255, 0.1)",
+          backgroundColor: selected ? "#44c1e746" : "rgba(8, 62, 79, 0.1)",
           borderWidth: selected ? 3 : 0,
           borderColor: Colors.light.accent,
           borderRadius: 10,
@@ -1487,7 +2165,7 @@ function Loader({ assistant }: { assistant: Assistant }) {
         delay: 0,
       }}
       // key={`${assistant.key}-loading`}
-      key="biusd"
+      key="fdshjjjy"
       style={{
         padding: 10,
         paddingTop: 7.5,
@@ -1505,7 +2183,7 @@ function Loader({ assistant }: { assistant: Assistant }) {
         }}
         // numberOfLines={3}
       >
-        {assistant.state === "loading" ? assistant.message : "Chargement..."}
+        {assistant.state === "loading" ? assistant.message : "Loading..."}
       </Text>
     </MotiView>
   ) : (

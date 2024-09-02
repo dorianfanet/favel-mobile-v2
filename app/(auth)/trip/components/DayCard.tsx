@@ -9,10 +9,18 @@ import { getBoundsOfDay } from "@/lib/utils";
 import { useTrip } from "@/context/tripContext";
 import { BBox } from "@turf/turf";
 import { useCamera } from "@/context/cameraContext";
+import { useTranslation } from "react-i18next";
 
-export default function DayCard({ day }: { day: Day }) {
+export default function DayCard({
+  day,
+  forceHotspot,
+}: {
+  day: Day;
+  forceHotspot?: string;
+}) {
   const { setEditor } = useEditor();
   const { trip, tripMetadata } = useTrip();
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -50,7 +58,7 @@ export default function DayCard({ day }: { day: Day }) {
           color: Colors.light.primary,
         }}
       >
-        Jour {typeof day.day === "number" ? day.day + 1 : ""}
+        {t("day")} {typeof day.day === "number" ? day.day + 1 : ""}
       </Text>
       <Pressable
       // onPress={() => {
@@ -83,10 +91,11 @@ export default function DayCard({ day }: { day: Day }) {
                 fontFamily: "Outfit_600SemiBold",
               }}
             >
-              {
-                tripMetadata?.route?.find((route) => route.id === day.hotspotId)
-                  ?.location
-              }
+              {forceHotspot
+                ? forceHotspot
+                : tripMetadata?.route?.find(
+                    (route) => route.id === day.hotspotId
+                  )?.location}
               {/* {day.location} */}
             </Text>
             <Text

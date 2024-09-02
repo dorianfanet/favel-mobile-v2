@@ -10,6 +10,7 @@ import {
   BottomSheetBackdrop,
   BottomSheetFlatList,
   BottomSheetModal,
+  BottomSheetScrollView,
   BottomSheetTextInput,
   BottomSheetView,
   TouchableOpacity,
@@ -39,7 +40,7 @@ export default function ModificationsModal({
 }: {
   bottomSheetModalRef: React.RefObject<BottomSheetModal>;
 }) {
-  const snapPoints = useMemo(() => [385], []);
+  const snapPoints = useMemo(() => [385, "80%"], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
@@ -64,16 +65,24 @@ export default function ModificationsModal({
             }}
             {...props}
           >
-            <BlurView />
+            <BlurView
+              tint="light"
+              style={{
+                borderWidth: 1,
+                borderColor: Colors.light.bottomSheetBorder,
+                backgroundColor: Colors.light.blurBackground,
+                borderRadius: 30,
+                // backgroundColor: "#eef8feb4",
+              }}
+            />
           </View>
         )}
         handleIndicatorStyle={{
-          backgroundColor: "white",
+          backgroundColor: Colors.light.primary,
         }}
       >
-        <BottomSheetView
+        <BottomSheetScrollView
           style={{
-            padding: padding,
             gap: 30,
           }}
         >
@@ -82,10 +91,10 @@ export default function ModificationsModal({
           assistant.modifications ? (
             <Edits
               edits={assistant.modifications}
-              theme="dark"
+              theme="light"
             />
           ) : null}
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheetModal>
     </>
   );

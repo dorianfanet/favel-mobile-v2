@@ -40,6 +40,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
         "X-Favel-Api-Key": process.env.EXPO_PUBLIC_FAVEL_API_KEY!,
+        "accept-language": MMKV.getString("language") || "en",
         Authorization: `Bearer ${this.token}`,
       },
       body: data ? JSON.stringify(data) : null,

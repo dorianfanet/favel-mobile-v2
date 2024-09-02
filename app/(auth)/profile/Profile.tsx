@@ -338,13 +338,13 @@ function ProfileComponent({
             <Text style={{ fontSize: 18, fontFamily: "Outfit_600SemiBold" }}>
               {user.firstName} {user.lastName}
             </Text>
-            <Text style={{ fontSize: 14, opacity: 0.8 }}>
+            {/* <Text style={{ fontSize: 14, opacity: 0.8 }}>
               {user.createdAt
                 ? `A rejoint Favel en ${
                     months[new Date(user.createdAt).getMonth()]
                   } ${new Date(user.createdAt).getFullYear()}`
                 : ""}
-            </Text>
+            </Text> */}
           </View>
           <View
             style={{
@@ -395,7 +395,7 @@ function ProfileComponent({
                       textAlign: "center",
                     }}
                   >
-                    Modifier
+                    Edit
                   </Text>
                 </TouchableOpacity>
               </Link>
@@ -440,7 +440,7 @@ function ProfileComponent({
                   textAlign: "center",
                 }}
               >
-                Partager
+                Share
               </Text>
             </TouchableOpacity>
           </View>
@@ -466,14 +466,14 @@ function ProfileComponent({
         /> */}
         <Count
           count={followers || 0}
-          title={"Abonnés"}
+          title={"Followers"}
           onPress={() =>
             router.navigate(`/(modals)/follows/followers/${user.id}`)
           }
         />
         <Count
           count={following || 0}
-          title={"Abonnements"}
+          title={"Following"}
           onPress={() =>
             router.navigate(`/(modals)/follows/following/${user.id}`)
           }

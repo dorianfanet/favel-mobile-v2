@@ -6,6 +6,7 @@ import MenuWrapper from "@/components/menu/MenuWrapper";
 import MenuButton from "@/components/menu/MenuButton";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
+import { MMKV } from "@/app/_layout";
 
 type Language = {
   title: string;
@@ -15,11 +16,11 @@ type Language = {
 const languages: Language[] = [
   {
     title: "Français",
-    value: "fr-FR",
+    value: "fr",
   },
   {
     title: "Anglais",
-    value: "en-US",
+    value: "en",
   },
 ];
 
@@ -32,6 +33,7 @@ export default function Language() {
   function handleLanguageChange(lang: Language) {
     setLanguage(lang.value);
     i18n.changeLanguage(lang.value);
+    MMKV.setString("language", lang.value);
     router.navigate("/(auth)/(tabs)/home");
   }
 

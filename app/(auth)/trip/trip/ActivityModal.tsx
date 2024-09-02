@@ -28,6 +28,7 @@ import TripChatWrapper from "../(old-chat)/TripChatWrapper";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
 import { favelClient } from "@/lib/favelApi";
 import { useAuth } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 export default function ActivityModal() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -126,6 +127,8 @@ export default function ActivityModal() {
     }
   }, [editor]);
 
+  const { t } = useTranslation();
+
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -141,11 +144,19 @@ export default function ActivityModal() {
           }}
           {...props}
         >
-          <BlurView />
+          <BlurView
+            tint="light"
+            style={{
+              borderWidth: 1,
+              borderColor: Colors.light.bottomSheetBorder,
+              backgroundColor: Colors.light.blurBackground,
+              borderRadius: 30,
+            }}
+          />
         </View>
       )}
       handleIndicatorStyle={{
-        backgroundColor: "white",
+        backgroundColor: Colors.light.primary,
       }}
       onDismiss={() => setEditor(null)}
     >
@@ -161,9 +172,12 @@ export default function ActivityModal() {
         }}
       >
         <Icon
-          icon="closeIconFixed"
+          icon="closeIconFilled"
           size={20}
-          color={Colors.dark.primary}
+          color={Colors.light.primary}
+          style={{
+            opacity: 0.7,
+          }}
         />
       </TouchableOpacity>
       <BottomSheetScrollView
@@ -178,7 +192,7 @@ export default function ActivityModal() {
                 style={{
                   fontFamily: "Outfit_600SemiBold",
                   fontSize: 24,
-                  color: Colors.dark.primary,
+                  color: Colors.light.primary,
                   marginBottom: 5,
                 }}
               >
@@ -188,7 +202,7 @@ export default function ActivityModal() {
                 style={{
                   fontSize: 16,
                   opacity: 1,
-                  color: Colors.dark.primary,
+                  color: Colors.light.primary,
                 }}
               >
                 {activityData.display_category}
@@ -201,7 +215,7 @@ export default function ActivityModal() {
                 marginVertical: 20,
               }}
             >
-              {tripUserRole.role !== "read-only" && (
+              {/* {tripUserRole.role !== "read-only" && (
                 <TripChatWrapper
                   type="activity"
                   activityId={activityData.id}
@@ -212,10 +226,10 @@ export default function ActivityModal() {
                     title={`Poser une\nquestion`}
                   />
                 </TripChatWrapper>
-              )}
+              )} */}
               <ActivityButton
                 icon="googleMapsIcon"
-                title={`Voir sur\nGoogle Maps`}
+                title={`${t("viewOn")} Google Maps`}
                 onPress={() => {
                   Linking.openURL(
                     `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${activityData.g_maps_id}`
@@ -224,7 +238,7 @@ export default function ActivityModal() {
               />
               <ActivityButton
                 icon="alertIcon"
-                title={`Signaler un\nproblème`}
+                title={t("reportIssue")}
                 onPress={() => {
                   MailComposer.composeAsync({
                     recipients: ["contact@favel.net"],
@@ -320,7 +334,7 @@ export default function ActivityModal() {
                     position: "absolute",
                     top: 8,
                     left: 8,
-                    backgroundColor: Colors.dark.accent,
+                    backgroundColor: Colors.light.accent,
                     padding: 5,
                     borderRadius: 12,
                     height: 30,
@@ -363,8 +377,8 @@ export default function ActivityModal() {
                   left: 0,
                   width: "100%",
                   height: "100%",
-                  backgroundColor: Colors.dark.primary,
-                  opacity: 0.2,
+                  backgroundColor: Colors.light.primary,
+                  opacity: 0.1,
                 }}
               />
               <View
@@ -377,7 +391,7 @@ export default function ActivityModal() {
                   style={{
                     fontFamily: "Outfit_600SemiBold",
                     fontSize: 16,
-                    color: Colors.dark.primary,
+                    color: Colors.light.primary,
                   }}
                 >
                   {description}
@@ -419,8 +433,8 @@ function ActivityButton({
         style={{
           width: "100%",
           height: "100%",
-          backgroundColor: accent ? Colors.light.accent : Colors.dark.primary,
-          opacity: accent ? 1 : 0.2,
+          backgroundColor: accent ? Colors.light.accent : Colors.light.primary,
+          opacity: accent ? 1 : 0.1,
           position: "absolute",
         }}
       />
@@ -436,11 +450,11 @@ function ActivityButton({
         <Icon
           icon={icon}
           size={20}
-          color={Colors.dark.primary}
+          color={Colors.light.primary}
         />
         <Text
           style={{
-            color: Colors.dark.primary,
+            color: Colors.light.primary,
             fontSize: 12,
             fontFamily: "Outfit_600SemiBold",
             textAlign: "center",

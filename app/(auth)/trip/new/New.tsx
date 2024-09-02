@@ -24,8 +24,11 @@ import { useLocalSearchParams } from "expo-router";
 import { favelClient } from "@/lib/favelApi";
 import { useAuth } from "@clerk/clerk-expo";
 import { AnimatePresence, MotiView } from "moti";
+import { useTranslation } from "react-i18next";
 
 export default function New() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     track("New trip page viewed");
   }, []);
@@ -124,7 +127,7 @@ export default function New() {
                 marginBottom: 20,
               }}
             >
-              Où partez-vous ?
+              {t("trip.new.where_are_you_going")}
             </Text>
             {/* <ChatSuggestions
               data={suggestions}
@@ -166,7 +169,7 @@ export default function New() {
                   setInputValue(text);
                 }}
                 value={inputValue}
-                placeholder="Votre destination..."
+                placeholder={t("trip.new.your_destination")}
                 placeholderTextColor={"#ffffff71"}
               />
               <TouchableOpacity
@@ -208,7 +211,7 @@ export default function New() {
                     messages: [
                       {
                         role: "assistant",
-                        content: "Où partez-vous ?",
+                        content: t("trip.new.where_are_you_going"),
                         key: "destination",
                       },
                     ],
@@ -269,7 +272,7 @@ export default function New() {
                     fontFamily: "Outfit_600SemiBold",
                   }}
                 >
-                  Valider
+                  {t("next")}
                 </Text>
               </TouchableOpacity>
             </View>

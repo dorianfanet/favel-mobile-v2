@@ -9,11 +9,13 @@ import ImageWithFallback from "@/components/ImageWithFallback";
 import { ImageCard } from "../../new/route/Message";
 import Colors from "@/constants/Colors";
 import { AnimatePresence, MotiView } from "moti";
+import { useAssistant } from "@/context/assistantContext";
 
 export default function Loading() {
   const { tripMetadata, trip } = useTrip();
   const [hotspot, setHotspot] = useState<Hotspot | null>(null);
   const [days, setDays] = useState<Day[]>([]);
+  const { pushAssistant, clearAssistant } = useAssistant();
 
   useEffect(() => {
     if (!tripMetadata) return;

@@ -1,5 +1,79 @@
 {
   "home": {
     "title": "Accueil"
+  },
+  "assistant": {
+    "thinking": "Je réfléchis...",
+    "loading_retry": "Encore un instant...",
+    "loading_error": "Une erreur est survenue, veuillez réessayer.",
+    "loading_error_retry": "Réessayer"
+  },
+  "back": "Retour",
+  "next": "Suivant",
+  "with": "Avec",
+  "and": "Et",
+  "day": "Jour",
+  "loading": "Chargement...",
+  "moreCount": "et {{ count }} autre",
+  "moreCount_plural": "et {{ count }} autres",
+  "something_else": "Autre chose ?",
+  "onSite": "sur place",
+  "viewOn": "Voir sur",
+  "reportIssue": "Signaler un problème",
+  "trip": {
+    "new": {
+      "where_are_you_going": "Où partez-vous ?",
+      "your_destination": "Votre destination..."
+    }
+  },
+  "postHeader": {
+    "joinedTrip": "a rejoint un voyage",
+    "editedTrip": "a modifié un voyage",
+    "editedTripMultiple": "a apporté {{ count }} modifications à un voyage"
+  },
+  "months": {
+    "january": "Janvier",
+    "february": "Février",
+    "march": "Mars",
+    "april": "Avril",
+    "may": "Mai",
+    "june": "Juin",
+    "july": "Juillet",
+    "august": "Août",
+    "september": "Septembre",
+    "october": "Octobre",
+    "november": "Novembre",
+    "december": "Décembre"
+  },
+  "date": {
+    "day_one": "Jour",
+    "day_other": "Jours",
+    "from": "Du",
+    "to": "Au",
+    "at": "À",
+    "hour": "Heure",
+    "hourShort": "h",
+    "minute": "Minute",
+    "minuteShort": "min",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "yesterday": "Hier",
+    "withFormat": {
+      "today": "Aujourd'hui à {{ time }}",
+      "tomorrow": "Demain à {{ time }}",
+      "yesterday": "Hier à {{ time }}",
+      "fullDate": "Le {{ date }} à {{ time }}"
+    }
+  },
+  "assistantPlaceholder": {
+    "activityQuestion": "Posez-moi une question sur {{ name }}..."
+  },
+  "share": {
+    "shareCTA": "Partagez ce voyage avec vos proches !",
+    "inviteCTA": "Invitez vos proches à rejoindre ce voyage !",
+    "share": "Partager le voyage",
+    "invite": "Inviter des voyageurs",
+    "checkOut": "Découvre ce voyage sur Favel !",
+    "join": "Rejoins ce voyage sur Favel"
   }
 }

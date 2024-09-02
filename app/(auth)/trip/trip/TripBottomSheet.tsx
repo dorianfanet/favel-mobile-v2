@@ -270,15 +270,15 @@ export default function TripBottomSheet() {
           <BlurView
             tint="light"
             style={{
-              backgroundColor: "#f4fbffd4",
+              borderWidth: 1,
+              borderColor: Colors.light.bottomSheetBorder,
+              backgroundColor: Colors.light.blurBackground,
+              borderRadius: 30,
               // backgroundColor: "#eef8feb4",
             }}
           />
         </View>
       )}
-      handleIndicatorStyle={{
-        backgroundColor: "white",
-      }}
       topInset={inset.top}
       handleComponent={() => (
         <Animated.View
@@ -296,7 +296,7 @@ export default function TripBottomSheet() {
           >
             <View
               style={{
-                backgroundColor: "white",
+                backgroundColor: Colors.light.primary,
                 width: 40,
                 height: 5,
                 borderRadius: 2.5,

@@ -19,6 +19,7 @@ import { newTripEdit } from "@/lib/tripEdits";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useEditor } from "@/context/editorContext";
 import { useAssistant } from "@/context/assistantContext";
+import { useTranslation } from "react-i18next";
 
 export default function PlaceCard({
   swipeable,
@@ -91,7 +92,7 @@ export default function PlaceCard({
             },
           ]}
         >
-          Supprimer
+          Delete
         </Animated.Text>
       </Animated.View>
     );
@@ -201,6 +202,8 @@ export function ActivityCardContent({
 }) {
   const [activityData, setActivityData] = useState<Activity>(activity);
 
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!noCache) {
       getActivity(activity).then((data) => {
@@ -229,9 +232,12 @@ export function ActivityCardContent({
           pushAssistant({
             state: "default",
             key: activity.id,
-            placeholder: `Poser une question sur ${
-              activity.name || "ce lieu"
-            }...`,
+            placeholder: t("assistantPlaceholder.activityQuestion", {
+              name: activityData.name,
+            }),
+            // placeholder: `Poser une question sur ${
+            //   activity.name || "ce lieu"
+            // }...`,
           });
         }
       }}
@@ -243,7 +249,7 @@ export function ActivityCardContent({
       <View
         style={[
           {
-            backgroundColor: isActive ? Colors.dark.background : "transparent",
+            backgroundColor: isActive ? Colors.light.background : "transparent",
             padding: 5,
             // borderRadius: 10,
             marginVertical: 5,
@@ -343,8 +349,8 @@ export function ActivityCardContent({
                 color: Colors[theme].primary,
               }}
             >
-              {formatHoursToHoursAndMinutes(activityData.avg_duration)} sur
-              place
+              {formatHoursToHoursAndMinutes(activityData.avg_duration)}{" "}
+              {t("onSite")}
             </Text>
           )}
         </View>

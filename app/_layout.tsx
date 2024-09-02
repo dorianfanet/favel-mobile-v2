@@ -25,6 +25,9 @@ import Colors from "@/constants/Colors";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { MMKVLoader } from "react-native-mmkv-storage";
 import "@/i18n";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
+LogBox.ignoreAllLogs();
 
 export const MMKV = new MMKVLoader().initialize();
 

@@ -35,7 +35,7 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Profil",
+          title: "Profile",
           // headerLeft: () => (
           //   <View
           //     style={{

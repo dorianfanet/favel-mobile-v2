@@ -12,6 +12,7 @@ import Icon from "./Icon";
 import { MMKV } from "@/app/_layout";
 import { useAuth } from "@clerk/clerk-expo";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 
 export default function TripCard({
   tripId,
@@ -22,6 +23,7 @@ export default function TripCard({
   onTripChange?: (trip: SavedTrip) => void;
   postId: string;
 }) {
+  const { t } = useTranslation();
   const [trip, setTrip] = useState<SavedTrip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,9 +86,9 @@ export default function TripCard({
                 fontFamily: "Outfit_400Regular",
               }}
             >
-              {`${trip.dates.duration} jours${
-                trip.dates.month ? ` en ${months[trip.dates.month]}` : ""
-              }`}
+              {t("date.day", {
+                count: Number(trip.dates.duration),
+              })}
             </Text>
           )}
         </TouchableOpacity>
@@ -217,6 +219,7 @@ function WithList({
   authorId: string;
   tripId: string;
 }) {
+  const { t } = useTranslation();
   const [travelers, setTravelers] = React.useState<UserMetadata[] | null>(null);
   const { getToken } = useAuth();
 
@@ -311,16 +314,17 @@ function WithList({
           ) : null}
         </View>
         <Text>
-          avec{" "}
+          {t("with").toLowerCase()}{" "}
           {travelers?.length === 1
             ? formatName(travelers[0])
             : travelers.length === 2
-            ? formatName(travelers[0]) + " et " + formatName(travelers[1])
+            ? formatName(travelers[0]) +
+              ` ${t("and").toLowerCase()} ` +
+              formatName(travelers[1])
             : formatName(travelers[0]) +
               ", " +
               formatName(travelers[1]) +
-              " et " +
-              `${travelers.length - 2} autre${travelers.length > 3 ? "s" : ""}`}
+              ` ${t("moreCount", { count: travelers.length - 2 })}`}
         </Text>
       </TouchableOpacity>
     </Link>

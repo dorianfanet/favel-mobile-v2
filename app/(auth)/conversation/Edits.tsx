@@ -6,6 +6,8 @@ import Icon from "@/components/Icon";
 import { editTypes } from "@/constants/categories";
 import Colors from "@/constants/Colors";
 import { ActivityCardContent } from "../trip/components/PlaceCard";
+import DayCard from "../trip/components/DayCard";
+import { padding } from "@/constants/values";
 
 // const theme = {
 //   light: {
@@ -146,7 +148,7 @@ function Edit({
               </Text>
             </View>
           ) : ( */}
-            <View
+            {/* <View
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
@@ -168,20 +170,6 @@ function Edit({
                       alignContent: "center",
                     }}
                   >
-                    {/* <Text
-                        style={{
-                          fontSize: 14,
-                          fontFamily: "Outfit_600SemiBold",
-                          // color: editTypes[edit.action],
-                          color: Colors.light.primary,
-                        }}
-                      >
-                        {edit.day_action.action === "delete"
-                          ? "Suppression"
-                          : edit.day_action.action === "add"
-                          ? "Ajout"
-                          : "Déplacement"}
-                      </Text> */}
 
                     <View
                       style={{
@@ -258,14 +246,6 @@ function Edit({
                   </View>
                 ) : null}
               </View>
-              {/* <View
-                style={{
-                  // flexDirection: "row",
-                  gap: 5,
-                  // alignItems: "center",
-                }}
-              > */}
-              {/* </View> */}
               <View
                 style={{
                   flexDirection: "row",
@@ -293,14 +273,26 @@ function Edit({
                   </Text>
                 </View>
               </View>
-            </View>
+            </View> */}
             {/* )} */}
+            <DayCard
+              day={{
+                id: edit.day_id,
+                location: edit.name,
+                hotspotId: "",
+                type: "day",
+                formattedType: "day",
+                day: edit.day_index,
+              }}
+              forceHotspot={edit.location}
+            />
           </View>
         ) : null}
         {edit.actions ? (
           <View
             style={{
               marginVertical: 5,
+              paddingHorizontal: padding,
             }}
           >
             {edit.actions.map((action) => (

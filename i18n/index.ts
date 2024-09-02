@@ -2,6 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import * as Localization from "expo-localization";
 import resources from "./locales";
+import { MMKVLoader } from "react-native-mmkv-storage";
 // import translationEn from "./locales/en-US/translation.json";
 // import translationFr from "./locales/fr-FR/translation.json";
 
@@ -10,12 +11,17 @@ import resources from "./locales";
 //   "fr-FR": { translation: translationFr },
 // };
 
+const MMKV = new MMKVLoader().initialize();
+
 const initI18n = () => {
   // let savedLanguage = await AsyncStorage.getItem("language");
 
-  // if (!savedLanguage) {
-  //   savedLanguage = Localization.locale;
-  // }
+  const savedLanguage = MMKV.getString("language");
+
+  if (!savedLanguage) {
+    MMKV.setString("language", "en");
+    //   savedLanguage = Localization.locale;
+  }
 
   // const locales = Localization.getLocales();
 
@@ -36,7 +42,8 @@ const initI18n = () => {
     // },
     // lng: locales[0].languageCode || "en-US",
     lng: "en-US",
-    fallbackLng: "en-US",
+    // lng: savedLanguage || "en",
+    fallbackLng: "en",
     interpolation: {
       escapeValue: false,
     },

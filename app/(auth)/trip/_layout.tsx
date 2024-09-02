@@ -24,20 +24,20 @@ export default function Layout() {
         }}
       />
       <TripProvider>
-        <BottomSheetModalProvider>
-          <EditorProvider>
-            <TripUserRoleProvider>
-              <AssistantProvider>
+        <EditorProvider>
+          <AssistantProvider>
+            <BottomSheetModalProvider>
+              <TripUserRoleProvider>
                 <>
                   <MapWrapper />
                   <Header />
                   <Slot />
                   {Platform.OS === "ios" && <Chat />}
                 </>
-              </AssistantProvider>
-            </TripUserRoleProvider>
-          </EditorProvider>
-        </BottomSheetModalProvider>
+              </TripUserRoleProvider>
+            </BottomSheetModalProvider>
+          </AssistantProvider>
+        </EditorProvider>
       </TripProvider>
     </>
   );

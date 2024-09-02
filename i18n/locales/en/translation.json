@@ -1,5 +1,78 @@
 {
   "home": {
     "title": "Home"
+  },
+  "assistant": {
+    "thinking": "I'm thinking...",
+    "loading_retry": "Just a moment...",
+    "loading_error": "An error occurred, please try again.",
+    "loading_error_retry": "Retry"
+  },
+  "back": "Back",
+  "next": "Next",
+  "with": "With",
+  "and": "And",
+  "day": "Day",
+  "loading": "Loading...",
+  "moreCount": "and {{ count }} more",
+  "something_else": "Something else?",
+  "onSite": "on site",
+  "viewOn": "View on",
+  "reportIssue": "Report an issue",
+  "trip": {
+    "new": {
+      "where_are_you_going": "Where are you going?",
+      "your_destination": "Your destination..."
+    }
+  },
+  "postHeader": {
+    "joinedTrip": "joined a trip",
+    "editedTrip": "edited a trip",
+    "editedTripMultiple": "made {{ count }} edits to a trip"
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "date": {
+    "day": "{{ count }} day",
+    "day_plural": "{{ count }} days",
+    "from": "Du",
+    "to": "Au",
+    "at": "À",
+    "hour": "Heure",
+    "hourShort": "h",
+    "minute": "Minute",
+    "minuteShort": "min",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "yesterday": "Hier",
+    "withFormat": {
+      "today": "Today at {{ time }}",
+      "tomorrow": "Tomorrow at {{ time }}",
+      "yesterday": "Yesterday at {{ time }}",
+      "fullDate": "{{ date }} at {{ time }}"
+    }
+  },
+  "assistantPlaceholder": {
+    "activityQuestion": "Ask me anything about {{ name }}..."
+  },
+  "share": {
+    "shareCTA": "Share this trip with your friends!",
+    "inviteCTA": "Invite your friends to join this trip!",
+    "share": "Share this trip",
+    "invite": "Invite travelers",
+    "checkOut": "Check out this trip on Favel!",
+    "join": "Join this trip on Favel!"
   }
 }

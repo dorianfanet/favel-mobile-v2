@@ -5,21 +5,22 @@ import { v4 as uuidv4 } from "uuid";
 import { Share } from "react-native";
 import { MMKV } from "@/app/_layout";
 import { favelClient } from "./favelApi";
+import i18n from "i18next";
 
 export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
   const monthNames = [
-    "Janvier",
-    "Février",
-    "Mars",
-    "Avril",
-    "Mai",
-    "Juin",
-    "Juillet",
-    "Août",
-    "Septembre",
-    "Octobre",
-    "Novembre",
-    "Décembre",
+    i18n.t("months.january"),
+    i18n.t("months.february"),
+    i18n.t("months.march"),
+    i18n.t("months.april"),
+    i18n.t("months.may"),
+    i18n.t("months.june"),
+    i18n.t("months.july"),
+    i18n.t("months.august"),
+    i18n.t("months.september"),
+    i18n.t("months.october"),
+    i18n.t("months.november"),
+    i18n.t("months.december"),
   ];
 
   // Parse timestamps into Date objects
@@ -34,9 +35,13 @@ export function formatTimestamps(startTimestamp: string, endTimestamp: string) {
 
   // Check if months are the same and format accordingly
   if (startDate.getMonth() === endDate.getMonth()) {
-    return `Du ${startDay} au ${endDay} ${endMonth}`;
+    return `${i18n.t("date.from")} ${startDay} ${i18n
+      .t("date.to")
+      .toLowerCase()} ${endDay} ${endMonth}`;
   } else {
-    return `Du ${startDay} ${startMonth} au ${endDay} ${endMonth}`;
+    return `${i18n.t("date.from")} ${startDay} ${startMonth} ${i18n
+      .t("date.to")
+      .toLowerCase()} ${endDay} ${endMonth}`;
   }
 }
 
@@ -90,7 +95,7 @@ export function formatTimestamp(timestamp: string): string {
   const minute = date.getMinutes().toString().padStart(2, "0");
 
   // Format the date in the desired format
-  return `${day}/${month}/${year} à ${hour}h${minute}`;
+  return `${day}/${month}/${year} ${i18n.t("date.at")} ${hour}h${minute}`;
 }
 
 export function getUserMetadataFromCache(userId: string): UserMetadata | null {
@@ -198,7 +203,7 @@ export function formatDateToRelative(timestamp: string | number): string {
       typeof timestamp === "string" ? timestamp : timestamp * 1000
     );
     console.log(date);
-    const formatter = new Intl.DateTimeFormat("fr-FR", {
+    const formatter = new Intl.DateTimeFormat(i18n.language, {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -213,16 +218,16 @@ export function formatDateToRelative(timestamp: string | number): string {
     const dateDay = date.getTime();
 
     if (dateDay === today) {
-      return `Aujourd'hui à ${time}`;
+      return i18n.t("date.withFormat.today", { time });
     } else if (dateDay === yesterday) {
-      return `Hier à ${time}`;
+      return i18n.t("date.withFormat.yesterday", { time });
     } else {
-      const fullDateFormatter = new Intl.DateTimeFormat("fr-FR", {
+      const fullDateFormatter = new Intl.DateTimeFormat(i18n.language, {
         day: "numeric",
         month: "long",
       });
       const fullDate = fullDateFormatter.format(date);
-      return `Le ${fullDate} à ${time}`;
+      return i18n.t("date.withFormat.fullDate", { date: fullDate, time });
     }
   } catch (error) {
     console.error(error);

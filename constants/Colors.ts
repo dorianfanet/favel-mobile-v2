@@ -7,6 +7,8 @@ export default {
     tertiary: "#1C344B",
     accent: "#44C0E7",
     notification: "#fe3d2f",
+    bottomSheetBorder: "#A7C5D4",
+    blurBackground: "#f4fbffd4",
   },
   dark: {
     background: "#2e648b",

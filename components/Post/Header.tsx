@@ -8,19 +8,24 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { Link } from "expo-router";
 import FollowButton from "../FollowButton";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
 
 function findActionText(
   action: Post["action"],
-  action_data: Post["action_data"]
+  action_data: Post["action_data"],
+  t: TFunction<"translation", undefined>
 ) {
   switch (action) {
     case "join_trip":
-      return `a rejoint un voyage`;
+      return t("postHeader.joinedTrip");
     case "edit_trip":
       if (action_data.editsCount > 1) {
-        return `a apporté ${action_data.editsCount} modifications à un voyage`;
+        return t("postHeader.editedTripMultiple", {
+          count: action_data.editsCount,
+        });
       } else {
-        return `a modifié un voyage`;
+        return t("postHeader.editedTrip");
       }
     default:
       return "";
@@ -37,6 +42,7 @@ export default function Header({
   followButton?: boolean;
 }) {
   const { user } = useUser();
+  const { t } = useTranslation();
 
   return (
     <View
@@ -88,7 +94,7 @@ export default function Header({
                   {userMetadata.firstName} {userMetadata.lastName}{" "}
                   {post.action ? (
                     <Text style={{ fontFamily: "Outfit_400Regular" }}>
-                      {findActionText(post.action, post.action_data)}
+                      {findActionText(post.action, post.action_data, t)}
                     </Text>
                   ) : null}
                 </Text>

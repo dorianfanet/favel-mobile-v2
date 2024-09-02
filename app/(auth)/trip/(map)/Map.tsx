@@ -11,6 +11,7 @@ import { booleanPointInPolygon, polygon } from "@turf/turf";
 import Loading from "./Loading";
 import { useEditor } from "@/context/editorContext";
 import { bboxToCoordinatesArray } from "@/lib/utils";
+import i18n from "@/i18n";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY!);
 
@@ -142,6 +143,38 @@ export default function Map() {
           customZoom: 15,
         });
       }
+    } else if (
+      tripMetadata?.route &&
+      !tripMetadata.status.includes("loading")
+    ) {
+      if (tripMetadata?.route && !tripMetadata.status.includes("loading")) {
+        if (tripMetadata.route.length === 1 && tripMetadata.route[0].bbox) {
+          move({
+            coordinates: [
+              {
+                latitude: tripMetadata.route[0].bbox[1],
+                longitude: tripMetadata.route[0].bbox[0],
+              },
+              {
+                latitude: tripMetadata.route[0].bbox[3],
+                longitude: tripMetadata.route[0].bbox[2],
+              },
+            ],
+            customEasing: "flyTo",
+          });
+        } else {
+          move({
+            coordinates: tripMetadata.route.map((route) => {
+              return {
+                latitude: route.coordinates[1],
+                longitude: route.coordinates[0],
+              };
+            }),
+            customZoom: 10,
+            customEasing: "flyTo",
+          });
+        }
+      }
     }
   }, [editor]);
 
@@ -155,7 +188,11 @@ export default function Map() {
       attributionEnabled={false}
       logoEnabled={false}
       // styleURL="mapbox://styles/dorianfanet/clzfqoo7100do01qr9bad7vtk"
-      styleURL="mapbox://styles/dorianfanet/clj4mafi6000201qx5ci9eaj8"
+      styleURL={
+        i18n.language === "fr"
+          ? "mapbox://styles/dorianfanet/clj4mafi6000201qx5ci9eaj8"
+          : "mapbox://styles/mapbox/streets-v12"
+      }
       rotateEnabled={false}
       pitchEnabled={false}
       onCameraChanged={(camera) => {

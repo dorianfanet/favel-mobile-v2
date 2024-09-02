@@ -10,6 +10,7 @@ import React, {
 import { v4 as uuidv4 } from "uuid";
 import { useTrip } from "./tripContext";
 import { TripMetadata } from "@/types/types";
+import { useTranslation } from "react-i18next";
 
 export interface AssistantContext {
   assistant: Assistant;
@@ -34,7 +35,7 @@ const assistantContext = createContext<AssistantContext>({} as any);
 
 const defaultAssistant: Assistant = {
   state: "default",
-  placeholder: "Je voudrais visiter plus de musées...",
+  placeholder: "I want to visit...",
   key: "initial",
 };
 
@@ -43,6 +44,8 @@ export const AssistantProvider = ({
 }: {
   children: React.JSX.Element;
 }) => {
+  const { t } = useTranslation();
+
   const [history, setHistory] = useState<Assistant[]>([defaultAssistant]);
   const [conversation, setConversation] = useState<FullConversation | null>(
     null
@@ -123,13 +126,13 @@ export const AssistantProvider = ({
       replaceAssistant({
         state: "loading",
         key: `loading`,
-        message: "Je réfléchis...",
+        message: t("assistant.thinking"),
       });
     } else {
       pushAssistant({
         state: "loading",
         key: `loading`,
-        message: "Je réfléchis...",
+        message: t("assistant.thinking"),
       });
     }
     let conversationCopy: FullConversation;
@@ -171,7 +174,7 @@ export const AssistantProvider = ({
         replaceAssistant({
           state: "loading",
           key: `loading-retry`,
-          message: "Encore un instant...",
+          message: t("assistant.loading_retry"),
         });
         const { data, error } = await favel
           .assistant(signal)
@@ -181,12 +184,12 @@ export const AssistantProvider = ({
           replaceAssistant({
             state: "speaking",
             key: `speaking-${uuidv4()}`,
-            message: "Une erreur est survenue, veuillez réessayer.",
+            message: t("assistant.loading_error"),
             action: {
               type: "list",
               items: [
                 {
-                  text: "Réessayer",
+                  text: t("assistant.loading_error_retry"),
                   action: "retry",
                   response: value,
                 },
@@ -502,7 +505,8 @@ export type Button =
   | PushReplaceButton
   | RetryButton
   | ResponseButton
-  | CheckButton;
+  | CheckButton
+  | CreateTrip;
 
 interface BaseButton {
   text: string;
@@ -531,6 +535,10 @@ interface CheckButton extends BaseButton {
 
 interface ResponseButton extends BaseButton {
   action: "response";
+}
+
+interface CreateTrip extends BaseButton {
+  action: "createTrip";
 }
 
 export type FollowUp = {

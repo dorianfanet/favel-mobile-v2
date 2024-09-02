@@ -2,6 +2,7 @@ import React from "react";
 import { Activity } from "@/types/types";
 import RouteCard from "./RouteCard";
 import PlaceCard from "./PlaceCard";
+import { useEditor } from "@/context/editorContext";
 
 export default function ActivityCard({
   activity,
@@ -28,6 +29,10 @@ export default function ActivityCard({
   noCache?: boolean;
   highlighted?: boolean;
 }) {
+  const { editor, setEditor } = useEditor();
+
+  console.log("setEditorInComp", setEditor);
+
   return activity.route ? (
     <RouteCard
       route={activity.route}

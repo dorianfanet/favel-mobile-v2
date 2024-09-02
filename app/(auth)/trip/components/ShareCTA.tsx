@@ -9,32 +9,38 @@ import { Text } from "@/components/Themed";
 import { useTripUserRole } from "@/context/tripUserRoleContext";
 import InviteButton from "@/components/InviteButton";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 export default function ShareCTA() {
   const { tripMetadata } = useTrip();
   const { tripUserRole } = useTripUserRole();
   const { user } = useUser();
+  const { t } = useTranslation();
 
   return (
     <>
       <Text
         style={{
-          color: Colors.dark.primary,
+          color: Colors.light.primary,
           fontSize: 24,
           fontFamily: "Outfit_700Bold",
           textAlign: "center",
         }}
       >
         {tripUserRole && tripUserRole.role !== "read-only"
-          ? "Invitez vos proches à rejoindre votre voyage !"
-          : "Partagez ce voyage avec vos proches !"}
+          ? t("share.shareCTA")
+          : t("share.inviteCTA")}
       </Text>
 
       <View
         style={{
           gap: 20,
+          marginTop: 40,
         }}
       >
+        {tripMetadata && user && tripMetadata.author_id === user.id ? (
+          <InviteButton tripId={tripMetadata.id} />
+        ) : null}
         <ContainedButton
           TitleComponent={
             <View
@@ -47,16 +53,16 @@ export default function ShareCTA() {
               <Icon
                 icon={Platform.OS === "ios" ? "shareIOSIcon" : "shareIcon"}
                 size={18}
-                color={Colors.dark.primary}
+                color={Colors.light.primary}
               />
               <Text
                 style={{
-                  color: "white",
+                  color: Colors.light.primary,
                   fontSize: 16,
                   fontFamily: "Outfit_600SemiBold",
                 }}
               >
-                Partager le voyage
+                {t("share.share")}
               </Text>
             </View>
           }
@@ -64,19 +70,19 @@ export default function ShareCTA() {
             track("Share trip clicked");
             try {
               await Share.share({
-                message: `Regarde ce voyage sur Favel !\n\n${tripMetadata?.name}\n\n\nhttps://app.favel.net/trip/${tripMetadata?.id}`,
+                message: `${t("share.checkOut")}\n\n${
+                  tripMetadata?.name
+                }\n\n\nhttps://app.favel.net/trip/${tripMetadata?.id}`,
               });
             } catch (error) {
               alert(error);
             }
           }}
           style={{
-            marginTop: 40,
+            marginTop: 0,
           }}
+          type="ghostLight"
         />
-        {tripMetadata && user && tripMetadata.author_id === user.id ? (
-          <InviteButton tripId={tripMetadata.id} />
-        ) : null}
       </View>
     </>
   );

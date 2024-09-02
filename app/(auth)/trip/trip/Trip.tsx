@@ -176,7 +176,7 @@ export default function Trip({ id }: { id: string }) {
     <>
       {tripMetadata ? (
         <>
-          {tripMetadata.status === "trip.loading" && <Loading />}
+          {/* {tripMetadata.status === "trip.loading" && <Loading />} */}
           {tripMetadata.status === "trip" && (
             <>
               <TripBottomSheet />

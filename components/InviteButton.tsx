@@ -6,10 +6,12 @@ import Colors from "@/constants/Colors";
 import { track } from "@amplitude/analytics-react-native";
 import { createTripInvite } from "@/lib/utils";
 import { useUser } from "@clerk/clerk-expo";
+import { useTranslation } from "react-i18next";
 
 export default function InviteButton({ tripId }: { tripId: string }) {
   const { user } = useUser();
   const [loading, setLoading] = React.useState(false);
+  const { t } = useTranslation();
 
   return user && user.id ? (
     <ContainedButton
@@ -32,12 +34,12 @@ export default function InviteButton({ tripId }: { tripId: string }) {
           )}
           <Text
             style={{
-              color: "white",
+              color: Colors.dark.primary,
               fontSize: 16,
               fontFamily: "Outfit_600SemiBold",
             }}
           >
-            {loading ? "Chargement..." : "Inviter des voyageurs"}
+            {loading ? t("loading") : t("share.invite")}
           </Text>
         </View>
       }
@@ -53,7 +55,7 @@ export default function InviteButton({ tripId }: { tripId: string }) {
         }
         setLoading(false);
       }}
-      type="ghost"
+      type="primary"
     />
   ) : null;
 }
