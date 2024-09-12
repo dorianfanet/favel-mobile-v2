@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "net.favel.favel",
-      "buildNumber": "52",
+      "buildNumber": "53",
       "entitlements": {
         "com.apple.developer.applesignin": [
           "Default"

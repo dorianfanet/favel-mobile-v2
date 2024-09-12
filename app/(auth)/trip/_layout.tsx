@@ -2,7 +2,7 @@ import { Platform, StatusBar } from "react-native";
 import React, { useEffect } from "react";
 import { Slot, Stack } from "expo-router";
 import { TripProvider } from "@/context/tripContext";
-import Header from "./components/Header";
+// import Header from "./components/Header";
 import { CameraProvider } from "@/context/cameraContext";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { EditorProvider } from "@/context/editorContext";
@@ -10,6 +10,9 @@ import { TripUserRoleProvider } from "@/context/tripUserRoleContext";
 import Map from "./(map)/Map";
 import Chat from "./(chat)/Chat";
 import { AssistantProvider } from "@/context/assistantContext";
+import Header from "./(header)/Header";
+import WeekCalendar from "./trip/testCalendar/WeekCalendar";
+import Calendar from "./trip/testCalendar/Calendar";
 
 export default function Layout() {
   useEffect(() => {
@@ -29,10 +32,12 @@ export default function Layout() {
             <BottomSheetModalProvider>
               <TripUserRoleProvider>
                 <>
-                  <MapWrapper />
+                  {/* <MapWrapper /> */}
                   <Header />
-                  <Slot />
-                  {Platform.OS === "ios" && <Chat />}
+                  {/* <WeekCalendar /> */}
+                  {/* <Calendar /> */}
+                  {/* <Slot /> */}
+                  {/* {Platform.OS === "ios" && <Chat />} */}
                 </>
               </TripUserRoleProvider>
             </BottomSheetModalProvider>

@@ -29,10 +29,6 @@ export default function ActivityCard({
   noCache?: boolean;
   highlighted?: boolean;
 }) {
-  const { editor, setEditor } = useEditor();
-
-  console.log("setEditorInComp", setEditor);
-
   return activity.route ? (
     <RouteCard
       route={activity.route}

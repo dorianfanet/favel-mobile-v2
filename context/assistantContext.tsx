@@ -53,9 +53,9 @@ export const AssistantProvider = ({
 
   const { setTripMetadata } = useTrip();
 
-  useEffect(() => {
-    console.log("AssistantProvider", history);
-  }, [history]);
+  // useEffect(() => {
+  //   console.log("AssistantProvider", history);
+  // }, [history]);
 
   const pushAssistant = useCallback((newState: Assistant) => {
     setHistory((prevHistory) => [...prevHistory, newState]);
@@ -72,19 +72,15 @@ export const AssistantProvider = ({
   const popAssistant = useCallback(() => {
     setHistory((prevHistory) => {
       if (prevHistory.length > 1) {
-        console.log("history", prevHistory);
         prevHistory = prevHistory.slice(0, -1);
-        console.log("historyNow", prevHistory);
       }
       const lastAssistant = prevHistory[prevHistory.length - 1];
-      console.log("lastAssistant", lastAssistant);
       if (lastAssistant.state === "speaking") {
         setConversation((conversation) => {
           if (!conversation) return null;
           const indexInConversation = conversation.messages.findIndex(
             (message) => message.content === lastAssistant.message
           );
-          // only keep message up to the last assistant message
           if (indexInConversation && indexInConversation !== -1) {
             return {
               ...conversation,
@@ -94,7 +90,7 @@ export const AssistantProvider = ({
           return conversation;
         });
       }
-      return prevHistory; // Keep at least the default state in the stack
+      return prevHistory;
     });
   }, []);
 
@@ -147,7 +143,7 @@ export const AssistantProvider = ({
             messages: [],
           };
     }
-    console.log("value, ", value);
+    // console.log("value, ", value);
     favelClient(getToken).then(async (favel) => {
       if (!avoidConversationUpdate) {
         if (
@@ -199,7 +195,7 @@ export const AssistantProvider = ({
           });
         }
       }
-      console.log("messageData", messageData);
+      // console.log("messageData", messageData);
       if (messageData) {
         replaceAssistant({
           state: "speaking",

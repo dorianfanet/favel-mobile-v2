@@ -16,32 +16,20 @@ const MMKV = new MMKVLoader().initialize();
 const initI18n = () => {
   // let savedLanguage = await AsyncStorage.getItem("language");
 
-  const savedLanguage = MMKV.getString("language");
+  let savedLanguage = MMKV.getString("language");
 
   if (!savedLanguage) {
-    MMKV.setString("language", "en");
-    //   savedLanguage = Localization.locale;
+    // MMKV.setString("language", "fr");
+    const locales = Localization.getLocales();
+    savedLanguage = locales[0].languageCode || "en";
   }
 
-  // const locales = Localization.getLocales();
+  const locales = Localization.getLocales();
 
   i18n.use(initReactI18next).init({
     compatibilityJSON: "v3",
     resources,
-    // resources: {
-    //   "en-US": {
-    //     translation: {
-    //       test: "Teeeeest",
-    //     },
-    //   },
-    //   "fr-FR": {
-    //     translation: {
-    //       test: "Ouaaaiiisss",
-    //     },
-    //   },
-    // },
-    // lng: locales[0].languageCode || "en-US",
-    lng: "en-US",
+    lng: locales[0].languageCode || "en",
     // lng: savedLanguage || "en",
     fallbackLng: "en",
     interpolation: {

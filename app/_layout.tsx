@@ -26,6 +26,8 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import { MMKVLoader } from "react-native-mmkv-storage";
 import "@/i18n";
 import { LogBox } from "react-native";
+import { EventProvider } from "react-native-outside-press";
+
 LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
 LogBox.ignoreAllLogs();
 
@@ -115,197 +117,199 @@ function InitialLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack>
-        <Stack.Screen
-          name="(modals)/editProfile"
-          options={{
-            presentation: "modal",
-            title: "Modifier le profil",
-            headerLeft:
-              Platform.OS === "ios"
-                ? () => (
-                    <Button
-                      title="Annuler"
-                      onPress={() => router.back()}
-                    />
-                  )
-                : undefined,
-            headerTransparent: Platform.OS === "ios" ? true : false,
-            headerBackground: () => (
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.light.accent,
-                }}
-              />
-            ),
-            headerTintColor:
-              Platform.OS === "ios" ? Colors.light.primary : "white",
-          }}
-        />
-        <Stack.Screen
-          name="(modals)/travelCompanions"
-          options={{
-            presentation: "modal",
-            title: "Covoyageurs",
-            headerRight: () => (
-              <Button
-                title="Fermer"
-                onPress={() => router.back()}
-              />
-            ),
-            headerTransparent: true,
-          }}
-        />
-        <Stack.Screen
-          name="(modals)/mandatoryInfos"
-          options={{
-            presentation: "modal",
-            title: "Informations supplémentaires",
-            headerTransparent: true,
-            gestureEnabled: false,
-          }}
-        />
-        <Stack.Screen
-          name="(modals)/share/[id]"
-          options={{
-            presentation: "modal",
-            title: "Partager le voyage",
-            headerTransparent: true,
-          }}
-        />
-        <Stack.Screen
-          name="(modals)/travelers/[id]"
-          options={{
-            presentation: "modal",
-            title: "Voyageurs",
-            headerStyle: {
-              backgroundColor: Colors.light.accent,
-            },
-            headerTintColor: "white",
-            headerRight:
-              Platform.OS === "ios"
-                ? () => {
-                    return (
+      <EventProvider>
+        <Stack>
+          <Stack.Screen
+            name="(modals)/editProfile"
+            options={{
+              presentation: "modal",
+              title: "Modifier le profil",
+              headerLeft:
+                Platform.OS === "ios"
+                  ? () => (
                       <Button
+                        title="Annuler"
                         onPress={() => router.back()}
-                        title="Fermer"
-                        color="white"
                       />
-                    );
-                  }
-                : undefined,
-          }}
-        />
-        <Stack.Screen
-          name="(modals)/follows/[...rest]"
-          options={{
-            presentation: "modal",
-            title: "Abonnés",
-            headerStyle: {
-              backgroundColor: Colors.light.accent,
-            },
-            headerTintColor: "white",
-            headerRight: () => {
-              return Platform.OS === "ios" ? (
-                <Button
-                  onPress={() => router.back()}
-                  title="Fermer"
-                  color="white"
+                    )
+                  : undefined,
+              headerTransparent: Platform.OS === "ios" ? true : false,
+              headerBackground: () => (
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: Colors.light.accent,
+                  }}
                 />
-              ) : null;
-            },
-          }}
+              ),
+              headerTintColor:
+                Platform.OS === "ios" ? Colors.light.primary : "white",
+            }}
+          />
+          <Stack.Screen
+            name="(modals)/travelCompanions"
+            options={{
+              presentation: "modal",
+              title: "Covoyageurs",
+              headerRight: () => (
+                <Button
+                  title="Fermer"
+                  onPress={() => router.back()}
+                />
+              ),
+              headerTransparent: true,
+            }}
+          />
+          <Stack.Screen
+            name="(modals)/mandatoryInfos"
+            options={{
+              presentation: "modal",
+              title: "Informations supplémentaires",
+              headerTransparent: true,
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="(modals)/share/[id]"
+            options={{
+              presentation: "modal",
+              title: "Partager le voyage",
+              headerTransparent: true,
+            }}
+          />
+          <Stack.Screen
+            name="(modals)/travelers/[id]"
+            options={{
+              presentation: "modal",
+              title: "Voyageurs",
+              headerStyle: {
+                backgroundColor: Colors.light.accent,
+              },
+              headerTintColor: "white",
+              headerRight:
+                Platform.OS === "ios"
+                  ? () => {
+                      return (
+                        <Button
+                          onPress={() => router.back()}
+                          title="Fermer"
+                          color="white"
+                        />
+                      );
+                    }
+                  : undefined,
+            }}
+          />
+          <Stack.Screen
+            name="(modals)/follows/[...rest]"
+            options={{
+              presentation: "modal",
+              title: "Abonnés",
+              headerStyle: {
+                backgroundColor: Colors.light.accent,
+              },
+              headerTintColor: "white",
+              headerRight: () => {
+                return Platform.OS === "ios" ? (
+                  <Button
+                    onPress={() => router.back()}
+                    title="Fermer"
+                    color="white"
+                  />
+                ) : null;
+              },
+            }}
+          />
+          <Stack.Screen
+            name="(modals)/onboarding"
+            options={{
+              presentation: "modal",
+              headerShown: Platform.OS === "ios" ? false : true,
+              headerBackground: () => (
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: Colors.light.accent,
+                  }}
+                />
+              ),
+              headerTintColor: "white",
+              headerTitle: "Comment ça marche ?",
+            }}
+          />
+          <Stack.Screen
+            name="(auth)/(tabs)"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="(auth)/conversation/[id]"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="(auth)/conversations/index"
+            options={{
+              headerTitle: "Conversations",
+              headerBackground: () => (
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: Colors.light.accent,
+                  }}
+                />
+              ),
+              headerTintColor: "white",
+              headerBackTitle: "Retour",
+            }}
+          />
+          <Stack.Screen
+            // name="(auth)/profile/(tabs)"
+            name="(auth)/profile/[id]"
+            options={{
+              headerTitle: "Profil",
+              headerBackground: () => (
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: Colors.light.accent,
+                  }}
+                />
+              ),
+              headerTintColor: "white",
+              headerBackTitle: "Retour",
+            }}
+          />
+          <Stack.Screen
+            name="(auth)/post/[id]"
+            options={{
+              headerTitle: "Publication",
+              headerBackground: () => (
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: Colors.light.accent,
+                  }}
+                />
+              ),
+              headerTintColor: "white",
+              headerBackTitle: "Retour",
+            }}
+          />
+          <Stack.Screen
+            name="(public)"
+            options={{
+              headerShown: false,
+            }}
+          />
+        </Stack>
+        <Toast
+          config={toastConfig}
+          topOffset={Constants.statusBarHeight}
         />
-        <Stack.Screen
-          name="(modals)/onboarding"
-          options={{
-            presentation: "modal",
-            headerShown: Platform.OS === "ios" ? false : true,
-            headerBackground: () => (
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.light.accent,
-                }}
-              />
-            ),
-            headerTintColor: "white",
-            headerTitle: "Comment ça marche ?",
-          }}
-        />
-        <Stack.Screen
-          name="(auth)/(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="(auth)/conversation/[id]"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="(auth)/conversations/index"
-          options={{
-            headerTitle: "Conversations",
-            headerBackground: () => (
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.light.accent,
-                }}
-              />
-            ),
-            headerTintColor: "white",
-            headerBackTitle: "Retour",
-          }}
-        />
-        <Stack.Screen
-          // name="(auth)/profile/(tabs)"
-          name="(auth)/profile/[id]"
-          options={{
-            headerTitle: "Profil",
-            headerBackground: () => (
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.light.accent,
-                }}
-              />
-            ),
-            headerTintColor: "white",
-            headerBackTitle: "Retour",
-          }}
-        />
-        <Stack.Screen
-          name="(auth)/post/[id]"
-          options={{
-            headerTitle: "Publication",
-            headerBackground: () => (
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.light.accent,
-                }}
-              />
-            ),
-            headerTintColor: "white",
-            headerBackTitle: "Retour",
-          }}
-        />
-        <Stack.Screen
-          name="(public)"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-      <Toast
-        config={toastConfig}
-        topOffset={Constants.statusBarHeight}
-      />
+      </EventProvider>
     </GestureHandlerRootView>
   );
 }

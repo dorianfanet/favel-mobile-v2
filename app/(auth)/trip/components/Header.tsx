@@ -72,6 +72,9 @@ import { useTranslation } from "react-i18next";
 import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function Header() {
+  const startTime = useRef(0);
+  const performanceTimes = useRef<number[]>([]);
+
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const modificationsModalRef = useRef<BottomSheetModal>(null);
 
@@ -86,6 +89,7 @@ export default function Header() {
     conversation,
     sendMessage,
   } = useAssistant();
+
   const { editor, setEditor } = useEditor();
 
   const { id } = useLocalSearchParams();
@@ -238,7 +242,22 @@ export default function Header() {
   //   }
   // }, [tripMetadata]);
 
-  console.log("assistant", JSON.stringify(assistant, null, 2));
+  console.log("assistant test", JSON.stringify(assistant, null, 2));
+  const endTime = performance.now();
+  const time = endTime - startTime.current;
+  console.log("time", time);
+  if (time < 1000 && time > 50) {
+    if (performanceTimes.current.length > 9) {
+      performanceTimes.current.shift();
+    }
+    performanceTimes.current.push(time);
+    console.log("performanceTimes", performanceTimes.current);
+    console.log(
+      "average time",
+      performanceTimes.current.reduce((a, b) => a + b) /
+        performanceTimes.current.length
+    );
+  }
   const { t } = useTranslation();
 
   return tripMetadata ? (
@@ -277,6 +296,7 @@ export default function Header() {
         <ContainedButton
           title="Dismiss"
           onPress={() => {
+            startTime.current = performance.now();
             pushAssistant({
               state: "loading",
               key: `applying-modifications`,
@@ -565,19 +585,21 @@ export default function Header() {
                         Nouveau voyage
                       </Text>
                     ) : (
-                      <Input
-                        onFocus={() => setInputFocused(true)}
-                        onBlur={() => setInputFocused(false)}
-                        placeholder={assistant.placeholder}
-                        onLayout={(e) => {
-                          console.log(e.nativeEvent.layout.y);
-                          followUpInputPosition.current =
-                            e.nativeEvent.layout.y;
-                        }}
-                        value={inputValue}
-                        onChangeText={(text) => setInputValue(text)}
-                        onSubmit={() => handleSendMessage()}
-                      />
+                      <>
+                        <Input
+                          onFocus={() => setInputFocused(true)}
+                          onBlur={() => setInputFocused(false)}
+                          placeholder={assistant.placeholder}
+                          onLayout={(e) => {
+                            console.log(e.nativeEvent.layout.y);
+                            followUpInputPosition.current =
+                              e.nativeEvent.layout.y;
+                          }}
+                          value={inputValue}
+                          onChangeText={(text) => setInputValue(text)}
+                          onSubmit={() => handleSendMessage()}
+                        />
+                      </>
                     )
                   ) : null}
                   {assistant.state === "speaking" ? (
@@ -753,6 +775,7 @@ export default function Header() {
                         if (inputFocused) {
                           handleSendMessage();
                         } else if (canPopAssistant) {
+                          startTime.current = performance.now();
                           clearAssistant();
                         } else {
                           bottomSheetModalRef.current?.present();

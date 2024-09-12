@@ -344,3 +344,10 @@ export async function getRouteValidationText(getToken: any): Promise<string[]> {
       return [defaultText];
     });
 }
+
+export function logRender(component: string) {
+  console.log(
+    `[render] ${component}`,
+    `${new Date().getMinutes()}:${new Date().getSeconds()}:${new Date().getMilliseconds()}`
+  );
+}

@@ -1,5 +1,5 @@
 import { View, Animated, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Activity, Category } from "@/types/types";
 import Reanimated, {
   useAnimatedStyle,
@@ -48,55 +48,57 @@ export default function PlaceCard({
   const { user } = useUser();
   const { getToken } = useAuth();
 
-  const renderRightActions = (
-    _progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>
-  ) => {
-    console.log(dragX);
-    const trans = dragX.interpolate({
-      inputRange: [-100, 0],
-      outputRange: [0, 80],
-      extrapolate: "clamp",
-    });
+  const renderRightActions = useCallback(
+    (
+      _progress: Animated.AnimatedInterpolation<number>,
+      dragX: Animated.AnimatedInterpolation<number>
+    ) => {
+      const trans = dragX.interpolate({
+        inputRange: [-100, 0],
+        outputRange: [0, 80],
+        extrapolate: "clamp",
+      });
 
-    const opacity = dragX.interpolate({
-      inputRange: [-100, 0],
-      outputRange: [1, 0],
-      extrapolate: "clamp",
-    });
+      const opacity = dragX.interpolate({
+        inputRange: [-100, 0],
+        outputRange: [1, 0],
+        extrapolate: "clamp",
+      });
 
-    return (
-      <Animated.View
-        style={[
-          {
-            flex: 1,
-            backgroundColor: "#fc4949",
-            justifyContent: "center",
-            alignItems: "flex-end",
-          },
-          {
-            opacity,
-          },
-        ]}
-      >
-        <Animated.Text
+      return (
+        <Animated.View
           style={[
             {
-              color: "white",
-              fontSize: 16,
-              backgroundColor: "transparent",
-              padding: 10,
+              flex: 1,
+              backgroundColor: "#fc4949",
+              justifyContent: "center",
+              alignItems: "flex-end",
             },
             {
-              transform: [{ translateX: trans }],
+              opacity,
             },
           ]}
         >
-          Delete
-        </Animated.Text>
-      </Animated.View>
-    );
-  };
+          <Animated.Text
+            style={[
+              {
+                color: "white",
+                fontSize: 16,
+                backgroundColor: "transparent",
+                padding: 10,
+              },
+              {
+                transform: [{ translateX: trans }],
+              },
+            ]}
+          >
+            Delete
+          </Animated.Text>
+        </Animated.View>
+      );
+    },
+    []
+  );
 
   const opacity = useSharedValue(1);
   const height = useSharedValue(110);
