@@ -1,4 +1,4 @@
-import { Platform, StatusBar } from "react-native";
+import { Platform, SafeAreaView, StatusBar } from "react-native";
 import React, { useEffect } from "react";
 import { Slot, Stack } from "expo-router";
 import { TripProvider } from "@/context/tripContext";
@@ -7,12 +7,14 @@ import { CameraProvider } from "@/context/cameraContext";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { EditorProvider } from "@/context/editorContext";
 import { TripUserRoleProvider } from "@/context/tripUserRoleContext";
-import Map from "./(map)/Map";
 import Chat from "./(chat)/Chat";
 import { AssistantProvider } from "@/context/assistantContext";
 import Header from "./(header)/Header";
 import WeekCalendar from "./trip/testCalendar/WeekCalendar";
 import Calendar from "./trip/testCalendar/Calendar";
+import TestSectionList from "./trip/testSection/TestSectionList";
+import StickySectionList from "./trip/testSection/TestSectionList";
+import Map from "./trip/mapTest/Map";
 
 export default function Layout() {
   useEffect(() => {
@@ -33,11 +35,19 @@ export default function Layout() {
               <TripUserRoleProvider>
                 <>
                   {/* <MapWrapper /> */}
-                  <Header />
+                  {/* <Header /> */}
+                  {/* <SafeAreaView
+                    style={{
+                      flex: 1,
+                    }}
+                  >
+                    <StickySectionList />
+                  </SafeAreaView> */}
                   {/* <WeekCalendar /> */}
                   {/* <Calendar /> */}
                   {/* <Slot /> */}
                   {/* {Platform.OS === "ios" && <Chat />} */}
+                  <Map />
                 </>
               </TripUserRoleProvider>
             </BottomSheetModalProvider>
@@ -47,6 +57,11 @@ export default function Layout() {
     </>
   );
 }
+
+const sections = [
+  { title: "Section 1", data: ["Item 1.1", "Item 1.2"] },
+  { title: "Section 2", data: ["Item 2.1", "Item 2.2", "Item 2.3"] },
+];
 
 function MapWrapper() {
   return (

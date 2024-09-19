@@ -776,6 +776,7 @@ const WeekCalendar = () => {
           borderColor: "#ccc",
           // transform: [{ translateY: -10 }],
         }}
+        stickyHeaderIndices={[1]}
       >
         <View
         // style={{
