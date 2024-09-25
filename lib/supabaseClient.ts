@@ -1,12 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
-import { useAuth } from "@clerk/clerk-expo";
 import { Alert } from "react-native";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 export async function supabaseClient(getToken: any) {
-  const token = await getToken({ template: "supabase" });
+  const token = await getToken({ template: "supabase-v2" });
 
   if (token) {
     return createClient(supabaseUrl!, supabaseAnonKey!, {

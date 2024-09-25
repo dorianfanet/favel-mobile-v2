@@ -42,8 +42,6 @@ export type CameraContext = {
         }
       | number
   ) => void;
-  viewState: "days" | "hotspots";
-  setViewState: (viewState: "days" | "hotspots") => void;
   setAnimationDuration: (duration: number) => void;
   setEasing: (easing: CameraAnimationMode) => void;
 };
@@ -83,8 +81,6 @@ export const CameraProvider = ({
   const [animationDuration, setAnimationDuration] = useState<
     number | undefined
   >(defaultAnimationDuration);
-
-  const [viewState, setViewState] = useState<"days" | "hotspots">("days");
 
   const centerOrBounds = useMemo((): {
     centerCoordinate?: Position;
@@ -185,8 +181,6 @@ export const CameraProvider = ({
         animationDuration,
         move,
         updatePadding,
-        viewState,
-        setViewState,
         setAnimationDuration,
         setEasing,
       }}

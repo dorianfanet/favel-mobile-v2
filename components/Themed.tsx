@@ -1,166 +1,220 @@
+import Colors from "@/constants/Colors";
 import {
-  Text as DefaultText,
+  ViewProps as DefaultViewProps,
   View as DefaultView,
-  Button as DefaultButton,
-  TextInput as DefaultTextInput,
-  Platform,
   useColorScheme,
+  TextProps as DefaultTextProps,
+  Text as DefaultText,
+  StyleSheet,
+  TouchableOpacityProps as DefaultTouchableOpacityProps,
+  TouchableOpacity as DefaultTouchableOpacity,
 } from "react-native";
-import { BlurView as DefaultBlurView } from "expo-blur";
-import Colors from "../constants/Colors";
-import { BlurViewProps } from "expo-blur";
-import { forwardRef } from "react";
+import { Image } from "expo-image";
 
-export function useThemeColor(
-  props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.dark
-) {
+export function useThemeColor(props: { light?: string; dark?: string }) {
   const theme = useColorScheme();
   const colorFromProps = props[theme || "light"];
 
-  if (colorFromProps) {
-    return colorFromProps;
-  } else {
-    return Colors[theme || "light"][colorName];
-  }
+  return colorFromProps;
 }
 
-type ThemeProps = {
-  lightColor?: string;
-  darkColor?: string;
-};
-
-export type TextProps = ThemeProps & DefaultText["props"];
-export type ViewProps = ThemeProps & DefaultView["props"];
-export type ButtonProps = ThemeProps & DefaultButton["props"];
-export type TextInputProps = ThemeProps & DefaultTextInput["props"];
-
-export function Text(props: TextProps) {
-  const { style, lightColor, darkColor, ...otherProps } = props;
-  // const color = useThemeColor(
-  //   { light: lightColor, dark: darkColor },
-  //   "primary"
-  // );
-
-  return (
-    <DefaultText
-      style={[
-        { color: Colors.light.primary, fontFamily: "Outfit_400Regular" },
-        style,
-      ]}
-      {...otherProps}
-    />
-  );
+interface ViewProps extends DefaultViewProps {
+  background?: "primary" | "secondary";
 }
 
 export function View(props: ViewProps) {
-  const { style, lightColor, darkColor, ...otherProps } = props;
-  // const backgroundColor = useThemeColor(
-  //   { light: lightColor, dark: darkColor },
-  //   "background"
-  // );
+  const { style, background, ...otherProps } = props;
+
+  const backgroundColor = useThemeColor({
+    light: Colors.light.background[background || "primary"],
+    dark: Colors.dark.background[background || "primary"],
+  });
 
   return (
     <DefaultView
-      style={[{ backgroundColor: Colors.light.background }, style]}
+      style={[
+        { backgroundColor: props.background ? backgroundColor : "transparent" },
+        style,
+      ]}
       {...otherProps}
     />
   );
+}
+
+export function BackgroundView(props: DefaultViewProps) {
+  const { style, ...otherProps } = props;
+  const backgroundColor = useThemeColor({
+    light: Colors.light.background.primary,
+    dark: Colors.dark.background.primary,
+  });
+
+  return (
+    <DefaultView
+      style={[{ backgroundColor: backgroundColor }, style]}
+      {...otherProps}
+    >
+      <DefaultView
+        style={{
+          flex: 1,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <Image
+          source={require("@/assets/images/iceland.png")}
+          cachePolicy={"disk"}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        />
+      </DefaultView>
+      {props.children}
+    </DefaultView>
+  );
+}
+
+const fontStyles = {
+  title: {
+    fontSize: 24,
+    fontFamily: "Outfit_700Bold",
+  },
+  subtitle: {
+    fontSize: 18,
+    fontFamily: "Outfit_600SemiBold",
+  },
+  body: {
+    fontSize: 14,
+    fontFamily: "Outfit_500Medium",
+  },
+  caption: {
+    fontSize: 12,
+    fontFamily: "Outfit_400Regular",
+  },
+  button: {
+    fontSize: 16,
+    fontFamily: "Outfit_500Medium",
+  },
+};
+
+interface TextProps extends DefaultTextProps {
+  fontStyle?: keyof typeof fontStyles;
+}
+
+export function Text(props: TextProps) {
+  const { style, fontStyle = "body", ...otherProps } = props;
+
+  const color = useThemeColor({
+    light: Colors.light.text.primary,
+    dark: Colors.dark.text.primary,
+  });
+
+  // Merge the selected font style with the passed style
+  const textStyle = StyleSheet.flatten([
+    { color },
+    fontStyles[fontStyle], // Apply font style from the mapping
+    style,
+  ]);
+
+  return (
+    <DefaultText
+      style={textStyle}
+      {...otherProps}
+    />
+  );
+}
+
+interface ButtonProps extends DefaultTouchableOpacityProps {
+  title: string;
+  variant?: "primary" | "secondary" | "outline" | "ghost";
+  size?: "medium" | "large";
 }
 
 export function Button(props: ButtonProps) {
-  // const backgroundColor = useThemeColor(
-  //   { light: lightColor, dark: darkColor },
-  //   "background"
-  // );
+  const { style, variant = "primary", ...otherProps } = props;
+
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "light" ? "light" : "dark";
+
+  const getButtonStyles = (
+    theme: "light" | "dark",
+    variant: "primary" | "secondary" | "outline" | "ghost"
+  ) => {
+    const reverseTheme = theme === "light" ? "dark" : "light";
+
+    const styles = {
+      primary: {
+        backgroundColor: Colors[theme].button.primary,
+        textColor: Colors[reverseTheme].text.primary,
+        borderColor: "transparent",
+      },
+      secondary: {
+        backgroundColor: Colors[theme].button.secondary,
+        textColor: Colors[theme].text.primary,
+        borderColor: "transparent",
+      },
+      outline: {
+        backgroundColor: "transparent",
+        textColor: Colors[theme].text.primary,
+        borderColor: Colors[theme].button.primary,
+      },
+      ghost: {
+        backgroundColor: "transparent",
+        textColor: Colors[theme].text.primary,
+        borderColor: "transparent",
+      },
+    };
+
+    return styles[variant];
+  };
+
+  const themeStyles = {
+    light: getButtonStyles("light", variant),
+    dark: getButtonStyles("dark", variant),
+  };
+
+  const sizeStyles = {
+    medium: {
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+    },
+    large: {
+      paddingVertical: 14,
+      paddingHorizontal: 18,
+      borderRadius: 20,
+    },
+  };
 
   return (
-    <DefaultButton
-      color={Colors.light.accent}
-      {...props}
-    />
-  );
-}
-
-export function TextInput(props: TextInputProps) {
-  const { style, ...otherProps } = props;
-  // const color = useThemeColor(
-  //   { light: lightColor, dark: darkColor },
-  //   "primary"
-  // );
-
-  return (
-    <DefaultTextInput
+    <DefaultTouchableOpacity
       style={[
         {
-          fontFamily: "Outfit_400Regular",
-          marginVertical: 8,
-          height: 60,
-          borderRadius: 20,
-          padding: 15,
-          backgroundColor: "#fff",
-          borderWidth: 1,
-          borderColor: "#2f2f2f5d",
-          shadowColor: "#030731",
-          shadowOffset: { width: 0, height: 5 },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
-          elevation: 5,
-          // fontFamily: "Outfit_400Regular",
-          // marginVertical: 8,
-          // height: 60,
-          // borderRadius: 20,
-          // padding: 15,
-          // backgroundColor: "#fff",
-        },
-        style,
-      ]}
-      placeholderTextColor={"#2f2f2f5d"}
-      {...otherProps}
-    />
-  );
-}
-
-export const BlurView = forwardRef<typeof View, BlurViewProps>((props, ref) => {
-  const { style, ...otherProps } = props;
-
-  // return Platform.OS === "ios" || Platform.OS === "android" ? (
-  return (
-    <DefaultBlurView
-      ref={ref as any}
-      intensity={40}
-      tint="dark"
-      style={[
-        {
-          flex: 1,
-          padding: 0,
-          margin: 0,
-          justifyContent: "center",
-          overflow: "hidden",
-          borderRadius: 20,
-          opacity: 1,
-          // backgroundColor: "#5d9bd5b9",
-          backgroundColor: Platform.OS === "ios" ? "#0d4376b8" : "#195995",
+          backgroundColor: themeStyles[theme].backgroundColor,
+          borderColor: themeStyles[theme].borderColor,
+          borderWidth: variant === "outline" ? 1 : 0,
+          paddingVertical: sizeStyles[props.size || "medium"].paddingVertical,
+          paddingHorizontal:
+            sizeStyles[props.size || "medium"].paddingHorizontal,
+          borderRadius: sizeStyles[props.size || "medium"].borderRadius,
         },
         style,
       ]}
       {...otherProps}
-      // experimentalBlurMethod="dimezisBlurView"
-    />
+    >
+      <Text
+        fontStyle="button"
+        style={{
+          color: themeStyles[theme].textColor,
+          textAlign: "center",
+        }}
+      >
+        {props.title}
+      </Text>
+    </DefaultTouchableOpacity>
   );
-  // ) : (
-  //   <View
-  //     style={{
-  //       flex: 1,
-  //       padding: 0,
-  //       margin: 0,
-  //       justifyContent: "center",
-  //       overflow: "hidden",
-  //       borderRadius: 20,
-  //       opacity: 1,
-  //       backgroundColor: "#2e648b",
-  //     }}
-  //     {...props}
-  //   />
-  // );
-});
+}

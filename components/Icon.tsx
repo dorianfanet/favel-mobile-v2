@@ -7,17 +7,32 @@ export type IconByKey = keyof typeof icons;
 export interface IconProps {
   color: ColorValue;
   icon: IconByKey;
+  strokeWidth?: number;
   size?: number;
   style?: any;
   pointerEvents?: "auto" | "none";
 }
 
-const Icon = ({ icon, size = 32, color, style, pointerEvents }: IconProps) => {
+const Icon = ({
+  icon,
+  size = 32,
+  strokeWidth = 2,
+  color,
+  style,
+  pointerEvents,
+}: IconProps) => {
+  let iconSvg = icons[icon];
+
+  iconSvg = iconSvg.replace("customStrokeWidth", strokeWidth.toString());
+
+  console.log(iconSvg);
+
   return (
     <SvgXml
-      xml={icons[icon]}
+      xml={iconSvg}
       width={size}
       height={size}
+      strokeWidth={strokeWidth}
       color={color}
       style={style}
       pointerEvents={pointerEvents}

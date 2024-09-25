@@ -1,5 +1,4 @@
-import { Button, Text, View } from "@/components/Themed";
-import { ActivityIndicator, Platform } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import {
   useFonts,
   Outfit_400Regular,
@@ -14,47 +13,31 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "react-native-gesture-handler";
-import CustomToast from "@/components/CustomToast";
 import Toast from "react-native-toast-message";
 import Constants from "expo-constants";
 import { init } from "@amplitude/analytics-react-native";
 import { usePushNotifications } from "@/lib/usePushNotifications";
-import Application from "expo-application";
-import { NotificationsProvider } from "@/context/notificationsContext";
 import Colors from "@/constants/Colors";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { MMKVLoader } from "react-native-mmkv-storage";
 import "@/i18n";
-import { LogBox } from "react-native";
-import { EventProvider } from "react-native-outside-press";
+import { useTranslation } from "react-i18next";
 
-LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
-LogBox.ignoreAllLogs();
+// LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
+// LogBox.ignoreAllLogs();
 
 export const MMKV = new MMKVLoader().initialize();
-
-const toastConfig = {
-  custom: (props: any) => {
-    console.log("custom toast props: ", props);
-    return <CustomToast {...props} />;
-  },
-};
 
 function InitialLayout() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
-  const segments = useSegments();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { expoPushToken } = usePushNotifications();
 
   useEffect(() => {
-    console.log("isSignedIn changed", isSignedIn, segments);
     if (!isLoaded) return;
-
-    const inAuthPage = segments[0] === "(auth)";
-
-    console.log(isSignedIn);
 
     async function updatePushToken() {
       if (!expoPushToken || !user) return;
@@ -95,17 +78,17 @@ function InitialLayout() {
       updatePushToken();
     }
 
-    if (isSignedIn && !inAuthPage) {
+    if (isSignedIn) {
       try {
         init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY!, user?.id);
       } catch (e) {
         console.log(e);
       }
-      router.replace("/(auth)/(tabs)/home");
+      router.replace("../home");
     } else if (!isSignedIn) {
-      router.replace("/(public)/auth");
+      router.replace("../auth");
     }
-  }, [isSignedIn, expoPushToken]);
+  }, [isLoaded]);
 
   if (!isLoaded) {
     return (
@@ -117,199 +100,35 @@ function InitialLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <EventProvider>
-        <Stack>
-          <Stack.Screen
-            name="(modals)/editProfile"
-            options={{
-              presentation: "modal",
-              title: "Modifier le profil",
-              headerLeft:
-                Platform.OS === "ios"
-                  ? () => (
-                      <Button
-                        title="Annuler"
-                        onPress={() => router.back()}
-                      />
-                    )
-                  : undefined,
-              headerTransparent: Platform.OS === "ios" ? true : false,
-              headerBackground: () => (
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: Colors.light.accent,
-                  }}
-                />
-              ),
-              headerTintColor:
-                Platform.OS === "ios" ? Colors.light.primary : "white",
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/travelCompanions"
-            options={{
-              presentation: "modal",
-              title: "Covoyageurs",
-              headerRight: () => (
-                <Button
-                  title="Fermer"
-                  onPress={() => router.back()}
-                />
-              ),
-              headerTransparent: true,
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/mandatoryInfos"
-            options={{
-              presentation: "modal",
-              title: "Informations supplémentaires",
-              headerTransparent: true,
-              gestureEnabled: false,
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/share/[id]"
-            options={{
-              presentation: "modal",
-              title: "Partager le voyage",
-              headerTransparent: true,
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/travelers/[id]"
-            options={{
-              presentation: "modal",
-              title: "Voyageurs",
-              headerStyle: {
-                backgroundColor: Colors.light.accent,
-              },
-              headerTintColor: "white",
-              headerRight:
-                Platform.OS === "ios"
-                  ? () => {
-                      return (
-                        <Button
-                          onPress={() => router.back()}
-                          title="Fermer"
-                          color="white"
-                        />
-                      );
-                    }
-                  : undefined,
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/follows/[...rest]"
-            options={{
-              presentation: "modal",
-              title: "Abonnés",
-              headerStyle: {
-                backgroundColor: Colors.light.accent,
-              },
-              headerTintColor: "white",
-              headerRight: () => {
-                return Platform.OS === "ios" ? (
-                  <Button
-                    onPress={() => router.back()}
-                    title="Fermer"
-                    color="white"
-                  />
-                ) : null;
-              },
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/onboarding"
-            options={{
-              presentation: "modal",
-              headerShown: Platform.OS === "ios" ? false : true,
-              headerBackground: () => (
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: Colors.light.accent,
-                  }}
-                />
-              ),
-              headerTintColor: "white",
-              headerTitle: "Comment ça marche ?",
-            }}
-          />
-          <Stack.Screen
-            name="(auth)/(tabs)"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="(auth)/conversation/[id]"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="(auth)/conversations/index"
-            options={{
-              headerTitle: "Conversations",
-              headerBackground: () => (
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: Colors.light.accent,
-                  }}
-                />
-              ),
-              headerTintColor: "white",
-              headerBackTitle: "Retour",
-            }}
-          />
-          <Stack.Screen
-            // name="(auth)/profile/(tabs)"
-            name="(auth)/profile/[id]"
-            options={{
-              headerTitle: "Profil",
-              headerBackground: () => (
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: Colors.light.accent,
-                  }}
-                />
-              ),
-              headerTintColor: "white",
-              headerBackTitle: "Retour",
-            }}
-          />
-          <Stack.Screen
-            name="(auth)/post/[id]"
-            options={{
-              headerTitle: "Publication",
-              headerBackground: () => (
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: Colors.light.accent,
-                  }}
-                />
-              ),
-              headerTintColor: "white",
-              headerBackTitle: "Retour",
-            }}
-          />
-          <Stack.Screen
-            name="(public)"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
-        <Toast
-          config={toastConfig}
-          topOffset={Constants.statusBarHeight}
+      <Stack>
+        <Stack.Screen
+          name="auth"
+          options={{
+            headerShown: false,
+          }}
         />
-      </EventProvider>
+        <Stack.Screen
+          name="home"
+          options={{
+            headerShown: false,
+          }}
+        />
+        {/* <Stack.Screen
+          name="trip"
+          options={{
+            headerShown: false,
+          }}
+        /> */}
+
+        {/* modals */}
+        <Stack.Screen
+          name="(modals)/logIn"
+          options={{
+            title: t("login"),
+            presentation: "modal",
+          }}
+        />
+      </Stack>
     </GestureHandlerRootView>
   );
 }
