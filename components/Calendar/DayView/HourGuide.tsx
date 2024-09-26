@@ -1,5 +1,5 @@
+import { Text, View } from "@/components/Themed";
 import React from "react";
-import { View, Text } from "react-native";
 
 interface HourGuideProps {
   hourHeight: number;
@@ -17,7 +17,7 @@ const HourGuide: React.FC<HourGuideProps> = ({ hourHeight }) => {
             alignItems: "center",
           }}
         >
-          <Text style={{ color: "#FFFFFF", fontSize: 12 }}>
+          <Text style={{ fontSize: 12 }}>
             {index === 0
               ? "12 AM"
               : index === 12

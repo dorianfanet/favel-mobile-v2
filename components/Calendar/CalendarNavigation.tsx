@@ -25,34 +25,29 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
   currentDate,
   onDateChange,
 }) => {
-  const [dates, setDates] = useState(() => getDatesArray(currentDate));
   const translateX = useSharedValue(0);
 
-  const updateDatesAndPosition = useCallback(
-    (newCurrentDate: Date, newTranslateX: number) => {
-      setDates(getDatesArray(newCurrentDate));
-      translateX.value = newTranslateX;
-    },
-    []
-  );
+  // const updateDatesAndPosition = useCallback(
+  //   (newCurrentDate: Date, newTranslateX: number) => {
+  //     setDates(getDatesArray(newCurrentDate));
+  //     translateX.value = newTranslateX;
+  //   },
+  //   []
+  // );
 
-  useEffect(() => {
-    if (
-      currentDate &&
-      currentDate instanceof Date &&
-      !isNaN(currentDate.getTime())
-    ) {
-      updateDatesAndPosition(currentDate, 0);
-    } else {
-      const today = new Date();
-      updateDatesAndPosition(today, 0);
-      onDateChange(today);
-    }
-  }, [currentDate, updateDatesAndPosition, onDateChange]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
+  // useEffect(() => {
+  //   if (
+  //     currentDate &&
+  //     currentDate instanceof Date &&
+  //     !isNaN(currentDate.getTime())
+  //   ) {
+  //     // updateDatesAndPosition(currentDate, 0);
+  //   } else {
+  //     const today = new Date();
+  //     updateDatesAndPosition(today, 0);
+  //     onDateChange(today);
+  //   }
+  // }, [currentDate, updateDatesAndPosition, onDateChange]);
 
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
@@ -71,28 +66,55 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
 
   const onSwipeComplete = useCallback(
     (index: number) => {
+      console.log("translateX", translateX.value);
       const newDate = new Date(currentDate);
       newDate.setDate(currentDate.getDate() - index);
       onDateChange(newDate);
-      updateDatesAndPosition(newDate, 0);
+      translateX.value = 0;
     },
-    [currentDate, onDateChange, updateDatesAndPosition]
+    [currentDate, onDateChange]
   );
+
+  const animatedStylePrevious = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+  const animatedStyleCurrent = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+  const animatedStyleNext = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.container, animatedStyle]}>
-        {dates.map((date, index) => (
-          <View
-            key={date.toISOString()}
-            style={[styles.dayContainer, { left: width * (index - 1) }]}
-          >
-            {children(date)}
-          </View>
-        ))}
-      </Animated.View>
+      <View style={[styles.container]}>
+        <Animated.View
+          key={incrementDate(currentDate, -1).toISOString()}
+          style={[styles.dayContainer, { left: -width }, animatedStylePrevious]}
+        >
+          {children(incrementDate(currentDate, -1))}
+        </Animated.View>
+        <Animated.View
+          key={currentDate.toISOString()}
+          style={[styles.dayContainer, { left: 0 }, animatedStyleCurrent]}
+        >
+          {children(currentDate)}
+        </Animated.View>
+        <Animated.View
+          key={incrementDate(currentDate, 1).toISOString()}
+          style={[styles.dayContainer, { left: width }, animatedStyleNext]}
+        >
+          {children(incrementDate(currentDate, 1))}
+        </Animated.View>
+      </View>
     </GestureDetector>
   );
+};
+
+const incrementDate = (date: Date, increment: number) => {
+  const newDate = new Date(date);
+  newDate.setDate(date.getDate() + increment);
+  return newDate;
 };
 
 const getDatesArray = (currentDate: Date) => [
@@ -127,3 +149,17 @@ const styles = StyleSheet.create({
 });
 
 export default CalendarNavigation;
+
+// CONSLUSION DU 26/09/2024 À 4H DU MATIN
+// J'ai réussi à implémenter la navigation entre les jours dans le composant CalendarNavigation.
+// Ça marche bien MAIS il y a un léger flickering lorsqu'on swipe entre les jours.
+// J'ai essayé plein de choses mais ça ne marche pas.
+// Le problème vient du fait que je n'arrive pas à synchroniser les dates et les translations.
+
+// Idées pour la suite:
+// - Utiliser un useLayoutEffect pour synchroniser les dates et les translations (ok copilot pas sur de celle là)
+
+// Le vrai truc que je veux essayer c'est en s'inspirant du calendrier de l'application native de l'iPhone.
+// En se focusant sur l'animation qui "push" les jours au clique sur la journée dans le header.
+// Et avec un animate presence je peux faire une animation de slide pour les jours qui disparaissent et apparaissent.
+// Et en fait le pan va juste trigger l'animation de slide pour les jours qui disparaissent et apparaissent depuis le header.
