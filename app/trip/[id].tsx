@@ -35,7 +35,7 @@ export default function Index() {
             setModalFull(i === 1);
           }}
         />
-        <Header gradient={!modalFull}>
+        <Header>
           <View
             style={{
               flex: 1,
