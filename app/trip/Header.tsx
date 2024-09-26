@@ -1,10 +1,39 @@
-import { View, Text, SafeAreaView } from "react-native";
+import { View, Text, SafeAreaView, Dimensions } from "react-native";
 import React from "react";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { BackgroundView } from "@/components/Themed";
 import { LinearGradient } from "expo-linear-gradient";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
-export default function Header({ children }: { children: React.ReactNode }) {
+const { height } = Dimensions.get("window");
+
+export default function Header({
+  children,
+  gradient,
+}: {
+  children: React.ReactNode;
+  gradient: boolean;
+}) {
+  const headerHeight = 150;
+
+  const opacity = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
+  React.useEffect(() => {
+    opacity.value = withTiming(gradient ? 0 : 1, {
+      duration: 300,
+    });
+  }, [gradient]);
+
   return (
     <View
       style={{
@@ -12,9 +41,10 @@ export default function Header({ children }: { children: React.ReactNode }) {
         top: 0,
         left: 0,
         right: 0,
-        height: 200,
+        height: height,
         justifyContent: "center",
         alignItems: "center",
+        pointerEvents: "none",
       }}
     >
       <MaskedView
@@ -30,16 +60,29 @@ export default function Header({ children }: { children: React.ReactNode }) {
             style={[
               {
                 width: "100%",
-                height: 200,
+                height: headerHeight,
                 pointerEvents: "none",
               },
             ]}
           >
             <LinearGradient
-              colors={["black", "rgba(0,0,0,.95)", "transparent"]}
-              locations={[0, 0.6, 1]}
+              colors={["black", "rgba(0,0,0,0.9)", "transparent"]}
+              locations={[0, 0.5, 1]}
               style={{ flex: 1, pointerEvents: "none" }}
             />
+            {/* <Animated.View
+              style={[
+                {
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: "rgba(0,0,0,1)",
+                },
+                animatedStyle,
+              ]}
+            /> */}
           </View>
         }
       >

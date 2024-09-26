@@ -230,7 +230,7 @@ function TripCard({
           borderRadius: 30,
         }}
         onPress={() => {
-          router.push("../trip");
+          router.push("../trip/1");
         }}
       >
         <View

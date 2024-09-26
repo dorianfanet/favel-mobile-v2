@@ -26,6 +26,7 @@
     "@rnmapbox/maps": "^10.1.24",
     "@supabase/supabase-js": "^2.40.0",
     "@turf/turf": "^6.5.0",
+    "date-fns": "^4.1.0",
     "expo": "~50.0.14",
     "expo-application": "~5.8.3",
     "expo-blur": "~12.9.2",
