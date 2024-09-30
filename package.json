@@ -53,6 +53,7 @@
     "expo-web-browser": "~12.8.2",
     "i18next": "^23.14.0",
     "linear-gradient": "^1.0.6",
+    "lodash": "^4.17.21",
     "moti": "^0.28.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -80,6 +81,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@types/lodash": "^4.17.9",
     "@types/react": "~18.2.45",
     "@types/react-native": "^0.73.0",
     "@types/uuid": "^9.0.8",

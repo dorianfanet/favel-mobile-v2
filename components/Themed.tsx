@@ -44,7 +44,7 @@ export function View(props: ViewProps) {
 export function BackgroundView(props: DefaultViewProps) {
   const { style, ...otherProps } = props;
   const backgroundColor = useThemeColor({
-    light: Colors.light.background.primary,
+    light: Colors.light.background.secondary,
     dark: Colors.dark.background.primary,
   });
 

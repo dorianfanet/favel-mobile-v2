@@ -254,15 +254,15 @@ export default function Layout() {
 //       >
 //         <MapboxGL.SymbolLayer
 //           id="marker"
-//           style={{
-//             iconImage: "harbor",
-//             iconAllowOverlap: false,
-//             textField: "Golden Gate Park",
-//             textAnchor: "left",
-//             textOffset: [2, 0],
-//             iconSize: 5,
-//             iconOpacity: 1,
-//           }}
+// style={{
+//   iconImage: "harbor",
+//   iconAllowOverlap: false,
+//   textField: "Golden Gate Park",
+//   textAnchor: "left",
+//   textOffset: [2, 0],
+//   iconSize: 5,
+//   iconOpacity: 1,
+// }}
 //         />
 //       </MapboxGL.ShapeSource>
 //       {/* </Animated.View> */}

@@ -11,13 +11,7 @@ import Animated, {
 
 const { height } = Dimensions.get("window");
 
-export default function Header({
-  children,
-  gradient,
-}: {
-  children: React.ReactNode;
-  gradient: boolean;
-}) {
+export default function Header({ children }: { children: React.ReactNode }) {
   const headerHeight = 150;
 
   const opacity = useSharedValue(0);
@@ -27,12 +21,6 @@ export default function Header({
       opacity: opacity.value,
     };
   });
-
-  React.useEffect(() => {
-    opacity.value = withTiming(gradient ? 0 : 1, {
-      duration: 300,
-    });
-  }, [gradient]);
 
   return (
     <View

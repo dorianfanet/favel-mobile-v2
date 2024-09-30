@@ -25,8 +25,6 @@ const Icon = ({
 
   iconSvg = iconSvg.replace("customStrokeWidth", strokeWidth.toString());
 
-  console.log(iconSvg);
-
   return (
     <SvgXml
       xml={iconSvg}

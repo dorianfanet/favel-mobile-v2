@@ -1,13 +1,29 @@
-import { View, Text, Dimensions, useColorScheme } from "react-native";
+import {
+  View,
+  Dimensions,
+  useColorScheme,
+  Touchable,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BackgroundView } from "@/components/Themed";
-import { useSharedValue } from "react-native-reanimated";
+import { BackgroundView, Text } from "@/components/Themed";
+import Animated, {
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import Calendar from "@/components/Calendar";
-import { Day, Event } from "@/types/trip";
+import { TripDay, TripEvent } from "@/types/trip";
 import { useFocusEffect } from "expo-router";
 import Colors from "@/constants/Colors";
+import { padding } from "@/constants/values";
+import { Circle, Svg, Text as SvgText } from "react-native-svg";
+import useTheme from "@/hooks/useTheme";
 
 const { height } = Dimensions.get("window");
 
@@ -17,9 +33,11 @@ const dates = {
 };
 
 export default function BottomSheets({
-  onChange,
+  tripDays,
+  tripEvents,
 }: {
-  onChange: (i: number) => void;
+  tripDays: TripDay[];
+  tripEvents: TripEvent[];
 }) {
   const inset = useSafeAreaInsets();
 
@@ -29,108 +47,32 @@ export default function BottomSheets({
     calendarModalRef.current?.present();
   }, []);
 
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-    if (index === 1) {
-      onChange(index);
-    } else {
-      onChange(index);
-    }
-  }, []);
-
   const animatedPosition = useSharedValue(0);
 
   console.log(animatedPosition.value);
-
-  const [days, setDays] = React.useState<Day[]>([
-    {
-      id: "1",
-      date: new Date(2024, 8, 25),
-      name: "Fisherman's Wharf",
-      centerPoint: {
-        latitude: 37.808,
-        longitude: -122.416,
-      },
-    },
-    {
-      id: "2",
-      date: new Date(2024, 8, 26),
-      name: "Golden Gate Park",
-      centerPoint: {
-        latitude: 37.769,
-        longitude: -122.486,
-      },
-    },
-    {
-      id: "3",
-      date: new Date(2024, 8, 27),
-      name: "Chinatown",
-      centerPoint: {
-        latitude: 37.794,
-        longitude: -122.407,
-      },
-    },
-    {
-      id: "4",
-      date: new Date(2024, 8, 28),
-      name: "Union Square",
-      centerPoint: {
-        latitude: 37.788,
-        longitude: -122.407,
-      },
-    },
-  ]);
-
-  const [events, setEvents] = React.useState<Event[]>([
-    {
-      id: "5367",
-      start: new Date(2024, 8, 25, 10, 0),
-      end: new Date(2024, 8, 25, 11, 30),
-      title: "Fisherman's Wharf",
-      dayId: "1",
-    },
-    {
-      id: "5368",
-      start: new Date(2024, 8, 25, 12, 0),
-      end: new Date(2024, 8, 25, 13, 30),
-      title: "Lunch",
-      dayId: "1",
-    },
-    {
-      id: "5369",
-      start: new Date(2024, 8, 25, 14, 0),
-      end: new Date(2024, 8, 25, 15, 30),
-      title: "Golden Gate Park",
-      dayId: "2",
-    },
-    {
-      id: "5370",
-      start: new Date(2024, 8, 25, 16, 0),
-      end: new Date(2024, 8, 25, 17, 30),
-      title: "Dinner",
-      dayId: "2",
-    },
-    {
-      dayId: "3",
-      end: new Date(2024, 8, 25, 17, 30),
-      id: "5370",
-      start: new Date(2024, 8, 25, 16, 0),
-      title: "Dinner",
-    },
-    {
-      id: "5371",
-      start: new Date(2024, 8, 25, 18, 0),
-      end: new Date(2024, 8, 25, 19, 30),
-      title: "Union Square",
-      dayId: "4",
-    },
-  ]);
 
   const offsetHeight = useMemo(() => {
     return height - inset.top - 120;
   }, [inset]);
 
-  const theme = useColorScheme();
+  const { theme } = useTheme();
+
+  const citySize = useSharedValue(18);
+  const dayTranslateY = useSharedValue(-4);
+  const dayOpacity = useSharedValue(0);
+
+  const animatedCityStyle = useAnimatedStyle(() => {
+    return {
+      fontSize: withTiming(citySize.value),
+    };
+  });
+
+  const animatedDayStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: withTiming(dayTranslateY.value) }],
+      opacity: withTiming(dayOpacity.value),
+    };
+  });
 
   return (
     <BottomSheetModal
@@ -144,10 +86,68 @@ export default function BottomSheets({
             width: "100%",
             height: 0,
           }}
-        ></View>
+        >
+          <Pressable
+            style={{
+              position: "absolute",
+              top: -70,
+              width: "100%",
+              height: 70,
+              padding: padding,
+              overflow: "hidden",
+              justifyContent: "flex-end",
+            }}
+            onPress={() => {
+              citySize.value = citySize.value === 14 ? 18 : 14;
+              dayTranslateY.value = dayTranslateY.value === 0 ? -4 : 0;
+              dayOpacity.value = dayOpacity.value === 0 ? 1 : 0;
+            }}
+          >
+            {/* <View
+              style={{
+                position: "absolute",
+                bottom: -40,
+                backgroundColor: "black",
+                width: 200,
+                height: 20,
+                shadowColor: "#010f14",
+                shadowOffset: {
+                  width: 0,
+                  height: -45,
+                },
+                shadowOpacity: 1,
+                shadowRadius: 15,
+              }}
+            /> */}
+            <Animated.Text
+              style={[
+                {
+                  fontFamily: "Outfit_600SemiBold",
+                  color: Colors[theme].text.primary,
+                  fontSize: 18,
+                  position: "absolute",
+                  bottom: 35,
+                  left: padding,
+                },
+                animatedDayStyle,
+              ]}
+            >
+              Golden Gate Park
+            </Animated.Text>
+            <Animated.Text
+              style={[
+                {
+                  fontFamily: "Outfit_600SemiBold",
+                  color: Colors[theme].text.primary,
+                },
+                animatedCityStyle,
+              ]}
+            >
+              San Francisco
+            </Animated.Text>
+          </Pressable>
+        </View>
       )}
-      onChange={handleSheetChanges}
-      onAnimate={handleSheetChanges}
       enableDismissOnClose={false}
       enablePanDownToClose={false}
       backgroundStyle={{
@@ -155,7 +155,7 @@ export default function BottomSheets({
       }}
       animatedPosition={animatedPosition}
       style={{
-        shadowColor: Colors.light.text.primary,
+        shadowColor: "#03121b",
         shadowOffset: {
           width: 0,
           height: 0,
@@ -193,8 +193,8 @@ export default function BottomSheets({
           <Calendar
             startDate={dates.startDate}
             endDate={dates.endDate}
-            days={days}
-            events={events}
+            days={tripDays}
+            events={tripEvents}
             height={offsetHeight}
           />
         </View>

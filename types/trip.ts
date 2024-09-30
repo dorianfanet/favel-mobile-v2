@@ -1,22 +1,60 @@
-export interface TripDay {
+export interface Trip {
   id: string;
-  date: Date;
-  tripId: string;
+  createdAt: Date;
+  updatedAt: Date;
   name: string;
-  centerPoint: {
-    latitude: number;
-    longitude: number;
-  };
-  areaPolygon?: {
-    latitude: number;
-    longitude: number;
-  }[];
+  departureDate: Date;
+  returnDate: Date;
+  creatorId: string;
+  thumbnail: string;
 }
 
-export interface TripEvent {
+export interface TripStage {
   id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  name: string;
+  thumbnail: string;
+  tripId: string;
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface TripDay {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  tripId: string;
+  name: string;
+  centerPoint: any; // Replace 'any' with a more specific type if possible
+  areaPolygon: any; // Replace 'any' with a more specific type if possible
+  stageId: string;
+  date: Date;
+}
+
+export interface TripNight {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  startDate: Date;
+  endDate: Date;
+  stageId: string;
+}
+
+export type TripEvent = TripEventActivity;
+
+export interface BaseTripEvent {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  dayId: string;
   start: Date;
   end: Date;
-  dayId: string;
-  title: string;
+  centerPoint: any; // Replace 'any' with a more specific type if possible
+}
+
+export interface TripEventActivity extends BaseTripEvent {
+  name: string;
+  location: string;
+  thumbnail: string;
 }

@@ -25,6 +25,7 @@ interface MapViewProps extends React.ComponentProps<typeof MapboxGL.MapView> {
   animationDuration?: number;
   easing: CameraAnimationMode;
   children?: React.ReactNode;
+  mapRef?: React.RefObject<MapboxGL.MapView>;
 }
 
 export default function MapView(props: MapViewProps) {
@@ -37,11 +38,12 @@ export default function MapView(props: MapViewProps) {
     animationDuration,
     easing,
     children,
+    mapRef,
     ...otherProps
   } = props;
 
   const theme = useColorScheme();
-  const mapRef = React.useRef<MapboxGL.MapView>(null);
+  // mapRef = React.useRef<MapboxGL.MapView>(null);
   const cameraRef = React.useRef<Mapbox.Camera>(null);
 
   return (

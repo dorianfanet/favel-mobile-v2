@@ -6,7 +6,7 @@ import { AssistantProvider } from "@/context/assistantContext";
 import Calendar from "@/components/Calendar";
 import { Text, View } from "@/components/Themed";
 import { Dimensions, SafeAreaView } from "react-native";
-import { Day, Event } from "@/types/trip";
+import { TripProvider } from "@/context/tripContext";
 
 const dates = {
   startDate: new Date(2024, 8, 25),
@@ -45,7 +45,9 @@ export default function Layout() {
       <CameraProvider>
         <BottomSheetModalProvider>
           <AssistantProvider>
-            <Slot />
+            <TripProvider>
+              <Slot />
+            </TripProvider>
           </AssistantProvider>
         </BottomSheetModalProvider>
       </CameraProvider>
