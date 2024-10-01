@@ -39,6 +39,8 @@ export interface TripNight {
   startDate: Date;
   endDate: Date;
   stageId: string;
+  name: string;
+  centerPoint: any; // Replace 'any' with a more specific type if possible
 }
 
 export type TripEvent = TripEventActivity;

@@ -11,12 +11,15 @@ import { padding } from "@/constants/values";
 
 interface DayViewProps {
   events: TripEvent[];
+  dayDate: Date;
 }
 
-const DayView: React.FC<DayViewProps> = ({ events }) => {
+const DayView: React.FC<DayViewProps> = ({ events, dayDate }) => {
   const hourHeight = 100; // Height for each hour in the calendar
 
   const theme = useColorScheme();
+
+  console.log("events", JSON.stringify(events, null, 2));
 
   return (
     <ScrollView style={{ flex: 1, paddingVertical: 10 }}>
@@ -91,9 +94,10 @@ const DayView: React.FC<DayViewProps> = ({ events }) => {
       >
         {events.map((event, index) => (
           <EventItem
-            key={index}
+            key={`${event.id}-${index}`}
             event={event}
             hourHeight={hourHeight}
+            dayDate={dayDate}
           />
         ))}
       </View>

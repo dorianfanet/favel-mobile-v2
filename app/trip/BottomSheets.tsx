@@ -103,22 +103,6 @@ export default function BottomSheets({
               dayOpacity.value = dayOpacity.value === 0 ? 1 : 0;
             }}
           >
-            {/* <View
-              style={{
-                position: "absolute",
-                bottom: -40,
-                backgroundColor: "black",
-                width: 200,
-                height: 20,
-                shadowColor: "#010f14",
-                shadowOffset: {
-                  width: 0,
-                  height: -45,
-                },
-                shadowOpacity: 1,
-                shadowRadius: 15,
-              }}
-            /> */}
             <Animated.Text
               style={[
                 {

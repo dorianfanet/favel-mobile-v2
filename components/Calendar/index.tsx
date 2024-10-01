@@ -124,7 +124,22 @@ function Calendar({
           setCurrentDate(days[index].date);
         }}
         renderItem={({ item, index }) => (
-          <DayView events={events.filter((event) => event.dayId === item.id)} />
+          <DayView
+            dayDate={item.date}
+            events={events.filter((event) => {
+              const dayStart = new Date(
+                item.date.setHours(0, 0, 0, 0)
+              ).getTime();
+              const dayEnd = new Date(
+                item.date.setHours(23, 59, 59, 999)
+              ).getTime();
+
+              const eventStart = new Date(event.start).getTime();
+              const eventEnd = new Date(event.end).getTime();
+
+              return eventStart <= dayEnd && eventEnd >= dayStart;
+            })}
+          />
         )}
       />
     </View>

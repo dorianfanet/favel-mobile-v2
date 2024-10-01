@@ -7,7 +7,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import BottomSheets from "./BottomSheets";
 import Assistant from "./(header)/Assistant";
 import { tripUtils, useTrip } from "@/context/tripContext";
-import { Trip, TripDay, TripEvent, TripStage } from "@/types/trip";
+import { Trip, TripDay, TripEvent, TripNight, TripStage } from "@/types/trip";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -42,6 +42,9 @@ export default function Index() {
 
     // Load events
     tripUtils.setEvents(dispatch, events);
+
+    // Load nights
+    tripUtils.setNights(dispatch, nights);
 
     setLoading(false);
   }, []);
@@ -196,7 +199,7 @@ const days: TripDay[] = [
 const events: TripEvent[] = [
   // Day 1 events
   {
-    id: "event1",
+    id: "event1.1",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day1",
@@ -208,7 +211,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7902, lng: -122.4058 }, // Café de la Presse
   },
   {
-    id: "event2",
+    id: "event1.2",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day1",
@@ -220,7 +223,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7837, lng: -122.407 }, // Westfield San Francisco Centre
   },
   {
-    id: "event3",
+    id: "event1.3",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day1",
@@ -232,12 +235,12 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7857, lng: -122.4025 }, // Contemporary Jewish Museum
   },
   {
-    id: "event3.1",
+    id: "event1.4",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day1",
     start: new Date("2024-09-26T18:00:00"),
-    end: new Date("2024-09-26T20:00:00"),
+    end: new Date("2024-09-27T08:00:00"),
     name: "Dinner at The Rotunda",
     location: "The Rotunda at Neiman Marcus",
     thumbnail: "https://example.com/rotunda-thumbnail.jpg",
@@ -246,7 +249,7 @@ const events: TripEvent[] = [
 
   // Day 2 events
   {
-    id: "event4",
+    id: "event2.1",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day2",
@@ -258,7 +261,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7694, lng: -122.4862 },
   },
   {
-    id: "event5",
+    id: "event2.2",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day2",
@@ -270,7 +273,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7632, lng: -122.4661 },
   },
   {
-    id: "event6",
+    id: "event2.3",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day2",
@@ -284,45 +287,45 @@ const events: TripEvent[] = [
 
   // Day 3 events
   {
-    id: "event7",
+    id: "event3.1",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day3",
     start: new Date("2024-09-28T09:00:00"),
     end: new Date("2024-09-28T11:00:00"),
-    name: "Ferry to Alcatraz Island",
+    name: "Alcatraz Island",
     location: "Alcatraz Island",
     thumbnail: "https://example.com/alcatraz-thumbnail.jpg",
     centerPoint: { lat: 37.8267, lng: -122.423 },
   },
   {
-    id: "event8",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    dayId: "day3",
-    start: new Date("2024-09-28T12:00:00"),
-    end: new Date("2024-09-28T14:00:00"),
-    name: "Lunch at Fisherman's Wharf",
-    location: "Fisherman's Wharf",
-    thumbnail: "https://example.com/fisherman-thumbnail.jpg",
-    centerPoint: { lat: 37.808, lng: -122.4177 },
-  },
-  {
-    id: "event9",
+    id: "event3.2",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day3",
     start: new Date("2024-09-28T15:00:00"),
     end: new Date("2024-09-28T17:00:00"),
-    name: "Visit Pier 39",
+    name: "Pier 39",
     location: "Pier 39",
     thumbnail: "https://example.com/pier39-thumbnail.jpg",
     centerPoint: { lat: 37.8087, lng: -122.4098 },
   },
+  {
+    id: "event3.3",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    dayId: "day3",
+    start: new Date("2024-09-28T12:00:00"),
+    end: new Date("2024-09-28T14:00:00"),
+    name: "Fisherman's Wharf",
+    location: "Fisherman's Wharf",
+    thumbnail: "https://example.com/fisherman-thumbnail.jpg",
+    centerPoint: { lat: 37.808, lng: -122.4177 },
+  },
 
   // Day 4 event
   {
-    id: "event5",
+    id: "event4.1",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day4",
@@ -334,7 +337,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7615, lng: -122.4241 }, // Tartine Bakery
   },
   {
-    id: "event6",
+    id: "event4.2",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day4",
@@ -346,7 +349,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7596, lng: -122.4269 }, // Mission Dolores Park
   },
   {
-    id: "event7",
+    id: "event4.3",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day4",
@@ -358,7 +361,7 @@ const events: TripEvent[] = [
     centerPoint: { lat: 37.7523, lng: -122.413 }, // Balmy Alley Murals
   },
   {
-    id: "event8",
+    id: "event4.4",
     createdAt: new Date(),
     updatedAt: new Date(),
     dayId: "day4",
@@ -368,5 +371,18 @@ const events: TripEvent[] = [
     location: "Foreign Cinema",
     thumbnail: "https://example.com/foreign-cinema-thumbnail.jpg",
     centerPoint: { lat: 37.7566, lng: -122.4194 }, // Foreign Cinema
+  },
+];
+
+const nights: TripNight[] = [
+  {
+    id: "night1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    startDate: new Date("2024-09-26"),
+    endDate: new Date("2024-09-29"),
+    stageId: "stage1",
+    name: "The Grove Inn",
+    centerPoint: { lat: 37.77692001973226, lng: -122.43125654014332 },
   },
 ];

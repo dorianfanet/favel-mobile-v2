@@ -1,4 +1,4 @@
-import { Trip, TripDay, TripEvent, TripStage } from "@/types/trip";
+import { Trip, TripDay, TripEvent, TripNight, TripStage } from "@/types/trip";
 import React, { createContext, useContext, useReducer, Dispatch } from "react";
 
 // Define the state structure
@@ -7,6 +7,7 @@ interface TripState {
   stages: TripStage[];
   days: TripDay[];
   events: TripEvent[];
+  nights: TripNight[];
 }
 
 // Define action types
@@ -15,15 +16,19 @@ type TripAction =
   | { type: "SET_STAGES"; payload: TripStage[] }
   | { type: "SET_DAYS"; payload: TripDay[] }
   | { type: "SET_EVENTS"; payload: TripEvent[] }
+  | { type: "SET_NIGHTS"; payload: TripNight[] }
   | { type: "UPDATE_STAGE"; payload: TripStage }
   | { type: "UPDATE_DAY"; payload: TripDay }
   | { type: "UPDATE_EVENT"; payload: TripEvent }
+  | { type: "UPDATE_NIGHT"; payload: TripNight }
   | { type: "ADD_STAGE"; payload: TripStage }
   | { type: "ADD_DAY"; payload: TripDay }
   | { type: "ADD_EVENT"; payload: TripEvent }
+  | { type: "ADD_NIGHT"; payload: TripNight }
   | { type: "REMOVE_STAGE"; payload: string }
   | { type: "REMOVE_DAY"; payload: string }
-  | { type: "REMOVE_EVENT"; payload: string };
+  | { type: "REMOVE_EVENT"; payload: string }
+  | { type: "REMOVE_NIGHT"; payload: string };
 
 // Define the initial state
 const initialState: TripState = {
@@ -31,6 +36,7 @@ const initialState: TripState = {
   stages: [],
   days: [],
   events: [],
+  nights: [],
 };
 
 // Create the context
@@ -53,6 +59,8 @@ const tripReducer = (state: TripState, action: TripAction): TripState => {
       return { ...state, days: action.payload };
     case "SET_EVENTS":
       return { ...state, events: action.payload };
+    case "SET_NIGHTS":
+      return { ...state, nights: action.payload };
     case "UPDATE_STAGE":
       return {
         ...state,
@@ -74,12 +82,21 @@ const tripReducer = (state: TripState, action: TripAction): TripState => {
           event.id === action.payload.id ? action.payload : event
         ),
       };
+    case "UPDATE_NIGHT":
+      return {
+        ...state,
+        nights: state.nights.map((night) =>
+          night.id === action.payload.id ? action.payload : night
+        ),
+      };
     case "ADD_STAGE":
       return { ...state, stages: [...state.stages, action.payload] };
     case "ADD_DAY":
       return { ...state, days: [...state.days, action.payload] };
     case "ADD_EVENT":
       return { ...state, events: [...state.events, action.payload] };
+    case "ADD_NIGHT":
+      return { ...state, nights: [...state.nights, action.payload] };
     case "REMOVE_STAGE":
       return {
         ...state,
@@ -94,6 +111,11 @@ const tripReducer = (state: TripState, action: TripAction): TripState => {
       return {
         ...state,
         events: state.events.filter((event) => event.id !== action.payload),
+      };
+    case "REMOVE_NIGHT":
+      return {
+        ...state,
+        nights: state.nights.filter((night) => night.id !== action.payload),
       };
     default:
       return state;
@@ -136,6 +158,9 @@ export const tripUtils = {
   setEvents: (dispatch: Dispatch<TripAction>, events: TripEvent[]) => {
     dispatch({ type: "SET_EVENTS", payload: events });
   },
+  setNights: (dispatch: Dispatch<TripAction>, nights: TripNight[]) => {
+    dispatch({ type: "SET_NIGHTS", payload: nights });
+  },
   updateStage: (dispatch: Dispatch<TripAction>, stage: TripStage) => {
     dispatch({ type: "UPDATE_STAGE", payload: stage });
   },
@@ -144,6 +169,9 @@ export const tripUtils = {
   },
   updateEvent: (dispatch: Dispatch<TripAction>, event: TripEvent) => {
     dispatch({ type: "UPDATE_EVENT", payload: event });
+  },
+  updateNight: (dispatch: Dispatch<TripAction>, night: TripNight) => {
+    dispatch({ type: "UPDATE_NIGHT", payload: night });
   },
   addStage: (dispatch: Dispatch<TripAction>, stage: TripStage) => {
     dispatch({ type: "ADD_STAGE", payload: stage });
@@ -154,6 +182,9 @@ export const tripUtils = {
   addEvent: (dispatch: Dispatch<TripAction>, event: TripEvent) => {
     dispatch({ type: "ADD_EVENT", payload: event });
   },
+  addNight: (dispatch: Dispatch<TripAction>, night: TripNight) => {
+    dispatch({ type: "ADD_NIGHT", payload: night });
+  },
   removeStage: (dispatch: Dispatch<TripAction>, stageId: string) => {
     dispatch({ type: "REMOVE_STAGE", payload: stageId });
   },
@@ -162,5 +193,8 @@ export const tripUtils = {
   },
   removeEvent: (dispatch: Dispatch<TripAction>, eventId: string) => {
     dispatch({ type: "REMOVE_EVENT", payload: eventId });
+  },
+  removeNight: (dispatch: Dispatch<TripAction>, nightId: string) => {
+    dispatch({ type: "REMOVE_NIGHT", payload: nightId });
   },
 };
