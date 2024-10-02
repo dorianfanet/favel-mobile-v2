@@ -33,7 +33,7 @@ function MapMarker({
           style={{
             width: 40,
             height: 40,
-            borderRadius: 20,
+            borderRadius: 12,
             backgroundColor: color ? color : Colors[theme].background.primary,
             borderWidth: 2,
             borderColor: Colors[theme].background.secondary,

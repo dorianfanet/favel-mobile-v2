@@ -14,19 +14,24 @@ import {
   point,
   Position,
   FeatureCollection,
+  concave,
+  lineString,
+  LineString,
 } from "@turf/turf";
 import { MapTripDay } from "@/types/map";
-import { TripDay } from "@/types/trip";
+import { TripDay, TripEvent, TripEventActivity } from "@/types/trip";
+import { TripState } from "@/context/tripContext";
+import { getAllEventsOfDate, getAllEventsOfDateRange } from "./trip";
 
 export function createOgGeojsonDays(days: TripDay[]) {
   return featureCollection(
     days.map((day) =>
-      point<MapTripDay>([day.centerPoint.lng, day.centerPoint.lat], {
+      point<MapTripDay>([day.longitude, day.latitude], {
         id: day.id,
         name: day.name,
         centerPoint: {
-          lat: day.centerPoint.lat,
-          lng: day.centerPoint.lng,
+          lat: day.latitude,
+          lng: day.longitude,
         },
         dayIds: [day.id],
         dates: [day.date],
@@ -70,12 +75,12 @@ export async function clusterDays(
       const cluster = clusters[key];
       const points = cluster.map((dayId) => {
         const day = stateDays.find((d) => d.id === dayId)!;
-        return point([day.centerPoint.lng, day.centerPoint.lat], {
+        return point([day.longitude, day.latitude], {
           id: dayId,
           name: day.name,
           centerPoint: {
-            lat: day.centerPoint.lat,
-            lng: day.centerPoint.lng,
+            lat: day.latitude,
+            lng: day.longitude,
           },
           dayIds: [dayId],
           dates: [day.date],
@@ -103,12 +108,12 @@ export async function clusterDays(
   const noisePointsFeatures: Feature<Point, MapTripDay>[] = noisePoints.map(
     (dayId) => {
       const day = stateDays.find((d) => d.id === dayId)!;
-      return point([day.centerPoint.lng, day.centerPoint.lat], {
+      return point([day.longitude, day.latitude], {
         id: dayId,
         name: day.name,
         centerPoint: {
-          lat: day.centerPoint.lat,
-          lng: day.centerPoint.lng,
+          lat: day.latitude,
+          lng: day.longitude,
         },
         dayIds: [dayId],
         dates: [day.date],
@@ -121,24 +126,68 @@ export async function clusterDays(
 
 export function createDayPolygons(
   days: Feature<Point, MapTripDay>[],
-  state: any
+  state: TripState
 ) {
-  const convexs: (Feature<Polygon, Properties> | null)[] = days.map((day) => {
-    const dayEvents = state.events.filter((event: any) =>
-      day.properties.dayIds.includes(event.dayId)
-    );
-    return convex({
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "MultiPoint",
-        coordinates: dayEvents.map((event: any) => [
-          event.centerPoint.lng,
-          event.centerPoint.lat,
-        ]),
-      },
+  const convexs: (
+    | Feature<Polygon, Properties>
+    | Feature<Point, Properties>
+    | Feature<LineString, Properties>
+    | null
+  )[] = days.map((day) => {
+    const days = day.properties.dates.map((date) => {
+      if (Array.isArray(date)) {
+        return getAllEventsOfDateRange(state.events, date[0], date[1]);
+      } else {
+        return getAllEventsOfDate(state.events, date);
+      }
     });
+
+    const dayEvents = days.flat().filter((event) => event.type === "activity");
+    // const dayEvents = state.events.filter((event: TripEvent) =>
+    //   day.properties.dayIds.includes(event.dayId)
+    // );
+
+    console.log("dayEvents", JSON.stringify(dayEvents, null, 2));
+
+    if (dayEvents.length === 0) {
+      return null;
+    }
+
+    if (dayEvents.length > 2) {
+      console.log("Number of events", dayEvents.length);
+      console.log(
+        dayEvents.map((event: TripEventActivity) => [
+          event.place.longitude,
+          event.place.latitude,
+        ])
+      );
+      return convex({
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "MultiPoint",
+          coordinates: dayEvents.map((event: TripEventActivity) => [
+            event.place.longitude,
+            event.place.latitude,
+          ]),
+        },
+      });
+    } else if (dayEvents.length === 2) {
+      return lineString([
+        [dayEvents[0].place.longitude, dayEvents[0].place.latitude],
+        [dayEvents[1].place.longitude, dayEvents[1].place.latitude],
+      ]);
+    } else {
+      return point([dayEvents[0].place.longitude, dayEvents[0].place.latitude]);
+    }
   });
+
+  console.log("convexs", JSON.stringify(convexs, null, 2));
+
+  // if all convexs are null, return an empty feature collection
+  if (convexs.every((convex) => convex === null)) {
+    return featureCollection([]);
+  }
 
   const bufferedPolygons = convexs.map((polygon) => {
     return buffer(polygon!, 0.5, { units: "kilometers" });

@@ -34,10 +34,10 @@ function Calendar({
 
   const progressValue = useSharedValue(0);
 
-  console.log("progressValue", -progressValue.value / 3 / width);
+  // console.log("progressValue", -progressValue.value / 3 / width);
 
-  console.log((width * (width - padding * 2)) / width);
-  console.log(width);
+  // console.log((width * (width - padding * 2)) / width);
+  // console.log(width);
 
   const calendarRef = React.useRef<React.ElementRef<typeof Carousel>>(null);
 

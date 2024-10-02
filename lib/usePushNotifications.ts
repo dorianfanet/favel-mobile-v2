@@ -7,7 +7,9 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "./supabase";
-import { MMKV } from "@/app/_layout";
+import { MMKVLoader } from "react-native-mmkv-storage";
+
+export const MMKV = new MMKVLoader().initialize();
 
 export interface PushNotificationState {
   expoPushToken?: Notifications.ExpoPushToken;

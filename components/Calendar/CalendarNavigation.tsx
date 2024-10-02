@@ -66,7 +66,7 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
 
   const onSwipeComplete = useCallback(
     (index: number) => {
-      console.log("translateX", translateX.value);
+      // console.log("translateX", translateX.value);
       const newDate = new Date(currentDate);
       newDate.setDate(currentDate.getDate() - index);
       onDateChange(newDate);

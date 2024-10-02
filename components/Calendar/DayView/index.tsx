@@ -19,7 +19,7 @@ const DayView: React.FC<DayViewProps> = ({ events, dayDate }) => {
 
   const theme = useColorScheme();
 
-  console.log("events", JSON.stringify(events, null, 2));
+  // console.log("events", JSON.stringify(events, null, 2));
 
   return (
     <ScrollView style={{ flex: 1, paddingVertical: 10 }}>

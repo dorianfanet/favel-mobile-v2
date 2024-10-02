@@ -1,9 +1,10 @@
-import { Text, View } from "@/components/Themed";
+import { Button, Text, View } from "@/components/Themed";
 import { padding } from "@/constants/values";
 import { Image } from "expo-image";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dimensions,
+  FlatList,
   SectionList,
   useColorScheme,
   ViewToken,
@@ -18,9 +19,54 @@ import Animated, {
 } from "react-native-reanimated";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useRouter } from "expo-router";
+import { Trip } from "@/types/trip";
+import ImageWithFallback from "@/components/ImageWithFallback";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 function TripList() {
-  const [isScrollTop, setIsScrollTop] = React.useState(true);
+  const [trips, setTrips] = React.useState<Trip[]>([]);
+
+  const { user } = useUser();
+
+  console.log("User", user);
+
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    supabaseClient(getToken).then(async (supabase) => {
+      const { data, error } = await supabase.from("trips").select("*");
+
+      if (error) {
+        console.error("Error fetching trips", error);
+        setTrips([]);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.error("No trips found");
+        setTrips([]);
+        return;
+      }
+
+      // convert data from snake_case to camelCase
+      const camelData = data.map((trip) => {
+        const camelTrip: Trip = {
+          id: trip.id,
+          name: trip.name,
+          thumbnail: trip.thumbnail,
+          createdAt: new Date(trip.created_at),
+          creatorId: trip.creator_id,
+          departureDate: new Date(trip.departure_date),
+          returnDate: new Date(trip.return_date),
+        };
+
+        return camelTrip;
+      });
+
+      setTrips(camelData);
+    });
+  }, []);
 
   return (
     <>
@@ -62,48 +108,25 @@ function TripList() {
           </View>
         }
       >
-        <SectionList
-          onScroll={(e) => {
-            console.log(e.nativeEvent.contentOffset.y);
-            setIsScrollTop(e.nativeEvent.contentOffset.y <= 0);
-          }}
-          ListHeaderComponent={() => <View style={{}} />}
-          ListHeaderComponentStyle={{
-            height: 20,
-            position: "absolute",
-            top: 200,
-            backgroundColor: "red",
-          }}
+        <FlatList
+          data={trips}
+          ListHeaderComponent={() => (
+            <Text
+              fontStyle="subtitle"
+              style={{
+                marginBottom: 20,
+                paddingHorizontal: padding,
+                marginTop: 30,
+              }}
+            >
+              My Trips
+            </Text>
+          )}
           style={{
             flex: 1,
-            // paddingHorizontal: padding,
-            paddingTop: 0,
           }}
-          sections={[
-            {
-              id: "last-opened-trip",
-              title: "Last opened trip",
-              data: ["item1"],
-            },
-            { id: "trips", title: "My trips", data: ["item3", "item4"] },
-          ]}
-          contentContainerStyle={{
-            paddingTop: 0,
-          }}
-          renderItem={({ item, index, section }) => (
-            <TripCard
-              highlighted={section.title === "Last opened trip"}
-              isScrollTop={isScrollTop}
-            />
-          )}
-          ItemSeparatorComponent={() => <View style={{ height: 30 }} />}
-          renderSectionHeader={({ section }) => (
-            <SectionHeader
-              current={isScrollTop}
-              title={section.title}
-            />
-          )}
-          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item, index }) => <TripCard trip={item} />}
+          keyExtractor={(item, index) => item.id}
         />
       </MaskedView>
     </>
@@ -112,109 +135,9 @@ function TripList() {
 
 export default React.memo(TripList);
 
-function SectionHeader({
-  current,
-  title,
-}: {
-  current: boolean;
-  title: string;
-}) {
-  const theme = useColorScheme();
-
-  const opacity = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-    };
-  });
-
-  React.useEffect(() => {
-    opacity.value = withTiming(current ? 0 : 1, {
-      duration: 300,
-    });
-  }, [current]);
-
-  return (
-    <View
-      style={{
-        // backgroundColor: Colors.dark.background.primary,
-        paddingHorizontal: padding,
-      }}
-    >
-      {/* <MaskedView
-        maskElement={
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-          </View>
-        }
-      ></MaskedView> */}
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: -20,
-          },
-          animatedStyle,
-        ]}
-      >
-        <LinearGradient
-          colors={[
-            Colors[theme || "light"].background.primary,
-            Colors[theme || "light"].background.primary,
-            theme === "light" ? "rgba(255, 255, 255, 0)" : "rgba(0, 0, 0, 0)",
-          ]}
-          locations={[0, 0.1, 1]}
-          style={{
-            flex: 1,
-            pointerEvents: "none",
-          }}
-        />
-      </Animated.View>
-      <Text
-        fontStyle="subtitle"
-        style={{
-          marginBottom: 20,
-          marginTop: 30,
-        }}
-      >
-        {title}
-      </Text>
-    </View>
-  );
-}
-
 const { width } = Dimensions.get("window");
 
-function TripCard({
-  highlighted,
-  isScrollTop,
-}: {
-  highlighted?: boolean;
-  isScrollTop: boolean;
-}) {
-  const opacity = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-    };
-  });
-
-  React.useEffect(() => {
-    opacity.value = withTiming(isScrollTop ? 1 : 0, {
-      duration: 300,
-    });
-  }, [isScrollTop]);
-
+function TripCard({ trip }: { trip: Trip }) {
   const router = useRouter();
 
   return (
@@ -230,7 +153,7 @@ function TripCard({
           borderRadius: 30,
         }}
         onPress={() => {
-          router.push("../trip/1");
+          router.push(`../trip/${trip.id}`);
         }}
       >
         <View
@@ -242,34 +165,10 @@ function TripCard({
             bottom: 0,
           }}
         >
-          {highlighted && (
-            <Animated.View
-              style={[
-                {
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: 30,
-                  opacity: 1,
-                  transform: [{ scale: 1.35 }],
-                },
-                animatedStyle,
-              ]}
-            >
-              <Image
-                source={require("../../assets/images/blurred-california.png")}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: 30,
-                }}
-              />
-            </Animated.View>
-          )}
-          <Image
-            source={require("../../assets/images/california.webp")}
+          <ImageWithFallback
+            source={{
+              uri: trip.thumbnail,
+            }}
             style={{
               width: "100%",
               height: "100%",
@@ -314,7 +213,7 @@ function TripCard({
               color: "white",
             }}
           >
-            California road trip
+            {trip.name}
           </Text>
           <Text
             fontStyle="caption"

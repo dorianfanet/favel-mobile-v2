@@ -49,7 +49,7 @@ export default function Header({ children }: { children: React.ReactNode }) {
               {
                 width: "100%",
                 height: headerHeight,
-                pointerEvents: "none",
+                pointerEvents: "box-none",
               },
             ]}
           >
@@ -96,6 +96,7 @@ export default function Header({ children }: { children: React.ReactNode }) {
                 width: "100%",
                 height: "100%",
                 justifyContent: "center",
+                pointerEvents: "auto",
               }}
             >
               <SafeAreaView

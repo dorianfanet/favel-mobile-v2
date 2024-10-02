@@ -179,7 +179,7 @@ function DateBox({ date }: DateBoxProps) {
         width: 40,
         height: 40,
         padding: 5,
-        borderRadius: 13,
+        borderRadius: 12,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: Colors[invertedTheme].text.primary,

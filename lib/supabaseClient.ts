@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { Database } from "@/database.types";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Alert } from "react-native";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -8,7 +9,7 @@ export async function supabaseClient(getToken: any) {
   const token = await getToken({ template: "supabase-v2" });
 
   if (token) {
-    return createClient(supabaseUrl!, supabaseAnonKey!, {
+    return createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
       global: {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -35,9 +35,11 @@ const dates = {
 export default function BottomSheets({
   tripDays,
   tripEvents,
+  loading,
 }: {
   tripDays: TripDay[];
   tripEvents: TripEvent[];
+  loading: boolean;
 }) {
   const inset = useSafeAreaInsets();
 
@@ -49,37 +51,24 @@ export default function BottomSheets({
 
   const animatedPosition = useSharedValue(0);
 
-  console.log(animatedPosition.value);
-
   const offsetHeight = useMemo(() => {
     return height - inset.top - 120;
   }, [inset]);
 
   const { theme } = useTheme();
 
-  const citySize = useSharedValue(18);
-  const dayTranslateY = useSharedValue(-4);
-  const dayOpacity = useSharedValue(0);
-
-  const animatedCityStyle = useAnimatedStyle(() => {
-    return {
-      fontSize: withTiming(citySize.value),
-    };
-  });
-
-  const animatedDayStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: withTiming(dayTranslateY.value) }],
-      opacity: withTiming(dayOpacity.value),
-    };
-  });
+  useEffect(() => {
+    if (!loading) {
+      // console.log("present");
+      calendarModalRef.current?.snapToIndex(0);
+    }
+  }, [loading]);
 
   return (
     <BottomSheetModal
       ref={calendarModalRef}
-      index={0}
+      index={-1}
       snapPoints={[150, offsetHeight]}
-      handleHeight={0}
       handleComponent={() => (
         <View
           style={{
@@ -87,7 +76,7 @@ export default function BottomSheets({
             height: 0,
           }}
         >
-          <Pressable
+          {/* <Pressable
             style={{
               position: "absolute",
               top: -70,
@@ -129,7 +118,7 @@ export default function BottomSheets({
             >
               San Francisco
             </Animated.Text>
-          </Pressable>
+          </Pressable> */}
         </View>
       )}
       enableDismissOnClose={false}
@@ -139,6 +128,7 @@ export default function BottomSheets({
       }}
       animatedPosition={animatedPosition}
       style={{
+        backgroundColor: Colors[theme].background.primary,
         shadowColor: "#03121b",
         shadowOffset: {
           width: 0,
@@ -147,6 +137,7 @@ export default function BottomSheets({
         shadowOpacity: 0.4,
         shadowRadius: 20,
         elevation: 20,
+        borderRadius: 20,
       }}
     >
       <View

@@ -40,16 +40,6 @@ const Carousel: React.FC<CarouselProps> = ({ data, renderItem }) => {
         showsHorizontalScrollIndicator={false}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        onMomentumScrollEnd={(event) => {
-          console.log(
-            event.nativeEvent.contentOffset.x,
-            width,
-            event.nativeEvent.contentOffset.x / width
-          );
-          console.log(
-            data[Math.round(event.nativeEvent.contentOffset.x / width)].id
-          );
-        }}
       >
         {data.map((item, index) => (
           <View

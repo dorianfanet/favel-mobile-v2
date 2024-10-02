@@ -11,9 +11,9 @@ function NightMarkers({ nights }: { nights: TripNight[] }) {
           key={night.id}
           id={night.id}
           name={night.name}
-          coordinates={[night.centerPoint.lng, night.centerPoint.lat]}
+          coordinates={[night.longitude, night.latitude]}
           icon="moonIcon"
-          color="rgb(30, 105, 210)"
+          color="rgb(174, 198, 255)"
         />
       ))}
     </>

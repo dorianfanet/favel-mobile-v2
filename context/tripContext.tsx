@@ -2,7 +2,7 @@ import { Trip, TripDay, TripEvent, TripNight, TripStage } from "@/types/trip";
 import React, { createContext, useContext, useReducer, Dispatch } from "react";
 
 // Define the state structure
-interface TripState {
+export interface TripState {
   trip: Trip | null;
   stages: TripStage[];
   days: TripDay[];

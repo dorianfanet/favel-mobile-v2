@@ -25,7 +25,7 @@ const EventItem: React.FC<EventItemProps> = ({
       : event.end.getHours() + event.end.getMinutes() / 60;
   const duration = endHour - startHour;
 
-  console.log(event.id, duration);
+  // console.log(event.id, duration);
 
   return (
     <TouchableOpacity

@@ -23,7 +23,7 @@ import { clusterDays, createOgGeojsonDays } from "@/utils/map";
 import { MapTripDay } from "@/types/map";
 import NightMarkers from "./NightMarkers";
 import EventMarkers from "./EventMarkers";
-import { TripEvent, TripEventActivity } from "@/types/trip";
+import { TripDay, TripEvent, TripEventActivity } from "@/types/trip";
 
 export default function Map() {
   const {
@@ -75,14 +75,29 @@ export default function Map() {
     }
   }, [prevZoomLevel, ogGeojsonDays, state.days]);
 
-  const [selectedDay, setSelectedDay] = useState<MapTripDay["id"] | null>(null);
+  const [selectedDay, setSelectedDay] = useState<TripDay | null>(null);
 
   const selectedEvents: FeatureCollection<Point, TripEvent> = useMemo(() => {
-    console.log("selectedDay", selectedDay);
     if (!selectedDay) return featureCollection([]);
-    const events = state.events.filter((event) => event.dayId === selectedDay);
-    const features = events.map((event) => {
-      return point([event.centerPoint.lng, event.centerPoint.lat], event);
+    const events = state.events.filter((event) => {
+      const dayStart = new Date(
+        selectedDay.date.setHours(0, 0, 0, 0)
+      ).getTime();
+      const dayEnd = new Date(
+        selectedDay.date.setHours(23, 59, 59, 999)
+      ).getTime();
+
+      const eventStart = new Date(event.start).getTime();
+      const eventEnd = new Date(event.end).getTime();
+
+      return eventStart <= dayEnd && eventEnd >= dayStart;
+    });
+    const activities = events.filter(
+      (event) => event.type === "activity"
+    ) as TripEventActivity[];
+    // console.log("activities", JSON.stringify(activities, null, 2));
+    const features = activities.map((event) => {
+      return point([event.place.longitude, event.place.latitude], event);
     });
     return featureCollection(features);
   }, [selectedDay, state.days, state.events]);
@@ -98,6 +113,7 @@ export default function Map() {
       centerOrBounds={centerOrBounds}
       animationDuration={animationDuration}
       onCameraChanged={onRegionIsChanging}
+      onPress={() => setSelectedDay(null)}
     >
       {/* Lines and Polygons */}
       <DayPolygons
@@ -110,10 +126,9 @@ export default function Map() {
       <DayMarkers
         days={days}
         onPress={(id: string) => {
-          console.log("id", id);
-          setSelectedDay(id);
+          setSelectedDay(state.days.find((day) => day.id === id) || null);
         }}
-        selectedDay={selectedDay ? selectedDay : undefined}
+        selectedDay={selectedDay ? selectedDay.id : undefined}
       />
       <EventMarkers events={selectedEvents} />
     </MapView>

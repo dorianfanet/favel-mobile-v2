@@ -30,14 +30,16 @@ function EventMarkers({
           }}
         />
       </Mapbox.ShapeSource>
-      {events.features.map((event) => (
-        <MapMarker
-          key={event.properties.id}
-          id={event.properties.id}
-          name={event.properties.name}
-          coordinates={event.geometry.coordinates}
-        />
-      ))}
+      {events.features.map((event) =>
+        event.properties.type === "activity" ? (
+          <MapMarker
+            key={event.properties.id}
+            id={event.properties.id}
+            name={event.properties.place.name}
+            coordinates={event.geometry.coordinates}
+          />
+        ) : null
+      )}
     </>
   );
 }
