@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { Dimensions, useColorScheme, View } from "react-native";
 import CalendarHeader from "./CalendarHeader";
 import DayView from "./DayView";
@@ -12,27 +18,26 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { padding } from "@/constants/values";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
+const { width, height: screenHeight } = Dimensions.get("window");
 
 const headerHeight = 100;
 
 function Calendar({
-  startDate,
-  endDate,
   days,
   events,
   height,
 }: {
-  startDate: Date;
-  endDate: Date;
   days: TripDay[];
   events: TripEvent[];
   height: number;
 }) {
-  const [currentDate, setCurrentDate] = useState<Date>(() => startDate);
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
   const progressValue = useSharedValue(0);
+
+  const inset = useSafeAreaInsets();
 
   // console.log("progressValue", -progressValue.value / 3 / width);
 
@@ -78,7 +83,7 @@ function Calendar({
           justifyContent: "center",
         }}
       >
-        <Animated.View
+        {/* <Animated.View
           style={[
             {
               position: "absolute",
@@ -93,7 +98,7 @@ function Calendar({
             },
             animnatedStyle,
           ]}
-        />
+        /> */}
         <CalendarHeader
           currentDate={currentDate}
           days={days}
@@ -139,6 +144,7 @@ function Calendar({
 
               return eventStart <= dayEnd && eventEnd >= dayStart;
             })}
+            calendarHeight={height - headerHeight}
           />
         )}
       />

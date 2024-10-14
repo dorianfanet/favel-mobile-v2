@@ -5,6 +5,7 @@ import {
   Outfit_500Medium,
   Outfit_600SemiBold,
   Outfit_700Bold,
+  Outfit_800ExtraBold,
 } from "@expo-google-fonts/outfit";
 import { ClerkProvider, useAuth, useUser } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
@@ -22,6 +23,7 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import { MMKVLoader } from "react-native-mmkv-storage";
 import "@/i18n";
 import { useTranslation } from "react-i18next";
+import { EventProvider } from "react-native-outside-press";
 
 // LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
 // LogBox.ignoreAllLogs();
@@ -51,8 +53,6 @@ function InitialLayout() {
           console.error("Error fetching push token", error);
           return;
         }
-
-        console.log("Push token data", data, expoPushToken.data, user?.id);
 
         if (data.length > 0) {
           console.log("Push token already exists for user and device");
@@ -100,35 +100,37 @@ function InitialLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack>
-        <Stack.Screen
-          name="auth"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="home"
-          options={{
-            headerShown: false,
-          }}
-        />
-        {/* <Stack.Screen
+      <EventProvider>
+        <Stack>
+          <Stack.Screen
+            name="auth"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="home"
+            options={{
+              headerShown: false,
+            }}
+          />
+          {/* <Stack.Screen
           name="trip"
           options={{
             headerShown: false,
           }}
         /> */}
 
-        {/* modals */}
-        <Stack.Screen
-          name="(modals)/logIn"
-          options={{
-            title: t("login"),
-            presentation: "modal",
-          }}
-        />
-      </Stack>
+          {/* modals */}
+          <Stack.Screen
+            name="(modals)/logIn"
+            options={{
+              title: t("login"),
+              presentation: "modal",
+            }}
+          />
+        </Stack>
+      </EventProvider>
     </GestureHandlerRootView>
   );
 }
@@ -139,6 +141,7 @@ export default function RootLayout() {
     Outfit_500Medium,
     Outfit_600SemiBold,
     Outfit_700Bold,
+    Outfit_800ExtraBold,
   });
 
   if (!fontsLoaded) {

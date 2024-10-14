@@ -8,6 +8,7 @@ export interface IconProps {
   color: ColorValue;
   icon: IconByKey;
   strokeWidth?: number;
+  fill?: ColorValue;
   size?: number;
   style?: any;
   pointerEvents?: "auto" | "none";
@@ -18,12 +19,14 @@ const Icon = ({
   size = 32,
   strokeWidth = 2,
   color,
+  fill = "none",
   style,
   pointerEvents,
 }: IconProps) => {
   let iconSvg = icons[icon];
 
-  iconSvg = iconSvg.replace("customStrokeWidth", strokeWidth.toString());
+  iconSvg = iconSvg.replaceAll("customStrokeWidth", strokeWidth.toString());
+  iconSvg = iconSvg.replaceAll("customFill", fill.toString());
 
   return (
     <SvgXml

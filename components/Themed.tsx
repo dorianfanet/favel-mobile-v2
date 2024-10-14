@@ -79,6 +79,10 @@ export function BackgroundView(props: DefaultViewProps) {
 }
 
 const fontStyles = {
+  bigTitle: {
+    fontSize: 28,
+    fontFamily: "Outfit_700Bold",
+  },
   title: {
     fontSize: 24,
     fontFamily: "Outfit_700Bold",

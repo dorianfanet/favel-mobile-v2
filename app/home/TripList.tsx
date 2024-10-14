@@ -23,6 +23,7 @@ import { Trip } from "@/types/trip";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { favelClient } from "@/lib/favel/favelApi";
 
 function TripList() {
   const [trips, setTrips] = React.useState<Trip[]>([]);
@@ -32,6 +33,10 @@ function TripList() {
   console.log("User", user);
 
   const { getToken } = useAuth();
+
+  // const loadTrip = (tripData: Trip) => {
+  //   tripUtils.setTrip(dispatch, tripData);
+  // };
 
   useEffect(() => {
     supabaseClient(getToken).then(async (supabase) => {
@@ -70,6 +75,19 @@ function TripList() {
 
   return (
     <>
+      {/* <Button
+        title="Hello"
+        onPress={() => {
+          favelClient(getToken).then(async (favel) => {
+            const { data, error } = await favel
+              .trip("17d26789-4532-4da5-bbe3-c64d424f3c84")
+              .stage("")
+              .get();
+            console.log("data: ", JSON.stringify(data, null, 2));
+            console.log("error: ", error);
+          });
+        }}
+      /> */}
       <MaskedView
         style={{
           flex: 1,

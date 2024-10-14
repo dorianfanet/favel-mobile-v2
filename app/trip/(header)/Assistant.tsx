@@ -70,13 +70,6 @@ export default function Assistant() {
         style={{
           width: "100%",
           opacity: 0,
-          // shadowColor: Colors.light.primary,
-          // shadowOffset: {
-          //   width: 0,
-          //   height: 2,
-          // },
-          // shadowOpacity: 0.1,
-          // shadowRadius: 5,
         }}
         from={{
           height: 50,

@@ -28,7 +28,11 @@ function MapMarker({
       coordinate={coordinates}
       allowOverlap={true}
     >
-      <View>
+      <View
+        style={{
+          zIndex: 20,
+        }}
+      >
         <View
           style={{
             width: 40,

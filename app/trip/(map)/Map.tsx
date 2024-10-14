@@ -16,6 +16,8 @@ import {
   Polygon,
   FeatureCollection,
   point,
+  LineString,
+  lineString,
 } from "@turf/turf";
 import DayMarkers from "./DayMarkers";
 import DayPolygons from "./DayPolygons";
@@ -23,7 +25,13 @@ import { clusterDays, createOgGeojsonDays } from "@/utils/map";
 import { MapTripDay } from "@/types/map";
 import NightMarkers from "./NightMarkers";
 import EventMarkers from "./EventMarkers";
-import { TripDay, TripEvent, TripEventActivity } from "@/types/trip";
+import {
+  TripDay,
+  TripEvent,
+  TripEventActivity,
+  TripEventTransport,
+} from "@/types/trip";
+import TransportMarkers from "./TransportMarkers";
 
 export default function Map() {
   const {
@@ -34,6 +42,7 @@ export default function Map() {
     maxZoom,
     centerOrBounds,
     animationDuration,
+    move,
   } = useCamera();
 
   const mapRef = useRef<Mapbox.MapView>(null);
@@ -50,6 +59,15 @@ export default function Map() {
 
   useEffect(() => {
     setDays(ogGeojsonDays.features);
+    move({
+      coordinates: [
+        {
+          latitude: 37.724,
+          longitude: -122.4556,
+        },
+      ],
+      customZoom: 10,
+    });
   }, [ogGeojsonDays]);
 
   const onRegionIsChanging = useCallback(async () => {
@@ -77,8 +95,18 @@ export default function Map() {
 
   const [selectedDay, setSelectedDay] = useState<TripDay | null>(null);
 
-  const selectedEvents: FeatureCollection<Point, TripEvent> = useMemo(() => {
-    if (!selectedDay) return featureCollection([]);
+  const {
+    selectedActivities,
+    selectedTransports,
+  }: {
+    selectedActivities: FeatureCollection<Point, TripEventActivity>;
+    selectedTransports: FeatureCollection<LineString, TripEventTransport>;
+  } = useMemo(() => {
+    if (!selectedDay)
+      return {
+        selectedActivities: featureCollection([]),
+        selectedTransports: featureCollection([]),
+      };
     const events = state.events.filter((event) => {
       const dayStart = new Date(
         selectedDay.date.setHours(0, 0, 0, 0)
@@ -95,11 +123,32 @@ export default function Map() {
     const activities = events.filter(
       (event) => event.type === "activity"
     ) as TripEventActivity[];
-    // console.log("activities", JSON.stringify(activities, null, 2));
-    const features = activities.map((event) => {
+    const activitiesFeatures = activities.map((event) => {
       return point([event.place.longitude, event.place.latitude], event);
     });
-    return featureCollection(features);
+    const transports = events.filter(
+      (event) => event.type === "transport"
+    ) as TripEventTransport[];
+    console.log(JSON.stringify(transports, null, 2));
+    const transportFeatures = transports.map((event) => {
+      return lineString(
+        [
+          [
+            event.transport.departureCoordinates.lng,
+            event.transport.departureCoordinates.lat,
+          ],
+          [
+            event.transport.arrivalCoordinates.lng,
+            event.transport.arrivalCoordinates.lat,
+          ],
+        ],
+        event
+      );
+    });
+    return {
+      selectedActivities: featureCollection(activitiesFeatures),
+      selectedTransports: featureCollection(transportFeatures),
+    };
   }, [selectedDay, state.days, state.events]);
 
   return (
@@ -120,6 +169,10 @@ export default function Map() {
         days={days}
         state={state}
       />
+      <TransportMarkers
+        transportEvents={selectedTransports}
+        mapRef={mapRef}
+      />
 
       {/* Markers */}
       <NightMarkers nights={state.nights} />
@@ -130,7 +183,7 @@ export default function Map() {
         }}
         selectedDay={selectedDay ? selectedDay.id : undefined}
       />
-      <EventMarkers events={selectedEvents} />
+      <EventMarkers events={selectedActivities} />
     </MapView>
   );
 }

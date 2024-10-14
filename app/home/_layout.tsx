@@ -49,14 +49,17 @@ export default function Layout() {
                 borderRadius: 30,
               }}
             />
-            <Text fontStyle="subtitle">
+            <Text
+              fontStyle="subtitle"
+              style={{
+                fontFamily: "Outfit_700Bold",
+              }}
+            >
               <Text
                 fontStyle="subtitle"
-                style={
-                  {
-                    // fontFamily: "Outfit_500Medium",
-                  }
-                }
+                style={{
+                  fontFamily: "Outfit_600SemiBold",
+                }}
               >
                 {"Hi, "}
               </Text>
@@ -72,7 +75,7 @@ export default function Layout() {
             }}
           >
             <Text
-              fontStyle="subtitle"
+              fontStyle="button"
               style={{
                 color: Colors[theme || "light"].accent,
               }}

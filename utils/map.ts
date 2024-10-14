@@ -143,24 +143,12 @@ export function createDayPolygons(
     });
 
     const dayEvents = days.flat().filter((event) => event.type === "activity");
-    // const dayEvents = state.events.filter((event: TripEvent) =>
-    //   day.properties.dayIds.includes(event.dayId)
-    // );
-
-    console.log("dayEvents", JSON.stringify(dayEvents, null, 2));
 
     if (dayEvents.length === 0) {
       return null;
     }
 
     if (dayEvents.length > 2) {
-      console.log("Number of events", dayEvents.length);
-      console.log(
-        dayEvents.map((event: TripEventActivity) => [
-          event.place.longitude,
-          event.place.latitude,
-        ])
-      );
       return convex({
         type: "Feature",
         properties: {},
@@ -181,8 +169,6 @@ export function createDayPolygons(
       return point([dayEvents[0].place.longitude, dayEvents[0].place.latitude]);
     }
   });
-
-  console.log("convexs", JSON.stringify(convexs, null, 2));
 
   // if all convexs are null, return an empty feature collection
   if (convexs.every((convex) => convex === null)) {

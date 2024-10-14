@@ -22,7 +22,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     <View
       style={{
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "center",
         margin: padding,
         alignItems: "center",
       }}
@@ -66,9 +66,7 @@ function DayButton({
       <Text fontStyle="caption">{format(date, "E")}</Text>
       <View
         style={{
-          // backgroundColor: currentDate
-          //   ? Colors[theme || "light"].accent
-          //   : "transparent",
+          backgroundColor: Colors[theme || "light"].accent,
           borderRadius: 20,
           width: 40,
           height: 40,

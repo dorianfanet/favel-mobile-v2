@@ -1,4 +1,6 @@
+import { Night } from "./night";
 import { Place } from "./place";
+import { Transport } from "./transport";
 
 export interface Trip {
   id: string;
@@ -35,24 +37,19 @@ export interface TripDay {
   latitude: number;
 }
 
-export interface TripNight {
-  id: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  startDate: Date;
-  endDate: Date;
-  stageId: string;
-  name: string;
-  longitude: number;
-  latitude: number;
+export interface TripNight extends Night {
+  name: Place["name"];
+  longitude: Place["longitude"];
+  latitude: Place["latitude"];
 }
 
-export type TripEvent = TripEventActivity | TripEventTransport;
+export type TripEvent = TripEventActivity | TripEventTransport | TripEventNight;
 
 export interface BaseTripEvent {
   id: string;
   start: Date;
   end: Date;
+  type: "activity" | "transport" | "night";
 }
 
 export interface TripEventActivity extends BaseTripEvent {
@@ -60,8 +57,14 @@ export interface TripEventActivity extends BaseTripEvent {
   place: Place;
 }
 
+export interface TripEventNight extends BaseTripEvent {
+  type: "night";
+  place: Place;
+}
+
 export interface TripEventTransport extends BaseTripEvent {
   type: "transport";
+  transport: Transport;
 }
 
 // export type TripEvent = TripEventActivity;

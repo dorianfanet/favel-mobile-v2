@@ -21,8 +21,6 @@ function DayPolygons({ days, state }: DayPolygonsProps) {
     return createDayPolygons(days, state);
   }, [days, state]);
 
-  console.log("DayPolygons:", dayPolygons);
-
   return (
     <Mapbox.ShapeSource
       id="dayPolygons"

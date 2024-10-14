@@ -2,8 +2,11 @@ import { TripNight } from "@/types/trip";
 import Mapbox from "@rnmapbox/maps";
 import React from "react";
 import MapMarker from "./MapMarker";
+import useTheme from "@/hooks/useTheme";
 
 function NightMarkers({ nights }: { nights: TripNight[] }) {
+  const { theme } = useTheme();
+
   return (
     <>
       {nights.map((night) => (
@@ -13,7 +16,7 @@ function NightMarkers({ nights }: { nights: TripNight[] }) {
           name={night.name}
           coordinates={[night.longitude, night.latitude]}
           icon="moonIcon"
-          color="rgb(174, 198, 255)"
+          color={theme === "light" ? "rgb(1, 37, 121)" : "rgb(174, 198, 255)"}
         />
       ))}
     </>

@@ -1,4 +1,7 @@
 import { Text, View } from "@/components/Themed";
+import Colors from "@/constants/Colors";
+import { padding } from "@/constants/values";
+import useTheme from "@/hooks/useTheme";
 import React from "react";
 
 interface HourGuideProps {
@@ -6,26 +9,51 @@ interface HourGuideProps {
 }
 
 const HourGuide: React.FC<HourGuideProps> = ({ hourHeight }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={{ width: 50 }}>
-      {Array.from({ length: 24 }).map((_, index) => (
+    <View
+      style={{
+        flex: 1,
+        paddingHorizontal: padding,
+        paddingLeft: 0,
+      }}
+    >
+      {Array.from({ length: 25 }).map((_, index) => (
         <View
           key={index}
           style={{
             height: hourHeight,
-            justifyContent: "center",
-            alignItems: "center",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
+            flexDirection: "row",
           }}
         >
-          <Text style={{ fontSize: 12 }}>
+          <Text
+            fontStyle="caption"
+            style={{
+              transform: [{ translateY: -10 }],
+              textAlign: "right",
+              width: 40,
+            }}
+          >
             {index === 0
               ? "12 AM"
               : index === 12
               ? "12 PM"
               : index > 12
-              ? `${index - 12} PM`
+              ? `${index - 12} ${index < 24 ? "PM" : "AM"}`
               : `${index} AM`}
           </Text>
+          <View
+            style={{
+              height: 1,
+              flex: 1,
+              marginLeft: 10,
+              backgroundColor: Colors[theme].text.primary,
+              opacity: 0,
+            }}
+          />
         </View>
       ))}
     </View>

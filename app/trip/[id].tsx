@@ -1,15 +1,26 @@
 import React, { useEffect } from "react";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Map from "./(map)/Map";
-import { Button, Text, View } from "@/components/Themed";
+import { Text, View } from "@/components/Themed";
 import Header from "./Header";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import BottomSheets from "./BottomSheets";
-import Assistant from "./(header)/Assistant";
+import BottomSheets from "./(bottomSheets)/BottomSheets";
 import { tripUtils, useTrip } from "@/context/tripContext";
 import { Trip, TripDay, TripEvent, TripNight, TripStage } from "@/types/trip";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@clerk/clerk-expo";
+import Icon from "@/components/Icon";
+import Colors from "@/constants/Colors";
+import useTheme from "@/hooks/useTheme";
+import { TouchableOpacity } from "react-native";
+import { useBottomSheetRefs } from "@/context/bottomSheetsRefContext";
+import Animated, { runOnJS, useAnimatedStyle } from "react-native-reanimated";
+import {
+  formatTrip,
+  formatTripStage,
+  formatTripDay,
+  formatTripNight,
+  formatTripEvent,
+} from "@/utils/trip";
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -19,200 +30,161 @@ export default function Index() {
 
   const { getToken } = useAuth();
 
-  // const loadTrip = (tripData: Trip) => {
-  //   tripUtils.setTrip(dispatch, tripData);
-  // };
-
   useEffect(() => {
     loadTrip();
-
-    // Load trip data
-    // const tripData: Trip = {
-    //   id: "trip1",
-    //   createdAt: new Date(),
-    //   updatedAt: new Date(),
-    //   name: "San Francisco Trip",
-    //   thumbnail: "https://example.com/sf-thumbnail.jpg",
-    //   departureDate: new Date("2024-09-26"),
-    //   returnDate: new Date("2024-09-29"),
-    //   creatorId: "user1",
-    // };
-
-    // loadTrip(tripData);
-
-    // // Load stages
-    // tripUtils.setStages(dispatch, stages);
-
-    // // Load days
-    // tripUtils.setDays(dispatch, days);
-
-    // // Load events
-    // tripUtils.setEvents(dispatch, events);
-
-    // // Load nights
-    // tripUtils.setNights(dispatch, nights);
   }, []);
 
   async function loadTrip() {
     await supabaseClient(getToken).then(async (supabase) => {
-      const { data, error } = await supabase
-        .from("trips")
-        .select("*")
-        .eq("id", id);
+      try {
+        const { data, error } = await supabase
+          .from("trips")
+          .select("*")
+          .eq("id", id);
 
-      if (error) {
-        console.error("Error fetching trip", error);
-        return;
-      }
-
-      if (data.length === 0) {
-        console.error("No trip found with ID", id);
-        return;
-      }
-
-      const tripData: Trip = {
-        id: data[0].id,
-        createdAt: new Date(data[0].created_at),
-        name: data[0].name,
-        thumbnail: data[0].thumbnail,
-        departureDate: new Date(data[0].departure_date),
-        returnDate: new Date(data[0].return_date),
-        creatorId: data[0].creator_id,
-      };
-
-      tripUtils.setTrip(dispatch, tripData);
-
-      const { data: stages, error: stagesError } = await supabase
-        .from("trip_stages")
-        .select("*")
-        .eq("trip_id", id);
-
-      if (stagesError) {
-        console.error("Error fetching stages", stagesError);
-        return;
-      }
-
-      const tripStages: TripStage[] = stages.map((stage) => ({
-        id: stage.id,
-        createdAt: new Date(stage.created_at),
-        name: stage.name,
-        thumbnail: stage.thumbnail,
-        tripId: stage.trip_id,
-        startDate: new Date(stage.start_date),
-        endDate: new Date(stage.end_date),
-      }));
-
-      tripUtils.setStages(dispatch, tripStages);
-
-      const { data: days, error: daysError } = await supabase
-        .from("trip_days")
-        .select("*")
-        .eq("trip_id", id);
-
-      if (daysError) {
-        console.error("Error fetching days", daysError);
-        return;
-      }
-
-      const tripDays: TripDay[] = days.map((day) => ({
-        id: day.id,
-        createdAt: new Date(day.created_at),
-        tripId: day.trip_id,
-        name: day.name,
-        stageId: day.stage_id,
-        date: new Date(day.date),
-        longitude: day.longitude,
-        latitude: day.latitude,
-      }));
-
-      tripUtils.setDays(dispatch, tripDays);
-
-      const { data: events, error: eventsError } = await supabase.rpc(
-        "get_trip_events_with_place_details",
-        {
-          trip_id_param: id as string,
-          lang_param: "en",
+        if (error || data.length === 0) {
+          console.error("Error fetching trip", error);
+          return;
         }
-      );
 
-      const eventsData = events as any[];
+        const tripData: Trip = formatTrip(data[0]);
 
-      if (eventsError) {
-        console.error("Error fetching events", eventsError);
-        return;
-      }
+        tripUtils.setTrip(dispatch, tripData);
 
-      if (eventsData && eventsData.length > 0) {
-        const tripEvents: TripEvent[] = eventsData.map((event: any) => ({
-          id: event.event.id,
-          start: new Date(event.event.start),
-          end: new Date(event.event.end),
-          type: event.event.type,
-          place: {
-            id: event.event.place.id,
-            name: event.event.place.name,
-            thumbnail: event.event.place.thumbnail,
-            longitude: event.event.place.longitude,
-            latitude: event.event.place.latitude,
-          },
-        }));
+        const { data: stages, error: stagesError } = await supabase
+          .from("trip_stages")
+          .select("*")
+          .eq("trip_id", id);
 
-        tripUtils.setEvents(dispatch, tripEvents);
-      }
+        if (stagesError) {
+          console.error("Error fetching stages", stagesError);
+        }
 
-      const { data: nights, error: nightsError } = await supabase
-        .from("trip_nights")
-        .select("*")
-        .eq("trip_id", id);
+        if (stages) {
+          const tripStages: TripStage[] = stages.map((stage) => {
+            return formatTripStage(stage);
+          });
 
-      if (nightsError) {
-        console.error("Error fetching nights", nightsError);
-        return;
-      }
+          tripUtils.setStages(dispatch, tripStages);
+        }
 
-      if (nights && nights.length > 0) {
-        const nightPlaces = nights.map(async (night) => {
-          const { data: nightPlace, error: nightPlacesError } =
-            await supabase.rpc("get_place_details", {
-              place_id_param: night.place_id,
-              lang_param: "en",
-            });
+        const { data: days, error: daysError } = await supabase
+          .from("trip_days")
+          .select("*")
+          .eq("trip_id", id);
 
-          if (nightPlacesError) {
-            console.error("Error fetching night place", nightPlacesError);
-            return {};
+        if (daysError) {
+          console.error("Error fetching days", daysError);
+          return;
+        }
+
+        if (days) {
+          const tripDays: TripDay[] = days.map((day) => {
+            return formatTripDay(day);
+          });
+
+          tripUtils.setDays(dispatch, tripDays);
+        }
+
+        const { data: events, error: eventsError } = await supabase.rpc(
+          "get_trip_events_with_place_details",
+          {
+            trip_id_param: id as string,
+            lang_param: "en",
           }
+        );
 
-          const nightPlaceData = nightPlace as any;
+        console.log("Events data: ", events);
 
-          return {
-            id: night.id,
-            createdAt: new Date(night.created_at),
-            startDate: new Date(night.start_date),
-            endDate: new Date(night.end_date),
-            stageId: night.stage_id,
-            name: nightPlaceData.name,
-            longitude: nightPlaceData.longitude,
-            latitude: nightPlaceData.latitude,
-          };
+        const eventsData = events as any[];
+
+        if (eventsError) {
+          console.error("Error fetching events", eventsError);
+          // return;
+        }
+
+        if (eventsData && eventsData.length > 0) {
+          const tripEvents: (TripEvent | undefined)[] = eventsData.map(
+            (event) => {
+              return formatTripEvent(event.event);
+            }
+          );
+
+          console.log("Events: ", tripEvents);
+
+          tripUtils.setEvents(
+            dispatch,
+            tripEvents.filter((event) => event !== undefined)
+          );
+        }
+
+        const { data: nights, error: nightsError } = await supabase
+          .from("trip_nights")
+          .select("*")
+          .eq("trip_id", id);
+
+        if (nightsError) {
+          console.error("Error fetching nights", nightsError);
+        }
+
+        if (nights && nights.length > 0) {
+          const nightPlaces = nights.map(async (night) => {
+            const { data: nightPlace, error: nightPlacesError } =
+              await supabase.rpc("get_place", {
+                place_id_param: night.place_id,
+                lang_param: "en",
+              });
+
+            if (nightPlacesError) {
+              console.error("Error fetching night place", nightPlacesError);
+              return {};
+            }
+
+            const nightPlaceData = nightPlace as any;
+
+            return formatTripNight({
+              ...night,
+              name: nightPlaceData.name,
+              longitude: nightPlaceData.longitude,
+              latitude: nightPlaceData.latitude,
+            });
+          });
+
+          const tripNights: TripNight[] = (await Promise.all(
+            nightPlaces
+          )) as TripNight[];
+
+          tripUtils.setNights(dispatch, tripNights);
+        }
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
         });
-
-        const tripNights: TripNight[] = (await Promise.all(
-          nightPlaces
-        )) as TripNight[];
-
-        tripUtils.setNights(dispatch, tripNights);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
       }
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 1000);
-      });
     });
-
-    setLoading(false);
   }
 
-  console.log("state", state);
+  const { theme } = useTheme();
+
+  const router = useRouter();
+
+  const { openSheet, closeSheet, collapseCurrentSheet } = useBottomSheetRefs();
+
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const { masterPosition } = useBottomSheetRefs();
+
+  const animatedBackButtonStyle = useAnimatedStyle(() => {
+    runOnJS(setIsOpen)(masterPosition.value === 1);
+
+    return {
+      transform: [{ rotate: `-${masterPosition.value * 90}deg` }],
+    };
+  });
 
   return (
     <>
@@ -236,12 +208,55 @@ export default function Index() {
           <Header>
             <View
               style={{
-                flex: 1,
-                justifyContent: "center",
+                justifyContent: "space-between",
+                flexDirection: "row",
                 alignItems: "center",
+                height: 50,
+                paddingHorizontal: 20,
+                gap: 20,
+                pointerEvents: "auto",
               }}
             >
-              <Assistant />
+              {/* <Assistant /> */}
+              <Animated.View style={animatedBackButtonStyle}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isOpen) {
+                      collapseCurrentSheet();
+                    } else {
+                      router.back();
+                    }
+                  }}
+                >
+                  <Icon
+                    icon="chevronLeftIcon"
+                    size={24}
+                    color={Colors[theme].text.primary}
+                  />
+                </TouchableOpacity>
+              </Animated.View>
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  fontStyle="subtitle"
+                  style={{
+                    opacity: 0.8,
+                  }}
+                >
+                  Ask anything...
+                </Text>
+              </View>
+              <Icon
+                icon="menuIcon"
+                size={24}
+                color={Colors[theme].text.primary}
+              />
             </View>
           </Header>
         </>

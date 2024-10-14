@@ -63,7 +63,7 @@ export default function DayMarkers({
             ]}
             allowOverlap={true}
             onTouchEnd={() => {
-              console.log(day.properties.id);
+              // console.log(day.properties.id);
             }}
           >
             <DayMarker
@@ -88,7 +88,7 @@ function DayMarker({ day, onPress }: DayMarkerProps) {
   return (
     <TouchableOpacity
       onPress={() => {
-        console.log(day.id);
+        // console.log(day.id);
         onPress(day.id);
       }}
     >
