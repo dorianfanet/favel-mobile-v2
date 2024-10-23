@@ -10,6 +10,7 @@ import { Text } from "@/components/Themed";
 import { format } from "date-fns";
 import { Svg, Text as SvgText } from "react-native-svg";
 import { TouchableOpacity } from "react-native";
+import { useCamera } from "@/context/cameraContext";
 
 interface DayMarkersProps {
   days: Feature<Point, MapTripDay>[];
@@ -26,9 +27,24 @@ export default function DayMarkers({
     return featureCollection(days);
   }, [days]);
 
+  const { move } = useCamera();
+
   const handleOnPress = (id: string) => {
     if (onPress) {
       onPress(id);
+      move({
+        // coordinates: [[-122.4590711346653, 37.79088609632305], [-122.4916802479008, 37.73509352500882]]
+        coordinates: [
+          {
+            longitude: -122.4590711346653 - 0.03,
+            latitude: 37.79088609632305 - 0.005,
+          },
+          {
+            longitude: -122.4916802479008 + 0.03,
+            latitude: 37.73509352500882 + 0.03,
+          },
+        ],
+      });
     }
   };
 

@@ -6,3 +6,8 @@ export type UserMetadata = {
   createdAt?: string;
   avatarUrl?: string;
 };
+
+export type JsonCoordinates = {
+  lat: number;
+  lng: number;
+};

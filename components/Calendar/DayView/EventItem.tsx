@@ -27,6 +27,7 @@ import { useBottomSheetRefs } from "@/context/bottomSheetsRefContext";
 import { easeGradient } from "react-native-easing-gradient";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@clerk/clerk-expo";
+import { useTripNavigationActions } from "@/hooks/useTripNavigationActions";
 
 const { colors, locations } = easeGradient({
   colorStops: {
@@ -223,7 +224,7 @@ const EventItem: React.FC<EventItemProps> = ({
     zIndex: isActive.value ? 10 : 1,
   }));
 
-  const { openSheet } = useBottomSheetRefs();
+  const { push } = useTripNavigationActions();
 
   const isBig = useMemo(() => {
     return duration * hourHeight > calendarHeight;
@@ -248,7 +249,9 @@ const EventItem: React.FC<EventItemProps> = ({
     >
       <Pressable
         onPress={() => {
-          openSheet("place");
+          push({
+            bottomSheet: "place",
+          });
         }}
       >
         <GestureDetector gesture={containerGesture}>

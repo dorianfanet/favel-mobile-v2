@@ -11,9 +11,10 @@ import { TripState } from "@/context/tripContext";
 interface DayPolygonsProps {
   days: Feature<Point, MapTripDay>[];
   state: TripState;
+  mapRef: React.RefObject<Mapbox.MapView>;
 }
 
-function DayPolygons({ days, state }: DayPolygonsProps) {
+function DayPolygons({ days, state, mapRef }: DayPolygonsProps) {
   const { theme } = useTheme();
 
   const dayPolygons = useMemo(() => {

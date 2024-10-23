@@ -10,6 +10,7 @@ import {
   TouchableOpacity as DefaultTouchableOpacity,
 } from "react-native";
 import { Image } from "expo-image";
+import useTheme from "@/hooks/useTheme";
 
 export function useThemeColor(props: { light?: string; dark?: string }) {
   const theme = useColorScheme();
@@ -48,6 +49,8 @@ export function BackgroundView(props: DefaultViewProps) {
     dark: Colors.dark.background.primary,
   });
 
+  const { theme } = useTheme();
+
   return (
     <DefaultView
       style={[{ backgroundColor: backgroundColor }, style]}
@@ -62,6 +65,7 @@ export function BackgroundView(props: DefaultViewProps) {
           right: 0,
           bottom: 0,
           pointerEvents: "none",
+          opacity: theme === "light" ? 0.5 : 1,
         }}
       >
         <Image

@@ -8,6 +8,8 @@ import { useBottomSheetRefs } from "@/context/bottomSheetsRefContext";
 import { Text, View } from "@/components/Themed";
 import PlaceSheet from "./(sheets)/PlaceSheet";
 import { headerHeight } from "@/constants/values";
+import TransportSheet from "./(sheets)/TransportSheet";
+import DiscoverySheet from "./(sheets)/DiscoverySheet";
 
 const { height } = Dimensions.get("window");
 
@@ -44,6 +46,14 @@ export default function BottomSheets({
       />
       <PlaceSheet
         sheetRef={sheetsRef.place}
+        offsetHeight={offsetHeight}
+      />
+      <TransportSheet
+        sheetRef={sheetsRef.transport}
+        offsetHeight={offsetHeight}
+      />
+      <DiscoverySheet
+        sheetRef={sheetsRef.discovery}
         offsetHeight={offsetHeight}
       />
     </>

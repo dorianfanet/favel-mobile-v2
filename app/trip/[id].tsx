@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Map from "./(map)/Map";
 import { Text, View } from "@/components/Themed";
@@ -8,12 +8,17 @@ import { tripUtils, useTrip } from "@/context/tripContext";
 import { Trip, TripDay, TripEvent, TripNight, TripStage } from "@/types/trip";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useAuth } from "@clerk/clerk-expo";
-import Icon from "@/components/Icon";
+import Icon, { IconProps } from "@/components/Icon";
 import Colors from "@/constants/Colors";
 import useTheme from "@/hooks/useTheme";
-import { TouchableOpacity } from "react-native";
+import { Dimensions, TouchableOpacity } from "react-native";
 import { useBottomSheetRefs } from "@/context/bottomSheetsRefContext";
-import Animated, { runOnJS, useAnimatedStyle } from "react-native-reanimated";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import {
   formatTrip,
   formatTripStage,
@@ -21,6 +26,13 @@ import {
   formatTripNight,
   formatTripEvent,
 } from "@/utils/trip";
+import { useTripNavigationActions } from "@/hooks/useTripNavigationActions";
+import { padding } from "@/constants/values";
+import { Image } from "expo-image";
+import { useCamera } from "@/context/cameraContext";
+import { MapTapProvider } from "@/context/mapTapContext";
+
+const { width } = Dimensions.get("window");
 
 export default function Index() {
   const { id } = useLocalSearchParams();
@@ -172,11 +184,10 @@ export default function Index() {
 
   const router = useRouter();
 
-  const { openSheet, closeSheet, collapseCurrentSheet } = useBottomSheetRefs();
+  const { openSheet, closeSheet, collapseCurrentSheet, masterPosition } =
+    useBottomSheetRefs();
 
   const [isOpen, setIsOpen] = React.useState(false);
-
-  const { masterPosition } = useBottomSheetRefs();
 
   const animatedBackButtonStyle = useAnimatedStyle(() => {
     runOnJS(setIsOpen)(masterPosition.value === 1);
@@ -185,6 +196,43 @@ export default function Index() {
       transform: [{ rotate: `-${masterPosition.value * 90}deg` }],
     };
   });
+
+  const { currentState, canPop, pop, canNext, push } =
+    useTripNavigationActions();
+
+  const mapProps = useMemo(
+    () => ({
+      selectedDay: currentState.selectedDay,
+      selectedTransportId: currentState.selectedTransportId,
+    }),
+    [currentState.selectedDay, currentState.selectedTransportId]
+  );
+
+  const bottomSheetProps = useMemo(() => {
+    openSheet(currentState.bottomSheet);
+    return {
+      type: currentState.bottomSheet,
+    };
+  }, [currentState.bottomSheet]);
+
+  const menuOpacity = useSharedValue(0);
+
+  const animatedMenuStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(menuOpacity.value),
+      transform: [
+        {
+          translateY: withTiming(-20 + menuOpacity.value * 20),
+        },
+        {
+          scale: withTiming(0.9 + menuOpacity.value / 10),
+        },
+      ],
+      pointerEvents: menuOpacity.value === 0 ? "none" : "auto",
+    };
+  });
+
+  const { move, updatePadding } = useCamera();
 
   return (
     <>
@@ -199,7 +247,12 @@ export default function Index() {
         }}
       >
         <>
-          <Map />
+          {/* <MapTapProvider> */}
+          <Map
+            selectedDay={mapProps.selectedDay}
+            selectedTransportId={mapProps.selectedTransportId}
+          />
+          {/* </MapTapProvider> */}
           <BottomSheets
             tripDays={state.days}
             tripEvents={state.events}
@@ -218,11 +271,13 @@ export default function Index() {
               }}
             >
               {/* <Assistant /> */}
-              <Animated.View style={animatedBackButtonStyle}>
+              {/* <Animated.View style={animatedBackButtonStyle}>
                 <TouchableOpacity
                   onPress={() => {
-                    if (isOpen) {
-                      collapseCurrentSheet();
+                    // if (isOpen) {
+                    //   collapseCurrentSheet();
+                    if (canPop) {
+                      pop();
                     } else {
                       router.back();
                     }
@@ -235,6 +290,28 @@ export default function Index() {
                   />
                 </TouchableOpacity>
               </Animated.View>
+              <TouchableOpacity
+                onPress={() => {
+                  // if (isOpen) {
+                  //   collapseCurrentSheet();
+                  if (canNext) {
+                    next();
+                  }
+                }}
+                style={{
+                  marginLeft: -10,
+                }}
+              >
+                <Icon
+                  icon="chevronLeftIcon"
+                  size={24}
+                  color={Colors[theme].text.primary}
+                  style={{
+                    transform: [{ rotate: "180deg" }],
+                    opacity: canNext ? 1 : 0.5,
+                  }}
+                />
+              </TouchableOpacity> */}
               <View
                 style={{
                   flex: 1,
@@ -246,17 +323,112 @@ export default function Index() {
                 <Text
                   fontStyle="subtitle"
                   style={{
-                    opacity: 0.8,
+                    opacity: 0.6,
+                    fontFamily: "Outfit_500Medium",
                   }}
                 >
                   Ask anything...
                 </Text>
               </View>
-              <Icon
-                icon="menuIcon"
-                size={24}
-                color={Colors[theme].text.primary}
-              />
+              <View>
+                <Animated.View
+                  style={[
+                    {
+                      position: "absolute",
+                      top: -10,
+                      right: -10,
+                      backgroundColor: Colors[theme].background.primary,
+                      width: width - padding * 2 + 10,
+                      height: 200,
+                      borderRadius: 30,
+                      padding: padding,
+                    },
+                    animatedMenuStyle,
+                  ]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      gap: 15,
+                    }}
+                  >
+                    <Image
+                      source={require("../../assets/images/california.webp")}
+                      style={{
+                        width: 45,
+                        height: 45,
+                        borderRadius: 30,
+                      }}
+                    />
+                    <Text
+                      fontStyle="subtitle"
+                      style={{
+                        fontFamily: "Outfit_700Bold",
+                      }}
+                    >
+                      <Text
+                        fontStyle="subtitle"
+                        style={{
+                          fontFamily: "Outfit_600SemiBold",
+                        }}
+                      >
+                        {"Hi, "}
+                      </Text>
+                      Paul
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      marginTop: 30,
+                      gap: 20,
+                    }}
+                  >
+                    <MenuItem
+                      icon="compassIcon"
+                      text="Discover"
+                      onPress={() => {
+                        move({
+                          coordinates: [
+                            {
+                              latitude: 0,
+                              longitude: 0,
+                            },
+                          ],
+                          customZoom: 0.1,
+                        });
+                        menuOpacity.value = 0;
+                        push({
+                          bottomSheet: "discovery",
+                        });
+                        updatePadding({
+                          paddingTop: 0,
+                          paddingBottom: 200,
+                          paddingLeft: 0,
+                          paddingRight: 0,
+                        });
+                      }}
+                    />
+                    <MenuItem
+                      icon="tripsIcon"
+                      text="My trips"
+                      onPress={() => {}}
+                    />
+                  </View>
+                </Animated.View>
+                <TouchableOpacity
+                  onPress={() => {
+                    menuOpacity.value = menuOpacity.value === 0 ? 1 : 0;
+                  }}
+                >
+                  <Icon
+                    icon="menuIcon"
+                    size={24}
+                    color={Colors[theme].text.primary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </Header>
         </>
@@ -302,6 +474,39 @@ export default function Index() {
         </BSModal> */}
       </View>
     </>
+  );
+}
+
+function MenuItem({
+  icon,
+  text,
+  onPress,
+}: {
+  icon: IconProps["icon"];
+  text: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 15,
+      }}
+    >
+      <Icon
+        icon={icon}
+        size={24}
+        color={Colors[useTheme().theme].text.primary}
+      />
+      <Text
+        fontStyle="subtitle"
+        style={{}}
+      >
+        {text}
+      </Text>
+    </TouchableOpacity>
   );
 }
 

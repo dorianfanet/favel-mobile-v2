@@ -68,13 +68,13 @@ export const CameraProvider = ({
   children: React.JSX.Element;
 }) => {
   const [easing, setEasing] = useState<CameraAnimationMode>("easeTo");
-  const [coordinates, setCoordinates] = useState<Coordinate[]>([
+  const [coordinates, setCoordinates] = useState<Coordinate[] | null>([
     initialCoordinate,
   ]);
-  const [paddingLeft, setPaddingLeft] = useState(0);
-  const [paddingRight, setPaddingRight] = useState(0);
-  const [paddingTop, setPaddingTop] = useState(0);
-  const [paddingBottom, setPaddingBottom] = useState(0);
+  const [paddingLeft, setPaddingLeft] = useState(15);
+  const [paddingRight, setPaddingRight] = useState(15);
+  const [paddingTop, setPaddingTop] = useState(50);
+  const [paddingBottom, setPaddingBottom] = useState(100);
   const [zoom, setZoom] = useState(0);
   const [minZoom, setMinZoom] = useState<number | undefined>(undefined);
   const [maxZoom, setMaxZoom] = useState<number | undefined>(undefined);
@@ -86,6 +86,7 @@ export const CameraProvider = ({
     centerCoordinate?: Position;
     bounds?: CameraBounds;
   } => {
+    if (!coordinates) return {};
     if (coordinates.length === 1) {
       return {
         centerCoordinate: toPosition(coordinates[0]),

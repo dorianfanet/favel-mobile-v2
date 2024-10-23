@@ -1,5 +1,5 @@
 import { View, Text, Dimensions } from "react-native";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import BottomSheet, { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -82,6 +82,12 @@ function Sheet({
     };
   });
 
+  const handleSheetChanges = useCallback((index: number) => {
+    if (index === -1) {
+      onClose && onClose();
+    }
+  }, []);
+
   return (
     <>
       <BackdropComponent position={position} />
@@ -91,7 +97,7 @@ function Sheet({
         snapPoints={snapPoints}
         handleComponent={() => null}
         enablePanDownToClose={enablePanDownToClose}
-        onClose={() => onClose && onClose()}
+        onChange={handleSheetChanges}
         style={[
           {
             borderRadius: 20,

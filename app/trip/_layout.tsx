@@ -5,6 +5,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { AssistantProvider } from "@/context/assistantContext";
 import { TripProvider } from "@/context/tripContext";
 import { BottomSheetProvider } from "@/context/bottomSheetsRefContext";
+import { TripNavigationProvider } from "@/context/tripNavigationContext";
 
 export default function Layout() {
   return (
@@ -17,11 +18,13 @@ export default function Layout() {
       <CameraProvider>
         <BottomSheetModalProvider>
           <TripProvider>
-            <AssistantProvider>
-              <BottomSheetProvider>
-                <Slot />
-              </BottomSheetProvider>
-            </AssistantProvider>
+            <TripNavigationProvider>
+              <AssistantProvider>
+                <BottomSheetProvider>
+                  <Slot />
+                </BottomSheetProvider>
+              </AssistantProvider>
+            </TripNavigationProvider>
           </TripProvider>
         </BottomSheetModalProvider>
       </CameraProvider>

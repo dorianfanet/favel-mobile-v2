@@ -5,7 +5,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import { BackgroundView, View } from "@/components/Themed";
+import { BackgroundView, Text, View } from "@/components/Themed";
 import Sheet from "../Sheet";
 import { Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,18 +17,20 @@ import { LinearGradient } from "expo-linear-gradient";
 import { headerHeight } from "@/constants/values";
 import { useBottomSheetRefs } from "@/context/bottomSheetsRefContext";
 import Place from "@/components/Place";
-import { useTripNavigationActions } from "@/hooks/useTripNavigationActions";
+import Colors from "@/constants/Colors";
+import useTheme from "@/hooks/useTheme";
+import { TripCard } from "@/app/home/TripList";
 
 const { height } = Dimensions.get("window");
 
-type PlaceSheetProps = {
+type DiscoverySheetProps = {
   sheetRef: React.RefObject<BottomSheet>;
   offsetHeight: number;
 };
 
-const collapsedHeight = height * 0.5;
+const collapsedHeight = height * 0.3;
 
-function PlaceSheet({ sheetRef, offsetHeight }: PlaceSheetProps) {
+function DiscoverySheet({ sheetRef, offsetHeight }: DiscoverySheetProps) {
   const inset = useSafeAreaInsets();
 
   const renderBackdrop = useCallback(
@@ -67,24 +69,29 @@ function PlaceSheet({ sheetRef, offsetHeight }: PlaceSheetProps) {
     []
   );
 
-  const { canPop, pop } = useTripNavigationActions();
+  const animPosition = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: animPosition ? animPosition.value : 0,
+    };
+  });
+
+  const { openSheet } = useBottomSheetRefs();
+
+  const { theme } = useTheme();
 
   return (
     <>
       <Sheet
         sheetRef={sheetRef}
         BackdropComponent={({ position }) => renderBackdrop(position)}
-        offsetHeight={offsetHeight + 50 + inset.top}
+        offsetHeight={offsetHeight}
         initialIndex={-1}
-        snapPoints={[collapsedHeight, offsetHeight + 50 + inset.top]}
+        snapPoints={[collapsedHeight, offsetHeight]}
+        animPosition={animPosition}
         // enablePanDownToClose
-        // onClose={() => {
-        //   console.log("onClose place");
-
-        //   if (canPop) {
-        //     pop();
-        //   }
-        // }}
+        // onClose={() => openSheet("calendar")}
       >
         <View
           style={{
@@ -98,20 +105,68 @@ function PlaceSheet({ sheetRef, offsetHeight }: PlaceSheetProps) {
               height: height,
               alignItems: "center",
               pointerEvents: "box-none",
-              transform: [{ translateY: 0 }],
+              transform: [{ translateY: -(inset.top + 50) }],
             }}
           ></BackgroundView>
           <View
             style={{
               position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              flex: 1,
+              width: "100%",
             }}
           >
-            <BottomSheetScrollView>
-              <Place heroHeight={collapsedHeight} />
+            <View
+              style={{
+                width: "100%",
+                height: 50,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text fontStyle="subtitle">For you</Text>
+              <View
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  height: 1,
+                  backgroundColor: Colors[theme || "light"].text.primary,
+                  bottom: 0,
+                  opacity: 0.3,
+                }}
+              ></View>
+            </View>
+            <BottomSheetScrollView
+              style={{
+                flex: 1,
+                backgroundColor: "transparent",
+                paddingVertical: 20,
+                gap: 20,
+              }}
+            >
+              <TripCard
+                trip={{
+                  id: "17d26789-4532-4da5-bbe3-c64d424f3c84",
+                  name: "California road trip",
+                  thumbnail:
+                    "https://www.tuningblog.eu/wp-content/uploads/2023/03/PACIFIC-COAST-HIGHWAY-KALIFORNIEN-Roadtrip.jpg",
+                  createdAt: "2024-10-01T18:34:24.089Z",
+                  creatorId: "user_2mqcUIkf3zpjVzl576Zys56r3hU",
+                  departureDate: "2024-11-03T23:00:00.000Z",
+                  returnDate: "2024-11-06T23:00:00.000Z",
+                }}
+              />
+              <TripCard
+                trip={{
+                  id: "17d26789-4532-4da5-bbe3-c64d424f3c84",
+                  name: "California road trip",
+                  thumbnail:
+                    "https://www.tuningblog.eu/wp-content/uploads/2023/03/PACIFIC-COAST-HIGHWAY-KALIFORNIEN-Roadtrip.jpg",
+                  createdAt: "2024-10-01T18:34:24.089Z",
+                  creatorId: "user_2mqcUIkf3zpjVzl576Zys56r3hU",
+                  departureDate: "2024-11-03T23:00:00.000Z",
+                  returnDate: "2024-11-06T23:00:00.000Z",
+                }}
+              />
             </BottomSheetScrollView>
           </View>
         </View>
@@ -171,4 +226,4 @@ function PlaceSheet({ sheetRef, offsetHeight }: PlaceSheetProps) {
   );
 }
 
-export default React.memo(PlaceSheet);
+export default React.memo(DiscoverySheet);

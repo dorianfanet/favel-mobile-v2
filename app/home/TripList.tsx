@@ -155,7 +155,7 @@ export default React.memo(TripList);
 
 const { width } = Dimensions.get("window");
 
-function TripCard({ trip }: { trip: Trip }) {
+export function TripCard({ trip }: { trip: Trip }) {
   const router = useRouter();
 
   return (

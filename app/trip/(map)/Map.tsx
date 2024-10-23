@@ -32,8 +32,19 @@ import {
   TripEventTransport,
 } from "@/types/trip";
 import TransportMarkers from "./TransportMarkers";
+import { useTripNavigationActions } from "@/hooks/useTripNavigationActions";
+import { PanResponder, Pressable } from "react-native";
+import PressOnly from "@/components/PressOnly";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { View } from "@/components/Themed";
+import { runOnJS, useSharedValue } from "react-native-reanimated";
 
-export default function Map() {
+type MapProps = {
+  selectedDay?: TripDay | null;
+  selectedTransportId?: string | null;
+};
+
+function Map({ selectedDay, selectedTransportId }: MapProps) {
   const {
     easing,
     padding,
@@ -72,6 +83,7 @@ export default function Map() {
 
   const onRegionIsChanging = useCallback(async () => {
     const currentZoomLevel = await mapRef.current?.getZoom();
+    // console.log("currentZoomLevel", currentZoomLevel);
     const roundedZoomLevel = Math.round(currentZoomLevel! * 2) / 2;
 
     const now = Date.now();
@@ -92,8 +104,6 @@ export default function Map() {
       }
     }
   }, [prevZoomLevel, ogGeojsonDays, state.days]);
-
-  const [selectedDay, setSelectedDay] = useState<TripDay | null>(null);
 
   const {
     selectedActivities,
@@ -129,61 +139,142 @@ export default function Map() {
     const transports = events.filter(
       (event) => event.type === "transport"
     ) as TripEventTransport[];
-    console.log(JSON.stringify(transports, null, 2));
-    const transportFeatures = transports.map((event) => {
-      return lineString(
+    // console.log(JSON.stringify(transports, null, 2));
+    // const transportFeatures = transports.map((event) => {
+    //   return lineString(
+    //     [
+    //       [
+    //         event.transport.departureCoordinates.lng,
+    //         event.transport.departureCoordinates.lat,
+    //       ],
+    //       [
+    //         event.transport.arrivalCoordinates.lng,
+    //         event.transport.arrivalCoordinates.lat,
+    //       ],
+    //     ],
+    //     event
+    //   );
+    // });
+    const transportFeatures = [
+      lineString(
         [
           [
-            event.transport.departureCoordinates.lng,
-            event.transport.departureCoordinates.lat,
+            transports[0].transport.departureCoordinates.lng,
+            transports[0].transport.departureCoordinates.lat,
           ],
           [
-            event.transport.arrivalCoordinates.lng,
-            event.transport.arrivalCoordinates.lat,
+            transports[0].transport.arrivalCoordinates.lng,
+            transports[0].transport.arrivalCoordinates.lat,
           ],
         ],
-        event
-      );
-    });
+        transports[0]
+      ),
+    ];
     return {
       selectedActivities: featureCollection(activitiesFeatures),
       selectedTransports: featureCollection(transportFeatures),
     };
   }, [selectedDay, state.days, state.events]);
 
-  return (
-    <MapView
-      mapRef={mapRef}
-      easing={easing}
-      padding={padding}
-      zoom={zoom}
-      minZoom={minZoom}
-      maxZoom={maxZoom}
-      centerOrBounds={centerOrBounds}
-      animationDuration={animationDuration}
-      onCameraChanged={onRegionIsChanging}
-      onPress={() => setSelectedDay(null)}
-    >
-      {/* Lines and Polygons */}
-      <DayPolygons
-        days={days}
-        state={state}
-      />
-      <TransportMarkers
-        transportEvents={selectedTransports}
-        mapRef={mapRef}
-      />
+  const { push, canPop, pop } = useTripNavigationActions();
 
-      {/* Markers */}
-      <NightMarkers nights={state.nights} />
-      <DayMarkers
-        days={days}
-        onPress={(id: string) => {
-          setSelectedDay(state.days.find((day) => day.id === id) || null);
+  return (
+    // <PressOnly
+    //   onPress={(event) => {
+    //     // if (canPop) {
+    //     //   pop();
+    //     // }
+    //     console.log("Pressable pressed");
+    //   mapRef.current?.queryRenderedFeaturesAtPoint(
+    //     [event.x, event.y],
+    //     ["days"], // Replace with your actual marker layer ID
+    //     (err, features) => {
+    //       if (err) {
+    //         console.error(err);
+    //         return;
+    //       }
+
+    //       // If no features (markers) were tapped, handle the map tap
+    //       if (features.length === 0) {
+    //         console.log("Map tapped at:");
+    //         // Handle your map tap logic here
+    //       }
+    //     }
+    //   );
+    // }}
+    // >
+
+    <GestureDetector
+      gesture={Gesture.Simultaneous(Gesture.Pan(), Gesture.Pinch())}
+    >
+      <Pressable
+        onPress={() => {
+          // console.log("Pressable pressed");
+          if (canPop) {
+            pop();
+          }
         }}
-        selectedDay={selectedDay ? selectedDay.id : undefined}
-      />
-      <EventMarkers events={selectedActivities} />
-    </MapView>
+        // disabled={isPanning}
+        style={{
+          flex: 1,
+        }}
+      >
+        <MapView
+          mapRef={mapRef}
+          easing={easing}
+          padding={padding}
+          zoom={zoom}
+          minZoom={minZoom}
+          maxZoom={maxZoom}
+          centerOrBounds={centerOrBounds}
+          animationDuration={animationDuration}
+          onCameraChanged={onRegionIsChanging}
+        >
+          {/* Lines and Polygons */}
+          <DayPolygons
+            days={days}
+            state={state}
+            mapRef={mapRef}
+          />
+          <TransportMarkers
+            transportEvents={selectedTransports}
+            mapRef={mapRef}
+            onPress={() => {
+              // console.log("Transport pressed");
+            }}
+            selectedTransportId={selectedTransportId}
+          />
+
+          {/* Markers */}
+          <NightMarkers nights={state.nights} />
+          <DayMarkers
+            days={days}
+            onPress={(id: string) => {
+              push({
+                bottomSheet: "calendar",
+                selectedDay: state.days.find((day) => day.id === id) || null,
+              });
+            }}
+            selectedDay={selectedDay ? selectedDay.id : undefined}
+          />
+          <EventMarkers events={selectedActivities} />
+        </MapView>
+        {/* // <PressOnly */}
+        {/* //   onPress={() => {
+    //     console.log("Pressable pressed");
+    //   }}
+    // >
+    // <Pressable
+    //   onPress={() => {
+    //     console.log("Pressable pressed");
+    //   }}
+    //   style={{
+    //     flex: 1,
+    //   }}
+    // > */}
+      </Pressable>
+    </GestureDetector>
   );
 }
+
+export default React.memo(Map);

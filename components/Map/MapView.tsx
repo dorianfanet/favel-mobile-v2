@@ -1,6 +1,6 @@
 import React, { Children } from "react";
 import MapboxGL, { CameraAnimationMode, CameraBounds } from "@rnmapbox/maps";
-import { useColorScheme } from "react-native";
+import { Pressable, useColorScheme } from "react-native";
 import { findMapStyle } from "./utils";
 import { Position } from "@turf/turf";
 import { Button, View } from "../Themed";
@@ -76,6 +76,7 @@ export default function MapView(props: MapViewProps) {
         animationDuration={animationDuration}
         animationMode={easing}
       />
+
       {children}
     </MapboxGL.MapView>
   );

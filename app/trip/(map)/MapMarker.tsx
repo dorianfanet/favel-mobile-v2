@@ -2,9 +2,11 @@ import Icon, { IconProps } from "@/components/Icon";
 import { View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import useTheme from "@/hooks/useTheme";
+import { darkenHexColor } from "@/utils/misc";
 import { MarkerView } from "@rnmapbox/maps";
 import { Position } from "@turf/turf";
 import React from "react";
+import { TouchableOpacity } from "react-native";
 import { Svg, Text as SvgText } from "react-native-svg";
 
 function MapMarker({
@@ -27,8 +29,9 @@ function MapMarker({
       key={id}
       coordinate={coordinates}
       allowOverlap={true}
+      onTouchEnd={() => {}}
     >
-      <View
+      <TouchableOpacity
         style={{
           zIndex: 20,
         }}
@@ -39,7 +42,7 @@ function MapMarker({
             height: 40,
             borderRadius: 12,
             backgroundColor: color ? color : Colors[theme].background.primary,
-            borderWidth: 2,
+            borderWidth: 1.5,
             borderColor: Colors[theme].background.secondary,
             justifyContent: "center",
             alignItems: "center",
@@ -64,9 +67,12 @@ function MapMarker({
         </View>
         <Name
           name={name}
-          color={color}
+          color={darkenHexColor(
+            color || Colors[theme].text.primary,
+            theme === "light" ? 0.2 : 0
+          )}
         />
-      </View>
+      </TouchableOpacity>
     </MarkerView>
   );
 }

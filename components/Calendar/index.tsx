@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height: screenHeight } = Dimensions.get("window");
 
-const headerHeight = 100;
+const headerHeight = 72;
 
 function Calendar({
   days,

@@ -16,6 +16,7 @@ export default {
   },
   dark: {
     background: {
+      // primary: "#060e29",
       primary: "#04101B",
       secondary: "#121D23",
     },

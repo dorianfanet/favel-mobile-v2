@@ -60,7 +60,7 @@ function DayButton({
       style={{
         alignItems: "center",
         justifyContent: "center",
-        gap: 5,
+        gap: 0,
       }}
     >
       <Text fontStyle="caption">{format(date, "E")}</Text>
@@ -68,8 +68,8 @@ function DayButton({
         style={{
           backgroundColor: Colors[theme || "light"].accent,
           borderRadius: 20,
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           justifyContent: "center",
           alignItems: "center",
         }}

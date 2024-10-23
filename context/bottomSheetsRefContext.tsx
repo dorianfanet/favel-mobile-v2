@@ -2,7 +2,7 @@ import React, { createContext, useContext, useRef, ReactNode } from "react";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { SharedValue, useSharedValue } from "react-native-reanimated";
 
-type SheetName = "calendar" | "place" | "transport"; // Add more sheet names as needed
+type SheetName = "calendar" | "place" | "transport" | "discovery"; // Add more sheet names as needed
 
 type BottomSheetRefs = {
   [key in SheetName]: React.RefObject<BottomSheet>;
@@ -29,10 +29,11 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({
     calendar: useRef<BottomSheet>(null),
     place: useRef<BottomSheet>(null),
     transport: useRef<BottomSheet>(null),
+    discovery: useRef<BottomSheet>(null),
   };
 
   const openSheet = (sheetName: SheetName) => {
-    closeAllSheets();
+    closeAllSheets(sheetName);
     sheetsRef[sheetName].current?.snapToIndex(0);
     currentSheet.current = sheetName;
   };
@@ -43,8 +44,13 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({
     currentSheet.current = "calendar";
   };
 
-  const closeAllSheets = () => {
-    Object.values(sheetsRef).forEach((sheet) => sheet.current?.close());
+  const closeAllSheets = (exclude?: SheetName) => {
+    Object.entries(sheetsRef).forEach(([key, sheet]) => {
+      if (key !== exclude) {
+        sheet.current?.close();
+      }
+    });
+    // Object.values(sheetsRef).forEach((sheet) => sheet.current?.close());
   };
 
   const collapseCurrentSheet = () => {

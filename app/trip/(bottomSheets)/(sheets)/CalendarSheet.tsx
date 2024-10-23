@@ -14,6 +14,8 @@ import { useBottomSheetRefs } from "@/context/bottomSheetsRefContext";
 
 const { height } = Dimensions.get("window");
 
+const collapsedHeight = height * 0.3;
+
 type CalendarSheetProps = {
   sheetRef: React.RefObject<BottomSheet>;
   offsetHeight: number;
@@ -69,7 +71,7 @@ function CalendarSheet({
       sheetRef={sheetRef}
       BackdropComponent={({ position }) => renderBackdrop(position)}
       offsetHeight={offsetHeight}
-      snapPoints={[150, offsetHeight]}
+      snapPoints={[collapsedHeight, offsetHeight]}
     >
       <View
         style={{
